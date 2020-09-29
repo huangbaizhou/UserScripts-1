@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - Totally not a Bot
 // @namespace  Hentai Verse
-// @version    2.3.0 NOT TESTED VERSION
+// @version    2.3.0
 // @author     Svildr
 // @match      https://hentaiverse.org/?s=Battle*
 // @match      https://hentaiverse.org/?encounter=*
@@ -9,7 +9,7 @@
 // ==/UserScript==
 
 //## Mage BoT
-///TODO: Use Spirit, Defend, Focus.
+///TODO: Use Spirit, Defend, Focus. Flee
 
 
 /* This bot is better used with 
@@ -51,7 +51,7 @@ var BotConfig = {
 
     Arena: {
         // Be aware of your items, it`ll not repair or use enchant
-        AutoStart: true,
+        AutoStart: false,
 
         // Only starts arena if you stamina is over 80%
         // if set to false it'll start arena if you stamina is over 20% (after all there is no use of doing arena if you don`t get anything)
@@ -61,13 +61,13 @@ var BotConfig = {
         ChangeDifficulty: true,
     },
 
-
-    // All are in Percentage -- To remove any specific Potion change the value to -1
-    // Don't change the name or the type unless you know exacly what you are doing.
     Potion: {
         Active: true,
         UseMysticGem: true,
         PriorityOrder: ["Health", "Mana", "Spirit"],
+        
+        // All are in Percentage -- To remove any specific Potion change the value to -1
+        // Don't change the name or the type unless you know exacly what you are doing.
         Health: [
             { Type: "Item", Name: "Health Elixir", UseAt: 10 },
             { Type: "Item", Name: "Health Potion", UseAt: 30 }, //35
@@ -91,11 +91,11 @@ var BotConfig = {
     },
 
 
-    //*************************************************************
+    //**************************************************************
     //
-    //              DONT CHANGE ANYTHING FROM HERE ON
+    //              DON'T CHANGE ANYTHING FROM HERE ON
     //
-    //*************************************************************
+    //**************************************************************
     Player: {
         Health: 0,
         Mana: 0,
@@ -133,7 +133,7 @@ var BotConfig = {
 ////#Extras
 var Url = window.location.href;
 
-function e(b) {
+function $$(b) {
     if (b.indexOf("#") > -1)
         if (parseInt(b[b.indexOf("#") + 1]))
             b = b.replace(b[b.indexOf("#") + 1], CSS.escape(b[b.indexOf("#") + 1]))
@@ -178,11 +178,11 @@ BotConfig.Riddle.Combinations = {
     "454e9d852b": "C", "bd5cc28054": "C", "1a45149570": "C", "5f82e0f9c9": "C", "20fd0048ff": "C", "0861b61cdc": "C", "18fb4b4a6e": "C", "a036f0ba2b": "C",
     "1b87a375a0": "C", "08893df887": "C", "6d02b7f91f": "C", "7be47fe5c0": "C", "dead34f02c": "C", "2da78f830e": "C", "e2af2b85b7": "C", "679c46d24f": "C",
     "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
-    "359872d4e2": "C"
+    "359872d4e2": "C", "63623fcb22": "C",
 };
 
 BotConfig.UseSpell = function (spellName) {
-    var spell = e("#" + this.MagicSpell[spellName]);
+    var spell = $$("#" + this.MagicSpell[spellName]);
 
     if (spell.style.opacity != "0.5") {
         spell.click();
@@ -191,7 +191,7 @@ BotConfig.UseSpell = function (spellName) {
         return true;
     }
 
-    //console.log("Could not use Spell:" + spellName); 
+    console.log("Could not use Spell:" + spellName); 
     return false;
 }
 BotConfig.UseItem = function (itemName) {
@@ -328,9 +328,9 @@ BotConfig.Arena.Start = function () {
     if (this.AutoStart) { // Auto start arena future
         if ($("#arena_list").length > 0) {
             let tempStamina = 0;
-
-            if (typeof(e) !== 'undefined' && e(".fc4.far.fcb"))
-                tempStamina = parseInt(e(".fc4.far.fcb").innerText.replace("Stamina:", ""));
+            
+            if ($$(".fc4.far.fcb"))
+                tempStamina = parseInt($$(".fc4.far.fcb").innerText.replace("Stamina:", ""));
 
             if ((this.CheckStamina && tempStamina > 80) || (!this.CheckStamina && tempStamina > 20)) {
                 if (Url.indexOf("&ss=ar") > 0) {
@@ -354,10 +354,10 @@ BotConfig.Arena.Start = function () {
 
                     // Change Difficulty
                     if (this.ChangeDifficulty) {
-                        if ($(".fc4.far.fcb select")[0].style.display == 'none') return;
+                        if ($$(".fc4.far.fcb select").style.display == 'none') return;
 
                         var difficulty = arena.parentElement.parentElement.children[1].innerText.trim();
-                        var selectedDifficulty = $(".fc4.far.fcb select")[0].value;
+                        var selectedDifficulty = $$(".fc4.far.fcb select").value;
 
                         if (difficulty != selectedDifficulty) {
                             let listOption = $('.fc4.far.fcb select option');//.selected = true;
@@ -367,7 +367,7 @@ BotConfig.Arena.Start = function () {
                             });
 
                             option[0].selected = true;
-                            var e = { "target": $(".fc4.far.fcb select")[0] };
+                            var e = { "target": $$(".fc4.far.fcb select") };
                             e.target.onchange(e);
 
                             return true;
@@ -376,9 +376,9 @@ BotConfig.Arena.Start = function () {
 
                     //Start Arena 
                     window["init_battle"] = function (id, entrycost, token) {
-                        $("#initid")[0].value = id;
-                        $("#inittoken")[0].value = token;
-                        $("#initform")[0].submit();
+                        $$("#initid").value = id;
+                        $$("#inittoken").value = token;
+                        $$("#initform").submit();
                     }
 
                     arena.click();
@@ -392,14 +392,14 @@ BotConfig.Arena.Start = function () {
 
 BotConfig.Fight.Advance = function () {
     if (this.AdvanceVictory) {
-        if (e("#pane_completion #btcp")) {
-            if (e("#btcp").onclick.toString().indexOf("battle.battle_continue()") > 0) {
+        if ($$("#pane_completion #btcp")) {
+            if ($$("#btcp").onclick.toString().indexOf("battle.battle_continue()") > 0) {
                 battle.battle_continue();
-            } else if (e("#btcp").innerText.indexOf("You have been defeated!") > -1) {
+            } else if ($$("#btcp").innerText.indexOf("You have been defeated!") > -1) {
                 let counter = "";
 
-                if (e(".hvstat-round-counter"))
-                    counter = e(".hvstat-round-counter").innerHTML;
+                if ($$(".hvstat-round-counter"))
+                    counter = $$(".hvstat-round-counter").innerHTML;
 
                 console.log("You lost at: " + counter);
                 localStorage.lastMatch = "You lost at: " + counter;
@@ -422,7 +422,7 @@ BotConfig.Fight.Advance = function () {
 
 BotConfig.Riddle.Start = function () {
     if (this.Active && $("#riddlemaster").length > 0) {
-        let src = $("#riddlebot img")[0].src;
+        let src = $$("#riddlebot img").src;
         src = src.substr(src.indexOf("&v=") + 3);
 
         var answer = this.Combinations[src];
@@ -430,8 +430,8 @@ BotConfig.Riddle.Start = function () {
         if (answer != null) {
             console.log("Your ass has been saved by the all mighty god. Answer: " + answer);
 
-            $('#riddleanswer')[0].value = answer;
-            $('#riddleform')[0].submit();
+            $$('#riddleanswer').value = answer;
+            $$('#riddleform').submit();
         } else {
             beep();
             setInterval(beep, 150);
@@ -458,9 +458,9 @@ BotConfig.Buff.Start = function () {
 
 BotConfig.Player.GetStatus = function () {
     try {
-        this.Health = $("#vbh img")[0].width / $("#vbh")[0].clientWidth * 100;
-        this.Mana = $("#vbm img")[0].width / $("#vbm")[0].clientWidth * 100;
-        this.Spirit = $("#vbs img")[0].width / $("#vbs")[0].clientWidth * 100;
+        this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
+        this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
+        this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
 
         return false;
     } catch (e) {
@@ -653,9 +653,9 @@ BotConfig.Fight.Attack = function () {
 
 /* Start Stop */
 
-window["botInterval"] = setInterval(function () { BotConfig.Start(); }, 300);
+window["botInterval"] = setInterval(function () { BotConfig.Start(); }, 400); // Normally takes about 350ms for the requisition to return, check your reqs, if it's faster for you, you can reduce it.
 
-var totalExp = $("#expbar").length > 0 ? $("#expbar")[0].width / 1235 * 100 : 0;
+var totalExp = $$("#expbar") ? $$("#expbar").width / 1235 * 100 : 0;
 var span = document.createElement("span");
 
 if ($("#arena_pages").length > 0) {
@@ -674,15 +674,15 @@ window["botStop"] = function () {
     //console.log("Bot Stopped");
 
     if (window["botStopped"]) {
-        window["botInterval"] = setInterval(function () { BotConfig.Start(); }, 300);
+        window["botInterval"] = setInterval(function () { BotConfig.Start(); }, 400); // Normally takes about 350ms for the requisition to return, check your reqs, if it's faster for you, you can reduce it.
 
-        if ($("#startStopBot").length > 0)
-            $("#startStopBot")[0].innerText = "Stop Bot";
+        if ($$("#startStopBot"))
+            $$("#startStopBot").innerText = "Stop Bot";
     } else {
         clearInterval(botInterval);
 
-        if ($("#startStopBot").length > 0)
-            $("#startStopBot")[0].innerText = "Start Bot";
+        if ($$("#startStopBot"))
+            $$("#startStopBot").innerText = "Start Bot";
     }
 
     window["botStopped"] = !window["botStopped"];
