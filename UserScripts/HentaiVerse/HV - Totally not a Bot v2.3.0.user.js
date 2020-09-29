@@ -212,7 +212,7 @@ BotConfig.UseItem = function (itemName) {
     return false;
 }
 
-BotConfig.GetMonsterByName = function (name) {
+BotConfig.Fight.GetMonsterByName = function (name) {
     var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
     monsterList = Array.prototype.filter.call(monsterList, function (element) {
@@ -224,7 +224,7 @@ BotConfig.GetMonsterByName = function (name) {
 
     return null;
 }
-BotConfig.GetTarget = function () {
+BotConfig.Fight.GetTarget = function () {
     var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
     if (monsterList.length == 0)
@@ -329,7 +329,7 @@ BotConfig.Arena.Start = function () {
         if ($("#arena_list").length > 0) {
             let tempStamina = 0;
 
-            if (e(".fc4.far.fcb"))
+            if (typeof(e) !== 'undefined' && e(".fc4.far.fcb"))
                 tempStamina = parseInt(e(".fc4.far.fcb").innerText.replace("Stamina:", ""));
 
             if ((this.CheckStamina && tempStamina > 80) || (!this.CheckStamina && tempStamina > 20)) {
@@ -473,7 +473,7 @@ BotConfig.Player.GetStatus = function () {
 
 BotConfig.Potion.Use = function () {
     if (this.Active) {
-        if (this.UseMysticGem && Item("Mystic Gem"))
+        if (this.UseMysticGem && BotConfig.UseItem("Mystic Gem"))
             return true;
 
         for (var i = 0; i < this.PriorityOrder.length; i++) {
@@ -487,9 +487,9 @@ BotConfig.Potion.Use = function () {
                 let name = listPotion[j].Name;
 
                 if (actualValue <= useAt) {
-                    if (type == "Item" && Item(name))
+                    if (type == "Item" && BotConfig.UseItem(name))
                         return true;
-                    else if (type == "Spell" && Spell(name))
+                    else if (type == "Spell" && BotConfig.UseSpell(name))
                         return true;
 
                     //console.log(`Err: USE: ${useAt} || Type: ${type} || Name: ${name}`);
@@ -505,7 +505,7 @@ BotConfig.Buff.Use = function () {
     if (this.Active && this.BuffsToUse && this.BuffsToUse.length > 0)
         for (let i = 0; i < this.BuffsToUse.length; i++)
             if (!In(this.ListOfBuffsOn, this.BuffsToUse[i]))
-                if (Spell(this.BuffsToUse[i]))
+                if (BotConfig.UseSpell(this.BuffsToUse[i]))
                     return true;
 
     return false;
@@ -528,7 +528,7 @@ BotConfig.Debuff.Use = function () {
 
             for (let j = 0; j < this.DebuffsToUse.length; j++) {
                 if (!In(listOfDebuffsOn, this.DebuffsToUse[j])) {
-                    if (Spell(this.DebuffsToUse[j])) {
+                    if (BotConfig.UseSpell(this.DebuffsToUse[j])) {
                         monsterList[i].click();
                         return true;
                     }
@@ -557,7 +557,7 @@ BotConfig.Fight.Scan = function () {
                 if (!In(this.NotScanList, monsterName)) {
                     this.NotScanList.push(monsterName);
 
-                    if (Spell("Scan")) {
+                    if (BotConfig.UseSpell("Scan")) {
                         newMonsters[i].className += " scanned";
                         newMonsters[i].parentElement.click();
                         return true;
@@ -580,27 +580,27 @@ BotConfig.Fight.Attack = function () {
         var monster = null;
 
         if (Url.indexOf("&ss=rb") > 0) {
-            monster = GetMonsterByName("Yggdrasil");  //Heal
+            monster = this.GetMonsterByName("Yggdrasil");  //Heal
 
             if (monster == null)
-                monster = GetMonsterByName("Flying Spaghetti Monster");  //Puff of Logic
+                monster = this.GetMonsterByName("Flying Spaghetti Monster");  //Puff of Logic
 
             //if(monster == null)
-            //  monster = GetMonsterByName("Drogon");
+            //  monster = this.GetMonsterByName("Drogon");
             //
             //if(monster == null)
-            //  monster = GetMonsterByName("Rhaegal");
+            //  monster = this.GetMonsterByName("Rhaegal");
             //
             //if(monster == null)
-            //  monster = GetMonsterByName("Viserion");
+            //  monster = this.GetMonsterByName("Viserion");
             //
             //if(monster == null)
-            //  monster = GetMonsterByName("Real Life");
+            //  monster = this.GetMonsterByName("Real Life");
             //  
         }
 
         if (monster == null)
-            monster = GetTarget();
+            monster = this.GetTarget();
 
 
         if (monster == null) {
@@ -640,7 +640,7 @@ BotConfig.Fight.Attack = function () {
                 console.log(weakness);
             }
 
-        if (Spell(spell)) {
+        if (BotConfig.UseSpell(spell)) {
             monster.click();
             return true;
         }
@@ -653,7 +653,7 @@ BotConfig.Fight.Attack = function () {
 
 /* Start Stop */
 
-window["botInterval"] = setInterval(StartBot, 300);
+window["botInterval"] = setInterval(function () { BotConfig.Start(); }, 300);
 
 var totalExp = $("#expbar").length > 0 ? $("#expbar")[0].width / 1235 * 100 : 0;
 var span = document.createElement("span");
@@ -674,7 +674,7 @@ window["botStop"] = function () {
     //console.log("Bot Stopped");
 
     if (window["botStopped"]) {
-        window["botInterval"] = setInterval(StartBot, 300);
+        window["botInterval"] = setInterval(function () { BotConfig.Start(); }, 300);
 
         if ($("#startStopBot").length > 0)
             $("#startStopBot")[0].innerText = "Stop Bot";
