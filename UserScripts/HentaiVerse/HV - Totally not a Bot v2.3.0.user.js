@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - Totally not a Bot
 // @namespace  Hentai Verse
-// @version    2.2.0
+// @version    2.3.0 NOT TESTED VERSION
 // @author     Svildr
 // @match      https://hentaiverse.org/?s=Battle*
 // @match      https://hentaiverse.org/?encounter=*
@@ -20,34 +20,51 @@
 
 
 var BotConfig = {
-    ScanCreature: true,
-    Attack: true,
-    UseBuff: true,
-    UseDebuff: true,
-    DebuffMinMana: 25,
+    Fight: {
+        Active: true,
+        ScanCreature: true,
+        AdvanceVictory: true,
 
-    DoRiddle: true,
-    AdvanceVictory: true,
+        // 1 - AoE in the Middle
+        // 2 - Attack the weakest
+        // 3 - Attack the one with the lower health
+        // 4 - Attack in the disposition order
+        Order: 3,
+    },
 
-    // Be aware of your items, it`ll not repair or use enchant
-    AutoStartArena: true,
+    Buff: {
+        Active: true,
+        BuffsToUse: ["Spark of Life", "Absorb", "Haste", "Regen", "Protection", "Shadow Veil", "Arcane Focus", "Spirit Shield"], // , Heartseeker
+    },
 
-    // Only starts arena if you stamina is over 80%
-    // if set to false it'll start arena if you stamina is over 20% (after all there is no use of doing arena if you don`t get anything)
-    StartArenaWithStamina: true,
+    Debuff: {
+        Active: true,
 
-    // Changes difficulty to the highest you played that arena. -- only works with the script "Inline Difficulty Changer"
-    ChangeArenaDifficulty: true,
+        // The Minimal Amount of mana needed to use Debuff (%)
+        MinMana: 25,
+        DebuffsToUse: ["Imperil"] //, "Weaken", "Slow"
+    },
 
-    // 1 - AoE in the Middle
-    // 2 - Attack the weakest
-    // 3 - Attack the one with the lower health
-    // 4 - Attack in the disposition order
-    AttackOrder: 3,
+    Riddle: {
+        Active: true
+    },
+
+    Arena: {
+        // Be aware of your items, it`ll not repair or use enchant
+        AutoStart: true,
+
+        // Only starts arena if you stamina is over 80%
+        // if set to false it'll start arena if you stamina is over 20% (after all there is no use of doing arena if you don`t get anything)
+        CheckStamina: true,
+
+        // Changes difficulty to the highest you played that arena. -- only works with the script "Inline Difficulty Changer"
+        ChangeDifficulty: true,
+    },
+
 
     // All are in Percentage -- To remove any specific Potion change the value to -1
     // Don't change the name or the type unless you know exacly what you are doing.
-    Potions: {
+    Potion: {
         Active: true,
         UseMysticGem: true,
         PriorityOrder: ["Health", "Mana", "Spirit"],
@@ -73,17 +90,49 @@ var BotConfig = {
         ]
     },
 
-    BuffsToUse: ["Spark of Life", "Absorb", "Haste", "Regen", "Protection", "Shadow Veil", "Arcane Focus", "Spirit Shield"], // , Heartseeker
-    DebuffsToUse: ["Imperil"] //, "Weaken", "Slow"
+
+    //*************************************************************
+    //
+    //              DONT CHANGE ANYTHING FROM HERE ON
+    //
+    //*************************************************************
+    Player: {
+        Health: 0,
+        Mana: 0,
+        Spirit: 0
+    },
+
+    MagicSpell: {
+        //Skills
+        "Flee": 1001, "Scan": 1011,
+        "Concussive Strike": 2501,
+
+        "Fiery Blast": 111, "Inferno": 112, "Flames of Loki": 113,  //"Fire": { 
+        "Freeze": 121, "Blizzard": 122, "Fimbulvertr": 123,     //"Cold": { 
+        "Shockblast": 131, "Chained Lightning": 132, "Wrath of Thor": 133,   //"Elec": { 
+        "Gale": 141, "Downburst": 142, "Storms of Njord": 143, //"Wind": { 
+        "Smite": 151, "Banishment": 152, "Paradise Lost": 153,   //"Holy": { 
+        "Corruption": 161, "Disintegrate": 162, "Ragnarok": 163,        //"Dark": { 
+
+        //Deprecating
+        "Drain": 211, "Weaken": 212, "Imperil": 213,
+        "Slow": 221, "Sleep": 222, "Confuse": 223,
+        "Blind": 231, "Silence": 232, "MagNet": 233,
+
+        //Curative
+        "Cure": 311, "Regen": 312, "Full-Cure": 313,
+
+        //Supportive
+        "Protection": 411, "Haste": 412, "Shadow Veil": 413,
+        "Absorb": 421, "Spark of Life": 422, "Spirit Shield": 423,
+        "Heartseeker": 431, "Arcane Focus": 432
+    }
 };
 
-//*************************************************************
-//
-//              DONT CHANGE ANYTHING FROM HERE ON
-//
-//*************************************************************
 
 ////#Extras
+var Url = window.location.href;
+
 function e(b) {
     if (b.indexOf("#") > -1)
         if (parseInt(b[b.indexOf("#") + 1]))
@@ -99,8 +148,41 @@ function $(b) {
     return document.querySelectorAll(b);
 }
 
-function Spell(spellName) {
-    var spell = e("#" + BotData.MagicSpell[spellName]);
+function In(list, str) {
+    for (var i = 0; i < list.length; i++)
+        if (list[i].indexOf(str) > -1)
+            return true;
+
+    return false;
+}
+function Has(str, str2) {
+    return str.indexOf(str2) > -1;
+}
+
+/////////////// KEYS
+BotConfig.Fight.NotScanList = [] // Don't change
+BotConfig.Buff.ListOfBuffsOn = [] // Don't change
+BotConfig.Riddle.Combinations = {
+    "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
+    "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
+    "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
+    "8e73159fd8": "A", "da7a5af305": "A", "6ae1a72220": "A", "6574e82166": "A", "68d3878db4": "A", "13fb1c539a": "A", "f3c423a3c3": "A", "afbdd89f1b": "A",
+
+
+    "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
+    "182d227be2": "B", "daefa9752a": "B", "27900890bd": "B", "010cac29dc": "B", "3fa836e583": "B", "2d1cef08dd": "B", "5877a95912": "B", "6728d3c5fb": "B",
+    "a92887a00d": "B", "983f700578": "B", "e7cd6e413c": "B", "80aa025f23": "B", "39954aa3b8": "B", "99794cbcf5": "B", "b305f18a51": "B", "a00b2b82cc": "B",
+    "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B",
+
+    "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
+    "454e9d852b": "C", "bd5cc28054": "C", "1a45149570": "C", "5f82e0f9c9": "C", "20fd0048ff": "C", "0861b61cdc": "C", "18fb4b4a6e": "C", "a036f0ba2b": "C",
+    "1b87a375a0": "C", "08893df887": "C", "6d02b7f91f": "C", "7be47fe5c0": "C", "dead34f02c": "C", "2da78f830e": "C", "e2af2b85b7": "C", "679c46d24f": "C",
+    "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
+    "359872d4e2": "C"
+};
+
+BotConfig.UseSpell = function (spellName) {
+    var spell = e("#" + this.MagicSpell[spellName]);
 
     if (spell.style.opacity != "0.5") {
         spell.click();
@@ -112,7 +194,7 @@ function Spell(spellName) {
     //console.log("Could not use Spell:" + spellName); 
     return false;
 }
-function Item(itemName) {
+BotConfig.UseItem = function (itemName) {
     var items = $("#pane_item div[id^='ikey_']");
 
     items = Array.prototype.filter.call(items, function (element) {
@@ -130,7 +212,7 @@ function Item(itemName) {
     return false;
 }
 
-function GetMonsterByName(name) {
+BotConfig.GetMonsterByName = function (name) {
     var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
     monsterList = Array.prototype.filter.call(monsterList, function (element) {
@@ -142,7 +224,7 @@ function GetMonsterByName(name) {
 
     return null;
 }
-function GetTarget() {
+BotConfig.GetTarget = function () {
     var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
     if (monsterList.length == 0)
@@ -150,7 +232,7 @@ function GetTarget() {
 
     var monster = monsterList[0];
 
-    switch (BotConfig.AttackOrder) { // Tactics
+    switch (this.Attack.AttackOrder) { // Tactics
         case 1:  //  Use AoE middle
             monster = monsterList[monsterList.length > 1 ? parseInt(monsterList.length / 2) : 0];
             break;
@@ -208,121 +290,50 @@ function GetTarget() {
     return monster;
 }
 
-function In(list, str) {
-    for (var i = 0; i < list.length; i++)
-        if (list[i].indexOf(str) > -1)
-            return true;
-
-    return false;
-}
-function Has(str, str2) {
-    return str.indexOf(str2) > -1;
-}
-
-
-/////////////// KEYS
-var BotData = {
-    Url: window.location.href,
-
-    MagicSpell: {
-        //Skills
-        "Flee": 1001, "Scan": 1011,
-        "Concussive Strike": 2501,
-
-        "Fiery Blast": 111, "Inferno": 112, "Flames of Loki": 113,  //"Fire": { 
-        "Freeze": 121, "Blizzard": 122, "Fimbulvertr": 123,     //"Cold": { 
-        "Shockblast": 131, "Chained Lightning": 132, "Wrath of Thor": 133,   //"Elec": { 
-        "Gale": 141, "Downburst": 142, "Storms of Njord": 143, //"Wind": { 
-        "Smite": 151, "Banishment": 152, "Paradise Lost": 153,   //"Holy": { 
-        "Corruption": 161, "Disintegrate": 162, "Ragnarok": 163,        //"Dark": { 
-
-        //Deprecating
-        "Drain": 211, "Weaken": 212, "Imperil": 213,
-        "Slow": 221, "Sleep": 222, "Confuse": 223,
-        "Blind": 231, "Silence": 232, "MagNet": 233,
-
-        //Curative
-        "Cure": 311, "Regen": 312, "Full-Cure": 313,
-
-        //Supportive
-        "Protection": 411, "Haste": 412, "Shadow Veil": 413,
-        "Absorb": 421, "Spark of Life": 422, "Spirit Shield": 423,
-        "Heartseeker": 431, "Arcane Focus": 432
-    },
-
-    RiddleMaster: {
-        "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
-        "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
-        "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
-        "8e73159fd8": "A", "da7a5af305": "A", "6ae1a72220": "A", "6574e82166": "A", "68d3878db4": "A", "13fb1c539a": "A", "f3c423a3c3": "A", "afbdd89f1b": "A",
-
-
-        "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
-        "182d227be2": "B", "daefa9752a": "B", "27900890bd": "B", "010cac29dc": "B", "3fa836e583": "B", "2d1cef08dd": "B", "5877a95912": "B", "6728d3c5fb": "B",
-        "a92887a00d": "B", "983f700578": "B", "e7cd6e413c": "B", "80aa025f23": "B", "39954aa3b8": "B", "99794cbcf5": "B", "b305f18a51": "B", "a00b2b82cc": "B",
-        "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B",
-
-        "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
-        "454e9d852b": "C", "bd5cc28054": "C", "1a45149570": "C", "5f82e0f9c9": "C", "20fd0048ff": "C", "0861b61cdc": "C", "18fb4b4a6e": "C", "a036f0ba2b": "C",
-        "1b87a375a0": "C", "08893df887": "C", "6d02b7f91f": "C", "7be47fe5c0": "C", "dead34f02c": "C", "2da78f830e": "C", "e2af2b85b7": "C", "679c46d24f": "C",
-        "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
-        "359872d4e2": "C"
-    },
-
-    NotScanList: [],
-
-    Player: {
-        Health: 0,
-        Mana: 0,
-        Spirit: 0,
-        ListOfBuffsOn: [],
-    }
-};
-
-function StartBot() {
-    if (AutoArena())
+BotConfig.Start = function () {
+    if (this.Arena.Start())
         return;
 
-    if (AdvanceVictory())
+    if (this.Fight.Advance())
         return;
 
-    if (DoRiddle())
+    if (this.Riddle.Start())
         return;
 
-    GetActiveBuffs();
+    this.Buff.Start();
 
-    if (!GetPlayerStatus())
+    if (this.Player.GetStatus())
         return;
 
-    if (UsePotion())
+    if (this.Potion.Use())
         return;
 
-    if (UseBuff())
+    if (this.Buff.Use())
         return;
 
-    if (UseDebuff())
+    if (this.Debuff.Use())
         return;
 
-    if (ScanCreature())
+    if (this.Fight.Scan())
         return;
 
-    if (AttackCreature())
+    if (this.Fight.Attack())
         return;
 
     console.log("Nothing to do here.");
     botStop();
 }
 
-function AutoArena() {
-    if (BotConfig.AutoStartArena) { // Auto start arena future
+BotConfig.Arena.Start = function () {
+    if (this.AutoStart) { // Auto start arena future
         if ($("#arena_list").length > 0) {
             let tempStamina = 0;
 
             if (e(".fc4.far.fcb"))
                 tempStamina = parseInt(e(".fc4.far.fcb").innerText.replace("Stamina:", ""));
 
-            if ((BotConfig.StartArenaWithStamina && tempStamina > 80) || (!BotConfig.StartArenaWithStamina && tempStamina > 20)) {
-                if (BotData.Url.indexOf("&ss=ar") > 0) {
+            if ((this.CheckStamina && tempStamina > 80) || (!this.CheckStamina && tempStamina > 20)) {
+                if (Url.indexOf("&ss=ar") > 0) {
                     var listArena = $("#arena_list tr > td:last-child > img[src='/y/arena/startchallenge.png']");
                 } else {
                     var listArena = $("#arena_list tr");
@@ -336,13 +347,13 @@ function AutoArena() {
 
 
                 if (listArena.length == 0) {
-                    if (BotData.Url.indexOf("&ss=ar") > 0 && BotData.Url.indexOf("&page=2") == -1)
+                    if (Url.indexOf("&ss=ar") > 0 && Url.indexOf("&page=2") == -1)
                         window.location.href = window.location.href + "&page=2";
                 } else {
                     var arena = listArena[0];
 
                     // Change Difficulty
-                    if (BotConfig.ChangeArenaDifficulty) {
+                    if (this.ChangeDifficulty) {
                         if ($(".fc4.far.fcb select")[0].style.display == 'none') return;
 
                         var difficulty = arena.parentElement.parentElement.children[1].innerText.trim();
@@ -379,8 +390,8 @@ function AutoArena() {
     return false;
 }
 
-function AdvanceVictory() {
-    if (BotConfig.AdvanceVictory) {
+BotConfig.Fight.Advance = function () {
+    if (this.AdvanceVictory) {
         if (e("#pane_completion #btcp")) {
             if (e("#btcp").onclick.toString().indexOf("battle.battle_continue()") > 0) {
                 battle.battle_continue();
@@ -409,12 +420,12 @@ function AdvanceVictory() {
     return false;
 }
 
-function DoRiddle() {
-    if (BotConfig.DoRiddle && $("#riddlemaster").length > 0) {
+BotConfig.Riddle.Start = function () {
+    if (this.Active && $("#riddlemaster").length > 0) {
         let src = $("#riddlebot img")[0].src;
         src = src.substr(src.indexOf("&v=") + 3);
 
-        var answer = BotData.RiddleMaster[src];
+        var answer = this.Combinations[src];
 
         if (answer != null) {
             console.log("Your ass has been saved by the all mighty god. Answer: " + answer);
@@ -434,46 +445,46 @@ function DoRiddle() {
     return false;
 }
 
-function GetActiveBuffs() {
-    BotData.Player.ListOfBuffsOn = [];
+BotConfig.Buff.Start = function () {
+    this.ListOfBuffsOn = [];
 
     for (let i = 0; i < $("#pane_effects img").length; i++) {
         var str = $("#pane_effects img")[i].onmouseover.toString();
         str = str.substr(str.indexOf("effect('") + 8);
         str = str.substr(0, str.indexOf("\',"));
-        BotData.Player.ListOfBuffsOn.push(str);
+        this.ListOfBuffsOn.push(str);
     }
 }
 
-function GetPlayerStatus() {
+BotConfig.Player.GetStatus = function () {
     try {
-        BotData.Player.Health = $("#vbh img")[0].width / $("#vbh")[0].clientWidth * 100;
-        BotData.Player.Mana = $("#vbm img")[0].width / $("#vbm")[0].clientWidth * 100;
-        BotData.Player.Spirit = $("#vbs img")[0].width / $("#vbs")[0].clientWidth * 100;
+        this.Health = $("#vbh img")[0].width / $("#vbh")[0].clientWidth * 100;
+        this.Mana = $("#vbm img")[0].width / $("#vbm")[0].clientWidth * 100;
+        this.Spirit = $("#vbs img")[0].width / $("#vbs")[0].clientWidth * 100;
 
-        return true;
+        return false;
     } catch (e) {
         console.log("Cound get your life/mana/spirit data.");
         botStop();
     }
 
-    return false;
+    return true;
 }
 
-function UsePotion() {
-    if (BotConfig.Potions.Active) {
-        if (BotConfig.Potions.UseMysticGem && Item("Mystic Gem"))
+BotConfig.Potion.Use = function () {
+    if (this.Active) {
+        if (this.UseMysticGem && Item("Mystic Gem"))
             return true;
 
-        for (var i = 0; i < BotConfig.Potions.PriorityOrder.length; i++) {
-            let priority = BotConfig.Potions.PriorityOrder[i];
-            let actualValue = BotData.Player[priority];
-            let listPotions = BotConfig.Potions[priority].sort(function (a, b) { return a.UseAt - b.UsetAt });
+        for (var i = 0; i < this.PriorityOrder.length; i++) {
+            let priority = this.PriorityOrder[i];
+            let actualValue = BotConfig.Player[priority];
+            let listPotion = this[priority].sort(function (a, b) { return a.UseAt - b.UsetAt });
 
-            for (var j = 0; j < listPotions.length; j++) {
-                let useAt = listPotions[j].UseAt;
-                let type = listPotions[j].Type;
-                let name = listPotions[j].Name;
+            for (var j = 0; j < listPotion.length; j++) {
+                let useAt = listPotion[j].UseAt;
+                let type = listPotion[j].Type;
+                let name = listPotion[j].Name;
 
                 if (actualValue <= useAt) {
                     if (type == "Item" && Item(name))
@@ -490,18 +501,18 @@ function UsePotion() {
     return false;
 }
 
-function UseBuff() {
-    if (BotConfig.UseBuff && BotConfig.BuffsToUse && BotConfig.BuffsToUse.length > 0)
-        for (let i = 0; i < BotConfig.BuffsToUse.length; i++)
-            if (!In(BotData.Player.ListOfBuffsOn, BotConfig.BuffsToUse[i]))
-                if (Spell(BotConfig.BuffsToUse[i]))
+BotConfig.Buff.Use = function () {
+    if (this.Active && this.BuffsToUse && this.BuffsToUse.length > 0)
+        for (let i = 0; i < this.BuffsToUse.length; i++)
+            if (!In(this.ListOfBuffsOn, this.BuffsToUse[i]))
+                if (Spell(this.BuffsToUse[i]))
                     return true;
 
     return false;
 }
 
-function UseDebuff() {
-    if (BotConfig.UseDebuff && BotData.Player.Mana > BotConfig.DebuffMinMana) { // Don't debuff if you have low mana
+BotConfig.Debuff.Use = function () {
+    if (this.UseDebuff && BotConfig.Player.Mana > this.MinMana) { // Don't debuff if you have low mana
         var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
         for (let i = 0; i < monsterList.length; i++) {
@@ -515,9 +526,9 @@ function UseDebuff() {
                 listOfDebuffsOn.push(str);
             }
 
-            for (let j = 0; j < BotConfig.DebuffsToUse.length; j++) {
-                if (!In(listOfDebuffsOn, BotConfig.DebuffsToUse[j])) {
-                    if (Spell(BotConfig.DebuffsToUse[j])) {
+            for (let j = 0; j < this.DebuffsToUse.length; j++) {
+                if (!In(listOfDebuffsOn, this.DebuffsToUse[j])) {
+                    if (Spell(this.DebuffsToUse[j])) {
                         monsterList[i].click();
                         return true;
                     }
@@ -529,22 +540,22 @@ function UseDebuff() {
     return false;
 }
 
-function ScanCreature() {
-    if (BotConfig.ScanCreature) {
+BotConfig.Fight.Scan = function () {
+    if (this.ScanCreature) {
         var newMonsters = $(".hvstat-scan-button.hvstat-scan-button-highlight");
 
         if (newMonsters.length > 0) {
             var i = 0;
 
-            while (i < newMonsters.length && In(BotData.NotScanList, newMonsters[i].parentElement.innerText))
+            while (i < newMonsters.length && In(this.NotScanList, newMonsters[i].parentElement.innerText))
                 i++;
 
 
             if (i < newMonsters.length) {
                 let monsterName = newMonsters[i].parentElement.innerText;
 
-                if (!In(BotData.NotScanList, monsterName)) {
-                    BotData.NotScanList.push(monsterName);
+                if (!In(this.NotScanList, monsterName)) {
+                    this.NotScanList.push(monsterName);
 
                     if (Spell("Scan")) {
                         newMonsters[i].className += " scanned";
@@ -564,11 +575,11 @@ function ScanCreature() {
     return false;
 }
 
-function AttackCreature() {
-    if (BotConfig.Attack) {
+BotConfig.Fight.Attack = function () {
+    if (this.Active) {
         var monster = null;
 
-        if (BotData.Url.indexOf("&ss=rb") > 0) {
+        if (Url.indexOf("&ss=rb") > 0) {
             monster = GetMonsterByName("Yggdrasil");  //Heal
 
             if (monster == null)
