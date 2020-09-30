@@ -512,7 +512,7 @@ BotConfig.Buff.Use = function () {
 }
 
 BotConfig.Debuff.Use = function () {
-    if (this.UseDebuff && BotConfig.Player.Mana > this.MinMana) { // Don't debuff if you have low mana
+    if (this.Active && BotConfig.Player.Mana > this.MinMana) { // Don't debuff if you have low mana
         var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
         for (let i = 0; i < monsterList.length; i++) {
