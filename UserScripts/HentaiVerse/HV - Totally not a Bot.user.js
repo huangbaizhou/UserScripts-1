@@ -4,7 +4,7 @@
 // @version    2.4.2
 // @author     Svildr
 // @match      https://hentaiverse.org/?s=Battle*
-// @match      https://hentaiverse.org/?s=Character&ss=eq*
+// @match      https://hentaiverse.org/?s=Character&ss=tr
 // @match      https://hentaiverse.org/?s=Forge&ss=re*
 // @match      https://hentaiverse.org/?s=Forge&ss=en*
 // @match      https://hentaiverse.org/?s=Bazaar&ss=is*
@@ -748,7 +748,7 @@ window.Bot = {
                 // also be away to no be thrown in a loop, going from one page to another instead of doing the rest
 
 
-                if (Url.has("s=Character") && Url.has("ss=eq"))
+                if (Url.has("s=Character") && Url.has("ss=tr"))
                     if (this.Training.Start())
                         return true;
 
@@ -859,7 +859,7 @@ window.Bot = {
 
                     credits = parseInt(credits);
 
-                    if (money > this.MinCredits) {
+                    if (credits > this.MinCredits) {
                         for (var i = 0; i < this.PriorityOrder.length; i++) {
                             let num = this.ListTrain[this.PriorityOrder[i]];
 
@@ -998,6 +998,8 @@ window.Bot = {
 
                                 itemshop.increase_count(item.Amount - youHave);
                                 itemshop.commit_transaction();
+								
+								Bot.Stop();
                                 return true;
                             }
                         }
