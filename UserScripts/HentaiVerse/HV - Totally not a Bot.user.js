@@ -12,7 +12,7 @@
 // @icon       http://e-hentai.org/favicon.ico
 // ==/UserScript==
 
-/* This bot is better used with
+/* This 'program' is better used with
   ** HV Statistics (Saving Monster Stats) -- If you don`t use set ScanCreature to false
   ** HV Inline Difficulty Changer -- If you don`t use set ChangeArenaDifficulty to false
   ** RiddleLimiter Plus -- Is recommended, but not necessary
@@ -449,19 +449,22 @@ window.Bot = {
                 "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
                 "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
                 "8e73159fd8": "A", "da7a5af305": "A", "6ae1a72220": "A", "6574e82166": "A", "68d3878db4": "A", "13fb1c539a": "A", "f3c423a3c3": "A", "afbdd89f1b": "A",
-                "69ae72d5fd": "A", "01a5e680e3": "A",
-
+                "69ae72d5fd": "A", "01a5e680e3": "A", "975b585ef2": "A", "989888a608": "A", "cee8e2e514": "A",
+                
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
                 "182d227be2": "B", "daefa9752a": "B", "27900890bd": "B", "010cac29dc": "B", "3fa836e583": "B", "2d1cef08dd": "B", "5877a95912": "B", "6728d3c5fb": "B",
                 "a92887a00d": "B", "983f700578": "B", "e7cd6e413c": "B", "80aa025f23": "B", "39954aa3b8": "B", "99794cbcf5": "B", "b305f18a51": "B", "a00b2b82cc": "B",
                 "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B", "ec992e36b2": "B", "cddf856293": "B",
+                "289c82d71f": "B",
+
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
                 "454e9d852b": "C", "bd5cc28054": "C", "1a45149570": "C", "5f82e0f9c9": "C", "20fd0048ff": "C", "0861b61cdc": "C", "18fb4b4a6e": "C", "a036f0ba2b": "C",
                 "1b87a375a0": "C", "08893df887": "C", "6d02b7f91f": "C", "7be47fe5c0": "C", "dead34f02c": "C", "2da78f830e": "C", "e2af2b85b7": "C", "679c46d24f": "C",
                 "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
-                "359872d4e2": "C", "359872d4e2": "C", "fa8bd05562": "C", "6a2049d80e": "C", "212b4b2e14": "C",
+                "359872d4e2": "C", "359872d4e2": "C", "fa8bd05562": "C", "6a2049d80e": "C", "212b4b2e14": "C", "008a0e7da2": "C", "851e60e433": "C",
+
 
             }
         }),
@@ -469,7 +472,7 @@ window.Bot = {
         Spirit: Object.assign(BotConfig.Fight.Spirit, {
             Start: function () {
                 if (this.Active)
-                    for (let i = 0; i < this.PriorityOrder.length; i++) 
+                    for (let i = 0; i < this.PriorityOrder.length; i++)
                         if (this[this.PriorityOrder[i]].Start())
                             return true;
 
@@ -936,6 +939,8 @@ window.Bot = {
                     //    LocalStorage.Bot.Enchant.shift();
                     //    LocalStorage.Update();
 
+
+                        Bot.Stop();
                         return true;
                     } else { // Enchant Page
                         let isWeapon = $(".fc2.far.fcb").contains("Voidseeker's Blessing").length > 0;
@@ -958,11 +963,13 @@ window.Bot = {
                                 $$('#enchantment').value = $code;
                                 $$('#forgeform').submit()
 
+								Bot.Stop();
                                 return true;
                             }
                         }
 
-                        this.GoBack();
+                        Bot.Stop();
+                        //this.GoBack();
                     }
                 }
 
@@ -998,8 +1005,8 @@ window.Bot = {
 
                                 itemshop.increase_count(item.Amount - youHave);
                                 itemshop.commit_transaction();
-								
-								Bot.Stop();
+
+                                Bot.Stop();
                                 return true;
                             }
                         }
