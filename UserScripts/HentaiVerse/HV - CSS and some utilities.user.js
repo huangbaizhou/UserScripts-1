@@ -8,51 +8,84 @@
 // @icon       http://e-hentai.org/favicon.ico
 // ==/UserScript==
 
-// Works wonders with Random Encounter Notification
-var hasRandomEncounter = true;
-
-var url = window.location.href;
-var newStyle = `
-<style>
-  div#csp { width: 100%; height: 100%; border: 0; }
-  body { background: #EDEBDF; }
-  div#eqch_stats { position: absolute; right: 0; display: inline; }
-  div#mainpane { height: calc(100vh - 31px); padding: 0; }
-  div#stats_inner { height: 100vw; border-top: 0; margin-top: 0; padding-top: 8px; }
-  div#eqch_outer { padding-top:0; }
-  div#stats_scrollable { height: calc(100vh - 60px); }
-  div#stats_pane { height: calc(100vh - 100px)!important; }
-  div#eqch_left { margin: 0 auto; width: calc(100% - 374px); display: inline; }
-  div#battle_right { position: absolute; right: 10px; }
-  div#battle_left { width: calc(100vw - 450px); }
-  div#infopane, div#pane_log { width: auto; }
-  div#expholder { left: 10vw; top: calc(100vh - 25px); }
-  div#riddlebar { left: calc(50vw - 344px) !important; }
-
-  /*Baazar*/
-  div#filterbar { border-bottom: 1px solid black; height: 30px; }
-  div#eqshop_outer { height: calc(100vh - 88px); }
-  div#networth { top: unset; bottom: 0; }
-  div.eqshop_pane, div.itshop_pane { height: calc(100vh - 190px); }
-  #eqshop_outer div#item_pane, #eqshop_outer div#shop_pane,
-  #itshop_outer div#item_pane, #itshop_outer div#shop_pane { height: calc(100vh - 240px) !important; }
-  div#eqshop_sellall { top: unset; left: calc(50vw - 320px); bottom: 64px; }
-  body > a { top: unset !important; bottom: 32px; left: 18px !important; }
-  .fc2 > div, .fc4 > div { top: -2px !important;}
-
-  /* Inline Difficult Changer */
-  .fc4.far.fcb > select { width: 78px !important; top: 6px !important; left: 1053px !important; }
-</style>
-`;
-
-
-document.head.innerHTML += newStyle;
 
 //////////////////////////// ~ Level Table
 //Crude        103-138  || Fair        139-187	
 //Average      188-227  || Superior    228-282
 //Exquisite    277-303  || Magnificent 304-348	
 //Legendary    348-399  || Peerless    368-421
+
+
+// Works wonders with Random Encounter Notification
+var hasRandomEncounter = true;
+
+var url = window.location.href;
+var newStyle = `
+<style>
+    div#csp { width: 100%; height: 100%; border: 0; }
+    body { background: #EDEBDF; }
+    div#eqch_stats { position: absolute; right: 0; display: inline; }
+    div#mainpane { height: calc(100vh - 31px); padding: 0; }
+    div#stats_inner { height: 100vw; border-top: 0; margin-top: 0; padding-top: 8px; }
+    div#eqch_outer { padding-top:0; }
+    div#stats_scrollable { height: calc(100vh - 60px); }
+    div#stats_pane { height: calc(100vh - 100px)!important; }
+    div#eqch_left { margin: 0 auto; width: calc(100% - 374px); display: inline; }
+    div#battle_right { position: absolute; right: 10px; }
+    div#battle_left { width: calc(100vw - 450px); }
+    div#infopane, div#pane_log { width: auto; }
+    
+    /* Battle*/
+    div#expholder { left: calc(50% - 619px); top: calc(100vh - 25px); }
+    div#riddlebar { left: calc(50vw - 344px) !important; }
+    div#pane_log { height: calc(100vh - 320px); }
+
+
+    /*Baazar*/
+    div#filterbar { border-bottom: 1px solid black; height: 30px; }
+    div#eqshop_outer { height: calc(100vh - 88px); }
+    div#networth { top: unset; bottom: 0; }
+    div.eqshop_pane, div.itshop_pane { height: calc(100vh - 190px); }
+    #eqshop_outer div#item_pane, #eqshop_outer div#shop_pane,
+    #itshop_outer div#item_pane, #itshop_outer div#shop_pane { height: calc(100vh - 240px) !important; }
+    div#eqshop_sellall { top: unset; left: calc(50vw - 320px); bottom: 64px; }
+    body > a { top: unset !important; bottom: 32px; left: 18px !important; }
+    .fc2 > div, .fc4 > div { top: -2px !important;}
+
+    /* Inline Difficult Changer */
+    .fc4.far.fcb > select { width: 78px !important; top: 6px !important; left: 1053px !important; }
+
+    /*Settings*/
+    div#settings_outer { height: 100%; }
+    div#settings_outer form { margin-bottom: 20px; }
+
+    /* HVStat */
+    div#hvstat-icon { right: 23px; }
+    body > div#popup_box { right: 220px; left: unset !important; top: 25px !important; right: 460px; }
+    div#mainpane > div#popup_box { right: 435px; left: unset !important; top: 25px !important; }
+    .hvstat-round-counter { top: 25px; right: 21px; }
+
+    /* Random Encounters - This folks if what happens when you don't set a class or id to an object. */
+    body > div:not(#popup_box):not(#csp):not(#riddlebar):not(.ui-widget-overlay):not(.ui-front) { right: 220px; left: unset !important; }
+
+`;
+
+if(url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
+    newStyle += "#eqch_left > #compare_pane { top: 80px; left: 50%; } #csp > #popup_box { top: 107px !important; left: calc(50% - 570px) !important; }";
+    
+} else if(url.indexOf("?s=Character&ss=eq") > -1) {
+    newStyle += "#csp > #popup_box { top: 75px !important; left: calc(50% + 145px) !important; }";
+} else if(url.indexOf("?s=Forge") > -1) {
+    newStyle += "#csp > #popup_box { top: 100px !important; left: calc(50% + 80px) !important; }";
+}
+
+newStyle += "</style>";
+
+if (document.head)
+    document.head.innerHTML += newStyle;
+else
+    setTimeout(function () { document.head.innerHTML += newStyle; }, 0);
+    
 
 //document-end
 setTimeout(function () {
@@ -73,19 +106,8 @@ setTimeout(function () {
         }
     }
 
-    /*
-    if(url.indexOf("Character&ss=tr") > 0){
-      //training.start_training(80);
-    }
-    
-    
-    if(url.indexOf("?s=Bazaar&ss=ss") > 0) {
-       
-    }
-    */
-
     /* Random Encounters */
-    if (url.indexOf("e-hentai.org/news.php") > 0) {
+    if (url.indexOf("e-hentai.org/news.php") > -1) {
         if (document.getElementById("eventpane") != null) {
             window.location.href = document.getElementById("eventpane").querySelector("a").href;
         }
@@ -94,8 +116,6 @@ setTimeout(function () {
     if (url.indexOf("Battle&ss=ba&encounter=") > 0 && document.getElementById("battle_main") != null) {
         if (localStorage.amoutRandomEncounter == null)
             localStorage.amoutRandomEncounter = 0;
-        //else
-        //    window.location.href = "https://hentaiverse.org";
 
         localStorage.amoutRandomEncounter = parseInt(localStorage.amoutRandomEncounter) + 1;
     }
@@ -122,3 +142,4 @@ setInterval(function () {
         }
     }
 }, 30000); // 30s
+    
