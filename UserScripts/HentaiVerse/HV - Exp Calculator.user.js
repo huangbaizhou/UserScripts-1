@@ -9,11 +9,14 @@
 // @description 10/4/2020, 4:12:53 PM
 // ==/UserScript==
 
+if (!document.querySelector("#difficulty"))
+    return;
+
 var playerLevel = document.querySelector("#difficulty").innerText;
 playerLevel = parseInt(playerLevel.substring(playerLevel.indexOf(".") + 1));
 
 var stamina = document.querySelector("#stamina_readout").innerText;
-stamina = parseInt(stamina.substring(stamina.indexOf(":") + 1));
+stamina = parseFloat(stamina.substring(stamina.indexOf(":") + 1));
 
 
 var nrmMod = 2.064592419747144, // Calculated using as base the Killzone (Total Exp / 227) / (All Modifiers)

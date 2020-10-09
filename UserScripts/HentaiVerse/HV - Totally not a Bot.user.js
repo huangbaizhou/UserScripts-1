@@ -3,18 +3,10 @@
 // @namespace  Hentai Verse
 // @version    2.5.0
 // @author     Svildr
-// @match      https://hentaiverse.org/?s=Battle*
-// @match      https://hentaiverse.org/?s=Character&ss=tr
-// @match      https://hentaiverse.org/?s=Forge&ss=re*
-// @match      https://hentaiverse.org/?s=Forge&ss=en*
-// @match      https://hentaiverse.org/?s=Bazaar&ss=is*
-// @match      https://hentaiverse.org/?encounter=*
-// @match      https://hentaiverse.org/?NABConfig
-
+// @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
 // ==/UserScript==
 /*
- * Change Match /\ to All 
 TODO List
   Fight: https://ehwiki.org/wiki/Battles#Combat
     * Flee
@@ -993,10 +985,15 @@ else {
                                         hasBuff = $$(`#pane_effects img[onmouseover*='${checkBuff}']`);
 
                                     if (checkItem && ((checkBuff && hasBuff) || !checkBuff)) {
-                                        if (type == "Item" && NotABot.UseItem(checkItem))
+                                        if (!localStorage.economizar)
+                                            localStorage.economizar = 0;
+
+                                        localStorage.economizar = parseInt(localStorage.economizar) + 900;
+
+                                        if (NotABot.UseItem(checkItem))
                                             return true;
-                                        else if (type == "Spell" && NotABot.UseSpell(checkItem))
-                                            return true;
+
+                                        localStorage.economizar = parseInt(localStorage.economizar) - 900;
                                     }
 
                                     if (hasBuff)
@@ -1065,14 +1062,16 @@ else {
 
                     return false;
                 },
-                //Probe This
+                //Probe This 
                 Combinations: {
                     "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
                     "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
                     "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
                     "8e73159fd8": "A", "da7a5af305": "A", "6ae1a72220": "A", "6574e82166": "A", "68d3878db4": "A", "13fb1c539a": "A", "f3c423a3c3": "A", "afbdd89f1b": "A",
                     "69ae72d5fd": "A", "01a5e680e3": "A", "975b585ef2": "A", "989888a608": "A", "cee8e2e514": "A", "15edb52243": "A", "2f008f459e": "A", "7fae3c5378": "A",
-                    "a1691c3bca": "A", "d3a232166a": "A", "417922cf6f": "A", "86bd55029d": "A", "ecd040753e": "A", "98f0b05812": "A", "0133dcf8ff": "A",
+                    "a1691c3bca": "A", "d3a232166a": "A", "417922cf6f": "A", "86bd55029d": "A", "ecd040753e": "A", "98f0b05812": "A", "0133dcf8ff": "A", "0db0d1e7ca": "A",
+                    "2f611c7e9d": "A", "800e90373a": "A", "350832f33b": "A", "5f9bc1e329": "A", "080aebe956": "A", "35718c3461": "A", "3152a5c492": "A", "577c9249b4": "A",
+                    "ea39531e99": "A", "80ef2d34ba": "A",
 
 
                     "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -1080,7 +1079,7 @@ else {
                     "a92887a00d": "B", "983f700578": "B", "e7cd6e413c": "B", "80aa025f23": "B", "39954aa3b8": "B", "99794cbcf5": "B", "b305f18a51": "B", "a00b2b82cc": "B",
                     "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B", "ec992e36b2": "B", "cddf856293": "B",
                     "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
-                    "a59e91221d": "B",
+                    "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
 
 
                     "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -1089,8 +1088,10 @@ else {
                     "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
                     "359872d4e2": "C", "359872d4e2": "C", "fa8bd05562": "C", "6a2049d80e": "C", "212b4b2e14": "C", "008a0e7da2": "C", "851e60e433": "C", "eb7730b6e9": "C",
                     "850537ea00": "C", "915b437112": "C", "0f1c10d2c4": "C", "3167499740": "C", "2abcc758a0": "C", "47eb93fefd": "C", "648db2ffbd": "C", "eb5e0b6a1e": "C",
-                    "670a179c05": "C",
-                }
+                    "670a179c05": "C", "63879d1d3b": "C", "c409289cf9": "C", "db6ea25f49": "C", "423eec71f8": "C", "4bfe8af641": "C", "cce87a3fa1": "C", "e6c556688d": "C",
+                    "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C",
+
+                } //
             }),
 
             Spirit: Object.assign(LocalStorage.NABConfig.Fight.Spirit, {
@@ -1386,6 +1387,11 @@ else {
                 if (this.Active) {
                     //TODO: Start Idling Sending people from one side to the other. Check if it's not in the page first,
                     // also be away to no be thrown in a loop, going from one page to another instead of doing the rest
+
+                    if (Url.has("s=Character") && Url.has("ss=ch")) {
+                        NotABot.Stop();
+                        return true;
+                    }
 
                     if (Url.has("s=Character") && Url.has("ss=tr"))
                         if (this.Training.Start())

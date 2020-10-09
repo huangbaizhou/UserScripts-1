@@ -70,12 +70,14 @@ var newStyle = `
 
 `;
 
-if(url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
+///?s=Character&ss=eq&equip_slot=12
+
+if (url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
     newStyle += "#eqch_left > #compare_pane { top: 80px; left: 50%; } #csp > #popup_box { top: 107px !important; left: calc(50% - 570px) !important; }";
-    
-} else if(url.indexOf("?s=Character&ss=eq") > -1) {
+
+} else if (url.indexOf("?s=Character&ss=eq") > -1) {
     newStyle += "#csp > #popup_box { top: 75px !important; left: calc(50% + 145px) !important; }";
-} else if(url.indexOf("?s=Forge") > -1) {
+} else if (url.indexOf("?s=Forge") > -1) {
     newStyle += "#csp > #popup_box { top: 100px !important; left: calc(50% + 80px) !important; }";
 }
 
@@ -85,7 +87,7 @@ if (document.head)
     document.head.innerHTML += newStyle;
 else
     setTimeout(function () { document.head.innerHTML += newStyle; }, 0);
-    
+
 
 //document-end
 setTimeout(function () {
@@ -106,40 +108,52 @@ setTimeout(function () {
         }
     }
 
+
     /* Random Encounters */
-    if (url.indexOf("e-hentai.org/news.php") > -1) {
+    if (url.indexOf("e-hentai.org/news.php") > 0) {
         if (document.getElementById("eventpane") != null) {
             window.location.href = document.getElementById("eventpane").querySelector("a").href;
         }
     }
 
-    if (url.indexOf("Battle&ss=ba&encounter=") > 0 && document.getElementById("battle_main") != null) {
+    if (url.indexOf("Battle&ss=ba&encounter=") > 0) {
         if (localStorage.amoutRandomEncounter == null)
             localStorage.amoutRandomEncounter = 0;
 
-        localStorage.amoutRandomEncounter = parseInt(localStorage.amoutRandomEncounter) + 1;
+        if (document.getElementById("battle_main") != null)
+            localStorage.amoutRandomEncounter = parseInt(localStorage.amoutRandomEncounter) + 1;
+        else
+            window.location.href = "https://hentaiverse.org/?s=Character&ss=ch";
     }
 }, 50);
 
-setInterval(function () {
-    /* Add 5 hours of difference The clock resets at (7 pm Canada Winter) */
-    let hourDifference = 3 * 3600 * 1000; // + 3 Brasil
-    let dateLast = new Date(parseInt(localStorage.lastRandomEncounter) + hourDifference).getDate();
-    let dateNow = new Date(Date.now() + hourDifference).getDate();
 
-    if (dateNow - dateLast > 0) {
-        localStorage.amoutRandomEncounter = 0;
-        localStorage.lastRandomEncounter = Date.now(); // Needed for it to not keep reseting
-    }
+if ((url.indexOf("Character") > -1 || url == "https://hentaiverse.org/") && hasRandomEncounter)
+    setInterval(function () {
+        /* Add 5 hours of difference The clock resets at (7 pm Canada Winter) */
+        var utcTime = new Date(
+            new Date().getUTCFullYear(),
+            new Date().getUTCMonth(),
+            new Date().getUTCDate(),
+            new Date().getUTCHours(),
+            new Date().getUTCMinutes(),
+            new Date().getUTCSeconds()
+        );
+        var timeDiff = utcTime - new Date();
+        var dateLast = new Date(parseInt(localStorage.lastRandomEncounter) + timeDiff).getDate();
 
-    if (hasRandomEncounter && url.indexOf("Bazaar") == -1 && url.indexOf("Forge") == -1 && url.indexOf("Battle") == -1 && url.indexOf("riddlemaster") == -1 &&
-        document.getElementById("battle_main") == null && localStorage.amoutRandomEncounter < 24) {
-        let lastChild = document.querySelector("body > :last-child");
-
-        if (lastChild.innerText == "Ready") {
-            lastChild.querySelector("a").click();
-            console.log("All good");
+        if (utcTime.getDate() - dateLast > 0) {
+            localStorage.amoutRandomEncounter = 0;
+            localStorage.lastRandomEncounter = Date.now(); // Needed for it to not keep reseting
         }
-    }
-}, 30000); // 30s
-    
+
+
+        if (localStorage.amoutRandomEncounter < 24) {
+            let lastChild = document.querySelector("body > :last-child");
+
+            if (lastChild.innerText == "Ready") {
+                lastChild.querySelector("a").click();
+                console.log("All good");
+            }
+        }
+    }, 10000); // 10s
