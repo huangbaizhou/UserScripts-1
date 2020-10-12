@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.0
+// @version    2.5.1
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
@@ -13,10 +13,10 @@ TODO List
  */
 
 
-if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.0") {
+if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.1") {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
-    localStorage.NABVersion = "2.5.0";
+    localStorage.NABVersion = "2.5.1";
     console.log("Cleared Cache of old LocalStorage")
 }
 
@@ -56,7 +56,8 @@ if (localStorage.NABConfig == null) {
             Order: 3,
 
             Riddle: {
-                Active: true
+                Active: true,
+                Combinations: {},
             },
 
             Buff: {
@@ -102,7 +103,7 @@ if (localStorage.NABConfig == null) {
 
                 Spirit: {
                     Active: true,
-                    Mana: { EnableAt: 50, DisableAt: 70 }
+                    Mana: { EnableAt: 65, DisableAt: 70 }
                 },
 
                 Defend: {
@@ -140,7 +141,7 @@ if (localStorage.NABConfig == null) {
             },
 
             Enchant: {
-                Active: true,
+                Active: false,
                 Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"] // "Voidseeker's Blessing", "Suffused Aether",  this shis is expensive as fuck
             },
 
@@ -161,11 +162,13 @@ if (localStorage.NABConfig == null) {
                     { Name: "Spirit Elixir", Amount: 10 },
 
                     ////// Repair
-                    //{ Name: "Energy Cell", Amount: 50 },
+                    { Name: "Scrap Cloth", Amount: 100 },
+                    { Name: "Scrap Wood", Amount: 50 },
+                    { Name: "Energy Cell", Amount: 50 },
 
                     ////// Enchants
-                    { Name: "Voidseeker Shard", Amount: 30 },
-                    { Name: "Aether Shard", Amount: 30 },
+                    //{ Name: "Voidseeker Shard", Amount: 30 },
+                    //{ Name: "Aether Shard", Amount: 30 },
 
                     { Name: "Infusion of Flames", Amount: 100 },
                     { Name: "Infusion of Frost", Amount: 100 },
@@ -867,7 +870,7 @@ else {
             this.Stop();
         },
 
-        Fight: Object.assign(LocalStorage.NABConfig.Fight, {
+        Fight: Object.assign({}, LocalStorage.NABConfig.Fight, {
             NotScanList: [],
 
             Start: function () {
@@ -903,7 +906,7 @@ else {
                 return false;
             },
 
-            Buff: Object.assign(LocalStorage.NABConfig.Fight.Buff, {
+            Buff: Object.assign({}, LocalStorage.NABConfig.Fight.Buff, {
                 ListOfBuffsOn: [],
 
                 LoadActive: function () {
@@ -929,7 +932,7 @@ else {
                 }
             }),
 
-            Debuff: Object.assign(LocalStorage.NABConfig.Fight.Debuff, {
+            Debuff: Object.assign({}, LocalStorage.NABConfig.Fight.Debuff, {
                 Start: function () {
                     if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) { // Don't debuff if you have low mana
                         var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
@@ -960,7 +963,7 @@ else {
                 }
             }),
 
-            Potion: Object.assign(LocalStorage.NABConfig.Fight.Potion, {
+            Potion: Object.assign({}, LocalStorage.NABConfig.Fight.Potion, {
                 Start: function () {
                     if (this.Active) {
                         if (this.UseMysticGem && NotABot.UseItem("Mystic Gem"))
@@ -1034,10 +1037,10 @@ else {
                 }
             }),
 
-            Riddle: Object.assign(LocalStorage.NABConfig.Fight.Riddle, {
+            Riddle: Object.assign({}, LocalStorage.NABConfig.Fight.Riddle, {
                 Start: function () {
                     if (this.Active && $("#riddlemaster").length > 0) {
-                        let src = $$("#riddlebot img").src;
+                        var src = $$("#riddlebot img").src;
                         src = src.substr(src.indexOf("&v=") + 3);
 
                         var answer = this.Combinations[src];
@@ -1051,10 +1054,17 @@ else {
                             $$('#riddleanswer').value = answer;
                             $$('#riddleform').submit();
                         } else {
+                            // Save Combination
+                            $$("#riddleanswer").addEventListener('change', function () {
+                                LocalStorage.NABConfig.Fight.Riddle.Combinations[src] = $$("#riddleanswer").value;
+                                LocalStorage.UpdateConfig();
+                            });
+
                             beep();
                             setInterval(beep, 150);
                             //alert("HiddleAlert");
                         }
+
 
                         NotABot.Stop();
                         return true;
@@ -1063,7 +1073,7 @@ else {
                     return false;
                 },
                 //Probe This 
-                Combinations: {
+                Combinations: Object.assign({}, LocalStorage.NABConfig.Fight.Riddle.Combinations, {
                     "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
                     "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
                     "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
@@ -1071,7 +1081,8 @@ else {
                     "69ae72d5fd": "A", "01a5e680e3": "A", "975b585ef2": "A", "989888a608": "A", "cee8e2e514": "A", "15edb52243": "A", "2f008f459e": "A", "7fae3c5378": "A",
                     "a1691c3bca": "A", "d3a232166a": "A", "417922cf6f": "A", "86bd55029d": "A", "ecd040753e": "A", "98f0b05812": "A", "0133dcf8ff": "A", "0db0d1e7ca": "A",
                     "2f611c7e9d": "A", "800e90373a": "A", "350832f33b": "A", "5f9bc1e329": "A", "080aebe956": "A", "35718c3461": "A", "3152a5c492": "A", "577c9249b4": "A",
-                    "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A",
+                    "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A", "3d9db08e8b": "A", "c1f3b70a0d": "A", "8dcf30cf81": "A",
+                    "5dd60754c0": "A",
 
 
                     "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -1080,7 +1091,7 @@ else {
                     "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B", "ec992e36b2": "B", "cddf856293": "B",
                     "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
                     "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
-                    "96cd09f7a7": "B",
+                    "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B",
 
 
                     "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -1090,12 +1101,13 @@ else {
                     "359872d4e2": "C", "359872d4e2": "C", "fa8bd05562": "C", "6a2049d80e": "C", "212b4b2e14": "C", "008a0e7da2": "C", "851e60e433": "C", "eb7730b6e9": "C",
                     "850537ea00": "C", "915b437112": "C", "0f1c10d2c4": "C", "3167499740": "C", "2abcc758a0": "C", "47eb93fefd": "C", "648db2ffbd": "C", "eb5e0b6a1e": "C",
                     "670a179c05": "C", "63879d1d3b": "C", "c409289cf9": "C", "db6ea25f49": "C", "423eec71f8": "C", "4bfe8af641": "C", "cce87a3fa1": "C", "e6c556688d": "C",
-                    "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C",
+                    "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C", "439d60f539": "C",
+                    "91d7cc49ec": "C",
 
-                } //
+                })
             }),
 
-            Spirit: Object.assign(LocalStorage.NABConfig.Fight.Spirit, {
+            Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit, {
                 Start: function () {
                     if (this.Active)
                         for (let i = 0; i < this.PriorityOrder.length; i++)
@@ -1105,7 +1117,7 @@ else {
                     return false;
                 },
 
-                Spirit: Object.assign(LocalStorage.NABConfig.Fight.Spirit.Spirit, {
+                Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Spirit, {
                     Start: function () {
                         if (this.Active) {
                             let isActive = $$("#ckey_spirit").src.has("spirit_s.png");
@@ -1125,7 +1137,7 @@ else {
                         return false;
                     },
                 }),
-                Defend: Object.assign(LocalStorage.NABConfig.Fight.Spirit.Defend, {
+                Defend: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Defend, {
                     Start: function () {
                         if (this.Active) {
                             if (NotABot.Fight.Player.Health <= this.Health.EnableAt) {
@@ -1138,7 +1150,7 @@ else {
                         return false;
                     },
                 }),
-                Focus: Object.assign(LocalStorage.NABConfig.Fight.Spirit.Focus, {
+                Focus: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Focus, {
                     Start: function () {
                         if (this.Active) {
                             if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt) {
@@ -1253,37 +1265,45 @@ else {
                         return true;
                     }
 
-                    var weakness = "", resistence = "";
 
-                    try {
-                        weakness = monster.querySelector('.hvstat-monster-status-weakness').innerText.replace("-", "");
-                        resistence = monster.querySelector('.hvstat-monster-status-resistance').innerText.replace("-", "");
-                    } catch (e) { } //Could not scan or Scan/HV Statistics is innactive.
+
+                    /* Weakest Stats */
 
                     var spell = "";
+                    var roundContext = localStorage["hvStat.roundContext"];
 
+                    if (roundContext) {
+                        let monsterID = parseInt(monster.id.replace("mkey_", "")) - 1;
+                        roundContext = JSON.parse(roundContext).monsters[monsterID];
+                        roundContext = roundContext.scanResult.defenseLevel;
+                        var pResistence = 999;
 
-                    if (weakness == "")
-                        if (!resistence.has("Elemental")) // Put in the order from stronger to weaker
-                            if (!resistence.has("Cold")) spell = "Freeze";
-                            else if (!resistence.has("Wind")) spell = "Gale";
-                            else if (!resistence.has("Fire")) spell = "Fiery Blast";
-                            else spell = "Shockblast";
-                        else if (!resistence.has("Dark")) spell = "Corruption";
-                        else if (!resistence.has("Holy")) spell = "Smite";
-                        else spell = "Gale"; // This motherfucker has all resistences. -- Strongest Element that I have
-                    else
-                        if (weakness.has("Cold")) spell = "Freeze";
-                        else if (weakness.has("Wind")) spell = "Gale";
-                        else if (weakness.has("Dark")) spell = "Corruption";
-                        else if (weakness.has("Fire")) spell = "Fiery Blast";
-                        else if (weakness.has("Elec")) spell = "Shockblast";
-                        else if (weakness.has("Holy")) spell = "Smite";
-                        else { /* I`m not sure what happened Here */
-                            alert("Some shit happened!!");
-                            console.log(monster);
-                            console.log(weakness);
+                        function checkResistence(pName, pSpell) {
+                            if (roundContext[pName] && roundContext[pName] < pResistence) {
+                                spell = pSpell;
+                                pResistence = parseInt(roundContext[pName]);
+                            }
                         }
+
+                        checkResistence("COLD", "Freeze");
+                        checkResistence("DARK", "Corruption");
+                        checkResistence("ELEC", "Shockblast");
+                        checkResistence("FIRE", "Fiery Blast");
+                        checkResistence("HOLY", "Smite");
+                        checkResistence("WIND", "Gale");
+                        //CRUSHING
+                        //PIERCING
+                        //SLASHING
+                        //SOUL
+                        //VOID
+                    }
+
+                    if (spell == "") {  // WTF
+                        alert("Some shit happened!!");
+                        console.log(monster);
+                        console.log(weakness);
+                        NotABot.Stop();
+                    }
 
                     if (NotABot.UseSpell(spell)) {
                         monster.click();
@@ -1383,7 +1403,7 @@ else {
                 return monster;
             },
         }),
-        Idle: Object.assign(LocalStorage.NABConfig.Idle, {
+        Idle: Object.assign({}, LocalStorage.NABConfig.Idle, {
             Start: function () {
                 if (this.Active) {
                     //TODO: Start Idling Sending people from one side to the other. Check if it's not in the page first,
@@ -1413,7 +1433,7 @@ else {
                 return false;
             },
 
-            Arena: Object.assign(LocalStorage.NABConfig.Idle.Arena, {
+            Arena: Object.assign({}, LocalStorage.NABConfig.Idle.Arena, {
                 Start: function () {
                     if (this.Active) { // Auto start arena future
 
@@ -1476,7 +1496,7 @@ else {
                 },
             }),
 
-            Training: Object.assign(LocalStorage.NABConfig.Idle.Training, {
+            Training: Object.assign({}, LocalStorage.NABConfig.Idle.Training, {
                 ListTrain: {
                     "Adept Learner": 50,
                     "Assimilator": 51,
@@ -1519,7 +1539,7 @@ else {
                 },
             }),
 
-            Repair: Object.assign(LocalStorage.NABConfig.Idle.Repair, {
+            Repair: Object.assign({}, LocalStorage.NABConfig.Idle.Repair, {
                 Start: function () {
                     if (this.Active) {
                         if ($$('img[src="/y/shops/repairall.png"]')) {
@@ -1537,7 +1557,7 @@ else {
                 }
             }),
 
-            Enchant: Object.assign(LocalStorage.NABConfig.Idle.Enchant, {
+            Enchant: Object.assign({}, LocalStorage.NABConfig.Idle.Enchant, {
                 List: {
                     "Voidseeker's Blessing": 'vseek',
                     "Suffused Aether": 'ether',
@@ -1624,7 +1644,7 @@ else {
                 },
             }),
 
-            Shop: Object.assign(LocalStorage.NABConfig.Idle.Shop, {
+            Shop: Object.assign({}, LocalStorage.NABConfig.Idle.Shop, {
                 Start: function () {
                     if (this.Active) {
                         this.ListToBuy;

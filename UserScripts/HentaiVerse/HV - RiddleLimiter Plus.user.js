@@ -10,10 +10,13 @@
 // ==/UserScript==
 
 function solveRiddle(solution) {
-    if (document.getElementById('riddleanswer').value === solution) {
+    var riddleAnswer = document.getElementById('riddleanswer');
+
+    if (riddleAnswer.value === solution) {
         document.getElementById('riddleform').submit();
     } else {
-        document.getElementById('riddleanswer').value = solution;
+        riddleAnswer.value = solution;
+        riddleAnswer.dispatchEvent(new Event('change'));
     }
 }
 
