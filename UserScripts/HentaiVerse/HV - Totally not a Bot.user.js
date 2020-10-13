@@ -76,24 +76,24 @@ if (localStorage.NABConfig == null) {
                 UseMysticGem: true,
                 PriorityOrder: ["Health", "Mana", "Spirit"],
                 Health: [
-                    { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: "Health Potion" },
-                    { Type: "Item", Name: "Health Potion", UseAt: 30 }, //35
+                    { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: ["Health Gem", "Health Potion"] },
+                    { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: "Health Gem" }, //35
                     { Type: "Item", Name: "Health Draught", UseAt: 60, CheckBuff: "Regeneration" }, // 40
                     { Type: "Item", Name: "Health Gem", UseAt: 50 }, //60
                     { Type: "Spell", Name: "Cure", UseAt: 40 },  // 50
                     { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
                 ],
                 Mana: [
-                    { Type: "Item", Name: "Mana Elixir", UseAt: 2 },
-                    { Type: "Item", Name: "Mana Potion", UseAt: 15 },
+                    { Type: "Item", Name: "Mana Elixir", UseAt: 2, CheckItem: ["Mana Gem", "Mana Potion"] },
+                    { Type: "Item", Name: "Mana Potion", UseAt: 15, CheckItem: "Mana Gem"  },
                     { Type: "Item", Name: "Mana Draught", UseAt: 40, CheckBuff: "Replenishment" },
                     { Type: "Item", Name: "Mana Gem", UseAt: 55 }
                 ],
                 Spirit: [
-                    { Type: "Item", Name: "Spirit Elixir", UseAt: 2 }, //2
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 10 }, //10
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 30, CheckBuff: "Refreshment" }, //30
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 } // 100
+                    { Type: "Item", Name: "Spirit Elixir", UseAt: 2, CheckItem: ["Spirit Gem", "Spirit Potion"] },
+                    { Type: "Item", Name: "Spirit Potion", UseAt: 10, CheckItem: "Spirit Gem" },
+                    { Type: "Item", Name: "Spirit Draught", UseAt: 30, CheckBuff: "Refreshment" },
+                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 } 
                 ]
             },
 
@@ -988,15 +988,15 @@ else {
                                         hasBuff = $$(`#pane_effects img[onmouseover*='${checkBuff}']`);
 
                                     if (checkItem && ((checkBuff && hasBuff) || !checkBuff)) {
-                                        if (!localStorage.economizar)
-                                            localStorage.economizar = 0;
-
-                                        localStorage.economizar = parseInt(localStorage.economizar) + 900;
-
-                                        if (NotABot.UseItem(checkItem))
-                                            return true;
-
-                                        localStorage.economizar = parseInt(localStorage.economizar) - 900;
+                                        if (typeof checkItem == "string") {
+                                            if (NotABot.UseItem(checkItem))
+                                                return true;
+                                        } else {
+                                            for (let i = 0; i < checkItem.length; i++) {
+                                                if (NotABot.UseItem(checkItem[i]))
+                                                    return true;
+                                            }
+                                        }
                                     }
 
                                     if (hasBuff)
@@ -1274,6 +1274,8 @@ else {
 
                     if (roundContext) {
                         let monsterID = parseInt(monster.id.replace("mkey_", "")) - 1;
+                        if (monsterID == -1) monsterID = 9;
+
                         roundContext = JSON.parse(roundContext).monsters[monsterID];
                         roundContext = roundContext.scanResult.defenseLevel;
                         var pResistence = 999;
@@ -1291,11 +1293,11 @@ else {
                         checkResistence("FIRE", "Fiery Blast");
                         checkResistence("HOLY", "Smite");
                         checkResistence("WIND", "Gale");
-                        //CRUSHING
-                        //PIERCING
-                        //SLASHING
-                        //SOUL
-                        //VOID
+                        //checkResistence("CRUSHING", "");
+                        //checkResistence("PIERCING", "");
+                        //checkResistence("SLASHING", "");
+                        //checkResistence("SOUL", "");
+                        //checkResistence("VOID", "");
                     }
 
                     if (spell == "") {  // WTF
