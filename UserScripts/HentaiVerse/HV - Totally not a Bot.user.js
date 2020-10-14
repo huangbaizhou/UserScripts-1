@@ -39,15 +39,16 @@ window.LocalStorage = {
     }
 };
 
-
 /*** Local Storage ****/
 if (localStorage.NotABot == null)
     localStorage.NotABot = "{}";
 
 if (localStorage.NABConfig == null) {
     LocalStorage.NABConfig = {
-        CharacterType: "Mage", // "Mage", "Melee"
+        // I  thought about names like Arch-Mage, Mage, Mage-Apprentice, but would confuse people
+        CharacterType: "Mage 1st Circle",
         SleepTimer: 400,
+        VitalBar: "Utilitarian",
 
         Fight: {
             Active: true,
@@ -78,10 +79,10 @@ if (localStorage.NABConfig == null) {
                 PriorityOrder: ["Health", "Mana", "Spirit"],
                 Health: [
                     { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: ["Health Gem", "Health Potion"] },
-                    { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: ["Health Gem"] }, //35
-                    { Type: "Item", Name: "Health Draught", UseAt: 60, CheckBuff: "Regeneration" }, // 40
-                    { Type: "Item", Name: "Health Gem", UseAt: 50 }, //60
-                    { Type: "Spell", Name: "Cure", UseAt: 40 },  // 50
+                    { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: ["Health Gem"] },
+                    { Type: "Item", Name: "Health Draught", UseAt: 60, CheckBuff: "Regeneration" },
+                    { Type: "Item", Name: "Health Gem", UseAt: 50 },
+                    { Type: "Spell", Name: "Cure", UseAt: 40, CheckItem: ["Health Gem"] }, 
                     { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
                 ],
                 Mana: [
@@ -143,7 +144,7 @@ if (localStorage.NABConfig == null) {
 
             Enchant: {
                 Active: false,
-                Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"] // "Voidseeker's Blessing", "Suffused Aether",  this shis is expensive as fuck
+                Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
             },
 
             Shop: {
@@ -223,6 +224,16 @@ Object.prototype.contains = function (name) {
     });
 }
 
+if ($$("#child_Character > div"))
+    $$("#child_Character > div").innerHTML += `
+    <div onclick="document.location='https://hentaiverse.org/?NABConfig'">
+        <div class="fc4 fal fcb" style="width:76px">
+            <div>Not Bot Config</div>
+        </div>
+    </div>
+`;
+////// 
+
 
 if (Url.has("?NABConfig")) {
 
@@ -254,6 +265,10 @@ if (Url.has("?NABConfig")) {
     select[multiple] {
         width: 300px;
         height: 150px;
+    }
+
+    select:not(multiple) {
+        width: 200px;
     }
 
     td.label {
@@ -338,7 +353,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Basic Settings</span>
             <p>
-                <label class="tooltip">Sleep Timer (ms):
+                <label class="tooltip" for="SleepTimer">Sleep Timer (ms):
                     <span class="tooltiptext">
                         Time between each action. <br>
                         Too fast you might execute the same action twice. <br>
@@ -347,16 +362,46 @@ if (Url.has("?NABConfig")) {
                 </label>
                 <input type="number" maxlength="4" id="SleepTimer" value="${LocalStorage.NABConfig.SleepTimer}" />
             </p>
+            <p>
+                <label for="VitalBar">Vital Bar Style</label>
+                <select id="VitalBar">
+                    <option value="Standard" ${LocalStorage.NABConfig.VitalBar == "Standard" ? "selected" : ""}>Standard</option>
+                    <option value="Utilitarian" ${LocalStorage.NABConfig.VitalBar == "Utilitarian" ? "selected" : ""}>Utilitarian</option>
+                </select>
+            </p>
+            <p>
+                <label class="tooltip" for="CharacterType">
+                    Character Type
+                    <span class="tooltiptext">
+                        <b>Mage 3rd Circle</b> uses the strongest spells, uses more MP, good against higher amount of monsters
+                        <br>
+                        <b>Mage 2nd Circle</b> uses the intermediate spells, uses less MP than the 3rd circle, good area
+                        <br>
+                        <b>Mage 1st Circle</b> uses the weak spells, uses less MP than 2nd circle, good against small amount of monsters
+                        <br>
+                    </span>
+                </label>
+
+                <select id="CharacterType">
+                    <option value="Mage 3rd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 3rd Circle" ? "selected" : ""}>Mage 3rd Circle</option>
+                    <option value="Mage 2nd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 2nd Circle" ? "selected" : ""}>Mage 2nd Circle</option>
+                    <option value="Mage 1st Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 1st Circle" ? "selected" : ""}>Mage 1st Circle</option>
+                    <option value="One-Handed" ${LocalStorage.NABConfig.CharacterType == "One-Handed" ? "selected" : ""}>One-Handed</option>
+                    <option value="Dual Wielding" ${LocalStorage.NABConfig.CharacterType == "Dual Wielding" ? "selected" : ""}>Dual Wielding</option>
+                    <option value="2-Handed Weapon" ${LocalStorage.NABConfig.CharacterType == "2-Handed Weapon" ? "selected" : ""}>2-Handed Weapon</option>
+                    <option value="Niten Ichiryu" ${LocalStorage.NABConfig.CharacterType == "Niten Ichiryu" ? "selected" : ""}>Niten Ichiryu</option>
+                </select>
+            </p>
         </div>
 
         <div class="settings_block">
             <span class="item-title">Fighting</span>
             <p>
-                <input type="checkbox" id="fightActive" checked="${LocalStorage.NABConfig.Fight.Active ? "checked" : ""}">
+                <input type="checkbox" id="fightActive" ${LocalStorage.NABConfig.Fight.Active ? "checked" : ""}>
                 <label for="fightActive">Active</label>
             </p>
             <p>
-                <input type="checkbox" id="fightScanCreature" checked="${LocalStorage.NABConfig.Fight.ScanCreature ? "checked" : ""}"> 
+                <input type="checkbox" id="fightScanCreature" ${LocalStorage.NABConfig.Fight.ScanCreature ? "checked" : ""}> 
                 <label class="tooltip" for="fightScanCreature">
                     Scan Monsters
                     <span class="tooltiptext">
@@ -365,11 +410,11 @@ if (Url.has("?NABConfig")) {
                 </label>
             </p>
             <p>
-                <input type="checkbox" id="fightAttackCreature" checked="${LocalStorage.NABConfig.Fight.AttackCreature ? "checked" : ""}">
+                <input type="checkbox" id="fightAttackCreature" ${LocalStorage.NABConfig.Fight.AttackCreature ? "checked" : ""}>
                 <label for="fightAttackCreature">Use Attack Skills</label>
             </p>
             <p>
-                <input type="checkbox" id="fightAdvanceOnVictory" checked="${LocalStorage.NABConfig.Fight.AdvanceOnVictory ? "checked" : ""}">
+                <input type="checkbox" id="fightAdvanceOnVictory" ${LocalStorage.NABConfig.Fight.AdvanceOnVictory ? "checked" : ""}>
                 <label for="fightAdvanceOnVictory">Advance on Victory</label>
             </p>
             <p>
@@ -377,7 +422,7 @@ if (Url.has("?NABConfig")) {
                 <select id="fightOrder">
                     <option value="1" ${LocalStorage.NABConfig.Fight.Order == 1 ? "selected" : ""}>AoE in the Middle</option>
                     <option value="2" ${LocalStorage.NABConfig.Fight.Order == 2 ? "selected" : ""}>Attack the weakest</option>
-                    <option value="3" ${LocalStorage.NABConfig.Fight.Order == 3 ? "selected" : ""}>Attack the lower HP (Ignore Resistences)</option>
+                    <option value="3" ${LocalStorage.NABConfig.Fight.Order == 3 ? "selected" : ""}>Attack the lower HP</option>
                     <option value="4" ${LocalStorage.NABConfig.Fight.Order == 4 ? "selected" : ""}>Attack in the disposition order</option>
                 </select>
             </p>
@@ -387,7 +432,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Riddle</span>
             <p>
-                <input type="checkbox" id="fightRiddleActive" checked="${LocalStorage.NABConfig.Fight.Riddle.Active ? "checked" : ""}"> 
+                <input type="checkbox" id="fightRiddleActive" ${LocalStorage.NABConfig.Fight.Riddle.Active ? "checked" : ""}> 
                 <label class="tooltip" for="fightRiddleActive">
                     Try to do Riddle
                     <span class="tooltiptext">
@@ -401,7 +446,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Buff Self</span>
             <p>
-                <input type="checkbox" id="fightBuffActive" checked="${LocalStorage.NABConfig.Fight.Buff.Active ? "checked" : ""}"> 
+                <input type="checkbox" id="fightBuffActive" ${LocalStorage.NABConfig.Fight.Buff.Active ? "checked" : ""}> 
                 <label for="fightBuffActive">Active</label>
             </p>
             <p>
@@ -431,7 +476,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Debuff Monsters</span>
             <p>
-                <input type="checkbox" id="fightDebuffActive" checked="${LocalStorage.NABConfig.Fight.Debuff.Active ? "checked" : ""}"> 
+                <input type="checkbox" id="fightDebuffActive" ${LocalStorage.NABConfig.Fight.Debuff.Active ? "checked" : ""}> 
                 <label for="fightDebuffActive">Active</label>
             </p>
             <p>
@@ -468,11 +513,11 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Use Potion</span>
                 <p>
-                    <input type="checkbox" id="fightPotionActive" checked="${LocalStorage.NABConfig.Fight.Potion.Active ? "checked" : ""}">
+                    <input type="checkbox" id="fightPotionActive" ${LocalStorage.NABConfig.Fight.Potion.Active ? "checked" : ""}>
                     <label for="fightPotionActive">Active</label>
                 </p>
                 <p>
-                    <input type="checkbox" id="fightPotionUseMysticGem" checked="${LocalStorage.NABConfig.Fight.Potion.UseMysticGem ? "checked" : ""}">
+                    <input type="checkbox" id="fightPotionUseMysticGem" ${LocalStorage.NABConfig.Fight.Potion.UseMysticGem ? "checked" : ""}>
                     <label for="fightPotionUseMysticGem">Use Mystic Gem</label>
                 </p>
 
@@ -485,10 +530,10 @@ if (Url.has("?NABConfig")) {
                 // Don't change the name or the type unless you know exacly what you are doing.
                 Health: [
                     { Type: "Item", Name: "Health Elixir", UseAt: 10 },
-                    { Type: "Item", Name: "Health Potion", UseAt: 30 }, //35
-                    { Type: "Item", Name: "Health Draught", UseAt: 60 }, // 40
-                    { Type: "Item", Name: "Health Gem", UseAt: 50 }, //60
-                    { Type: "Spell", Name: "Cure", UseAt: 40 },  // 50
+                    { Type: "Item", Name: "Health Potion", UseAt: 30 },
+                    { Type: "Item", Name: "Health Draught", UseAt: 60 }, 
+                    { Type: "Item", Name: "Health Gem", UseAt: 50 },
+                    { Type: "Spell", Name: "Cure", UseAt: 40 },
                     { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
                 ],
                 Mana: [
@@ -498,10 +543,10 @@ if (Url.has("?NABConfig")) {
                     { Type: "Item", Name: "Mana Gem", UseAt: 55 }
                 ],
                 Spirit: [
-                    { Type: "Item", Name: "Spirit Elixir", UseAt: 2 }, //2
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 10 }, //10
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 30 }, //30
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 } // 100
+                    { Type: "Item", Name: "Spirit Elixir", UseAt: 2 },
+                    { Type: "Item", Name: "Spirit Potion", UseAt: 10 },
+                    { Type: "Item", Name: "Spirit Draught", UseAt: 30 },
+                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 }
                 ]
 -->
         </div>
@@ -509,7 +554,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Spirit Abilities</span>
                 <p>
-                    <input type="checkbox" id="fightSpiritActive" checked="${LocalStorage.NABConfig.Fight.Spirit.Active ? "checked" : ""}">
+                    <input type="checkbox" id="fightSpiritActive" ${LocalStorage.NABConfig.Fight.Spirit.Active ? "checked" : ""}>
                     <label for="fightSpiritActive">Active</label>
                 </p>
 
@@ -558,21 +603,21 @@ if (Url.has("?NABConfig")) {
                 <tbody>
                     <tr>
                         <th>Spirit</th>
-                        <td class=center><input type="checkbox" id="fightSpiritSpiritActive" checked="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Active ? "checked" : ""}"  /></td>
+                        <td class=center><input type="checkbox" id="fightSpiritSpiritActive" ${LocalStorage.NABConfig.Fight.Spirit.Spirit.Active ? "checked" : ""} /></td>
                         <td><input type="number" id="fightSpiritSpiritManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt}"/></td>
                         <td><input type="number" id="fightSpiritSpiritManaDisableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt}"/></td>
                         <td><input type="number" disabled /></td>
                     </tr>
                     <tr>
                         <th>Defend</th>
-                        <td class=center><input type="checkbox" id="fightSpiritDefendActive" checked="${LocalStorage.NABConfig.Fight.Spirit.Defend.Active ? "checked" : ""}"  /></td>
+                        <td class=center><input type="checkbox" id="fightSpiritDefendActive" ${LocalStorage.NABConfig.Fight.Spirit.Defend.Active ? "checked" : ""} /></td>
                         <td><input type="number" disabled /></td>
                         <td><input type="number" disabled /></td>
                         <td><input type="number" id="fightSpiritDefendHealthEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt}" /></td>
                     </tr>
                     <tr>
                         <th>Focus</th>
-                        <td class=center><input type="checkbox" id="fightSpiritFocusActive" checked="${LocalStorage.NABConfig.Fight.Spirit.Focus.Active ? "checked" : ""}"  /></td>
+                        <td class=center><input type="checkbox" id="fightSpiritFocusActive" ${LocalStorage.NABConfig.Fight.Spirit.Focus.Active ? "checked" : ""} /></td>
                         <td><input type="number" id="fightSpiritFocusManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt}"/></td>
                         <td><input type="number" disabled /></td>
                         <td><input type="number" disabled /></td>
@@ -584,7 +629,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Idle</span>
                 <p>
-                    <input type="checkbox" id="idleActive" checked="${LocalStorage.NABConfig.Idle.Active ? "checked" : ""}">
+                    <input type="checkbox" id="idleActive" ${LocalStorage.NABConfig.Idle.Active ? "checked" : ""}>
                     <label for="idleActive" class="tooltip">Active
                         <span class="tooltiptext">
                             Enable/disable all out of combat activities<br>
@@ -597,7 +642,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Auto-Start Arena</span>
                 <p>
-                    <input type="checkbox" id="idleArenaActive" checked="${LocalStorage.NABConfig.Idle.Arena.Active ? "checked" : ""}">
+                    <input type="checkbox" id="idleArenaActive" ${LocalStorage.NABConfig.Idle.Arena.Active ? "checked" : ""}>
                     <label for="idleArenaActive" class="tooltip">Active
                         <span class="tooltiptext">
                             Auto start all enabled arenas one after another <br>
@@ -606,7 +651,7 @@ if (Url.has("?NABConfig")) {
                     </label>
                 </p>
                 <p>
-                    <input type="checkbox" id="idleArenaDoRingOfBlood" checked="${LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood ? "checked" : ""}">
+                    <input type="checkbox" id="idleArenaDoRingOfBlood" ${LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood ? "checked" : ""}>
                     <label for="idleArenaDoRingOfBlood" class="tooltip">Ring of Blood
                         <span class="tooltiptext">
                             Auto-start Ring of Blood, only "Flying Spaghetti Monster" <br>
@@ -623,7 +668,7 @@ if (Url.has("?NABConfig")) {
                     <input type="number" id="idleArenaMinimumStamina" value="${LocalStorage.NABConfig.Idle.Arena.MinimumStamina}">
                 </p>
                 <p>
-                    <input type="checkbox" id="idleArenaChangeDifficulty" checked="${LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty ? "checked" : ""}">
+                    <input type="checkbox" id="idleArenaChangeDifficulty" ${LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty ? "checked" : ""}>
                     <label for="idleArenaChangeDifficulty" class="tooltip">Change Challange Level
                         <span class="tooltiptext">
                             Changes <b>CL</b> to the highest you played the next challenge <br>
@@ -633,7 +678,7 @@ if (Url.has("?NABConfig")) {
                 </p>
 
                 <p>
-                    <input type="checkbox" id="idleArenaUseRestoratives" checked="${LocalStorage.NABConfig.Idle.Arena.UseRestoratives ? "checked" : ""}">
+                    <input type="checkbox" id="idleArenaUseRestoratives" ${LocalStorage.NABConfig.Idle.Arena.UseRestoratives ? "checked" : ""}>
                     <label for="idleArenaUseRestoratives">Use Restoratives</label>
                 </p>
                 <p>
@@ -649,7 +694,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Training</span>
             <p>
-                <input type="checkbox" id="idleTrainingActive" checked="${LocalStorage.NABConfig.Idle.Training.Active ? "checked" : ""}">
+                <input type="checkbox" id="idleTrainingActive" ${LocalStorage.NABConfig.Idle.Training.Active ? "checked" : ""}>
                 <label for="idleTrainingActive">Active</label>
             </p>
             <p>
@@ -667,7 +712,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Item Repair</span>
             <p>
-                <input type="checkbox" id="idleRepairActive" checked="${LocalStorage.NABConfig.Idle.Repair.Active ? "checked" : ""}">
+                <input type="checkbox" id="idleRepairActive" ${LocalStorage.NABConfig.Idle.Repair.Active ? "checked" : ""}>
                 <label for="idleRepairActive">Active</label>
             </p>
         </div>
@@ -675,7 +720,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Item Enchant</span>
             <p>
-                <input type="checkbox" id="idleEnchantActive" checked="${LocalStorage.NABConfig.Idle.Enchant.Active ? "checked" : ""}">
+                <input type="checkbox" id="idleEnchantActive" ${LocalStorage.NABConfig.Idle.Enchant.Active ? "checked" : ""}>
                 <label for="idleEnchantActive">Active</label>
             </p>
 
@@ -704,7 +749,7 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Shopping</span>
             <p>
-                <input type="checkbox" id="idleShopActive" checked="${LocalStorage.NABConfig.Idle.Shop.Active ? "checked" : ""}">
+                <input type="checkbox" id="idleShopActive" ${LocalStorage.NABConfig.Idle.Shop.Active ? "checked" : ""}>
                 <label for="idleShopActive">Active</label>
             </p>
 <!-- TODO
@@ -751,6 +796,8 @@ if (Url.has("?NABConfig")) {
         //Validation, maybe later?
 
         LocalStorage.NABConfig.SleepTimer = $$("#SleepTimer").value;
+        LocalStorage.NABConfig.VitalBar = $$("#VitalBar").value;
+        LocalStorage.NABConfig.CharacterType = $$("#CharacterType").value;
 
         // Fight
         LocalStorage.NABConfig.Fight.Active = $$("#fightActive").checked;
@@ -772,15 +819,46 @@ if (Url.has("?NABConfig")) {
         LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($("#fightDebuffUse"));
 
         // Potion
-        // Spirit Abilities
-        // Idle
-        // Auto-Start Arena
-        // Training
-        // Item Repair
-        // Item Enchant
-        // Shopping
+        LocalStorage.NABConfig.Fight.Potion.Active = $$("#fightPotionActive").checked;
+        LocalStorage.NABConfig.Fight.Potion.UseMysticGem = $$("#fightPotionUseMysticGem").checked;
 
-        //LocalStorage.UpdateConfig();
+        // Spirit Abilities
+        LocalStorage.NABConfig.Fight.Spirit.Active = $$("#fightSpiritActive").checked;
+        LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = $$("#fightSpiritSpiritActive").checked;
+        LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = $$("#fightSpiritSpiritManaEnableAt").value;
+        LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = $$("#fightSpiritSpiritManaDisableAt").value;
+        LocalStorage.NABConfig.Fight.Spirit.Defend.Active = $$("#fightSpiritDefendActive").checked;
+        LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = $$("#fightSpiritDefendHealthEnableAt").value;
+        LocalStorage.NABConfig.Fight.Spirit.Focus.Active = $$("#fightSpiritFocusActive").checked;
+        LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = $$("#fightSpiritFocusManaEnableAt").value;
+
+        // Idle
+        LocalStorage.NABConfig.Idle.Active = $$("#idleActive").checked;
+
+        // Auto-Start Arena
+        LocalStorage.NABConfig.Idle.Arena.Active = $$("#idleArenaActive").checked;
+        LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood = $$("#idleArenaDoRingOfBlood").checked;
+        LocalStorage.NABConfig.Idle.Arena.MinimumStamina = $$("#idleArenaMinimumStamina").value;
+        LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty = $$("#idleArenaChangeDifficulty").checked;
+        LocalStorage.NABConfig.Idle.Arena.UseRestoratives = $$("#idleArenaUseRestoratives").checked;
+        LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative = $$("#idleArenaMaxStaminaToUseRestorative").value;
+
+        // Training
+        LocalStorage.NABConfig.Idle.Training.Active = $$("#idleTrainingActive").checked;
+        LocalStorage.NABConfig.Idle.Training.MinCredits = $$("#idleTrainingMinCredits").value;
+
+        // Item Repair
+        LocalStorage.NABConfig.Idle.Repair.Active = $$("#idleRepairActive").checked;
+
+        // Item Enchant
+        LocalStorage.NABConfig.Idle.Enchant.Active = $$("#idleEnchantActive").checked;
+        LocalStorage.NABConfig.Idle.Enchant.Use = getSelectValues($("#idleEnchantUse"));
+
+        // Shopping
+        LocalStorage.NABConfig.Idle.Shop.Active = $$("#idleShopActive").checked;
+
+        // UPDATE
+        LocalStorage.UpdateConfig();
     }
 
     function getSelectValues(select) {
@@ -801,20 +879,12 @@ if (Url.has("?NABConfig")) {
 else {
     window.NotABot = {
         SleepTimer: LocalStorage.NABConfig.SleepTimer,
+        CharacterType: LocalStorage.NABConfig.CharacterType,
+        VitalBar: LocalStorage.NABConfig.VitalBar,
         Interval: 0,
         Begin: function () {
             this.Start();
             LocalStorage.Load();
-
-            if ($$("#child_Character > div"))
-                $$("#child_Character > div").innerHTML += `
-                    <div onclick="document.location='https://hentaiverse.org/?NABConfig'">
-                        <div class="fc4 fal fcb" style="width:76px">
-                            <div>Not Bot Config</div>
-                        </div>
-                    </div>
-                `;
-
 
             let totalExp = $$("#expbar") ? $$("#expbar").width / 1235 * 100 : 0;
             var span = document.createElement("span");
@@ -1029,9 +1099,15 @@ else {
                 Spirit: 0,
                 GetStatus: function () {
                     try {
-                        this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
-                        this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
-                        this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
+                        if (NotABot.VitalBar == "Utilitarian") {
+                            this.Health = $$("#dvbh img").width / $$("#dvbh").clientWidth * 100;
+                            this.Mana = $$("#dvbm img").width / $$("#dvbm").clientWidth * 100;
+                            this.Spirit = $$("#dvbs img").width / $$("#dvbs").clientWidth * 100;
+                        } else {
+                            this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
+                            this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
+                            this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
+                        }
 
                         return false;
                     } catch (e) {
@@ -1125,7 +1201,7 @@ else {
                 Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Spirit, {
                     Start: function () {
                         if (this.Active) {
-                            let isActive = $$("#ckey_spirit").src.has("spirit_s.png");
+                            let isActive = $$("#ckey_spirit").src.has("spirit_s.png") || $$("#ckey_spirit").src.has("spirit_a.png");
 
                             if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && !isActive) {
                                 $$("#ckey_spirit").click();
@@ -1271,10 +1347,10 @@ else {
 
                     /* Weakest Stats */
 
-                    var spell = "";
                     var roundContext = localStorage["hvStat.roundContext"];
 
                     if (roundContext) {
+                        var spell = "";
                         let monsterID = parseInt(monster.id.replace("mkey_", "")) - 1;
                         if (monsterID == -1) monsterID = 9;
 
@@ -1287,42 +1363,189 @@ else {
                         roundContext = roundContext.defenseLevel;
                         var pResistence = 999;
 
-                        function checkResistence(pName, pSpell) {
+                        function checkResistence(pName, pSpell, checkSpell) {
+                            if (checkSpell) {
+                                // Check if you have the spell
+                                var spellObj = $$(`[id='${NotABot.ListSkill[pSpell]}']`);
+                                if (!spellObj || spellObj.style.opacity == "0.5")
+                                    return;
+                            }
+
+                            // Check Monster Resistence
                             if (roundContext[pName] && roundContext[pName] < pResistence) {
                                 spell = pSpell;
                                 pResistence = parseInt(roundContext[pName]);
                             }
                         }
 
-                        checkResistence("COLD", "Freeze");
-                        checkResistence("DARK", "Corruption");
-                        checkResistence("ELEC", "Shockblast");
-                        checkResistence("FIRE", "Fiery Blast");
-                        checkResistence("HOLY", "Smite");
-                        checkResistence("WIND", "Gale");
-                        //checkResistence("CRUSHING", "");
-                        //checkResistence("PIERCING", "");
-                        //checkResistence("SLASHING", "");
+                        let playerClass = NotABot.CharacterType;
+
+                        while (true) {
+                            pResistence = 999;
+
+                            switch (playerClass) {
+                                case "Mage 3rd Circle": // Will not check if have spell available, this way you can attack the monster with his weakest element with a lower tier Spell
+                                    checkResistence("COLD", "Fimbulvertr");
+                                    checkResistence("DARK", "Ragnarok");
+                                    checkResistence("ELEC", "Wrath of Thor");
+                                    checkResistence("FIRE", "Flames of Loki");
+                                    checkResistence("HOLY", "Paradise Lost");
+                                    checkResistence("WIND", "Storms of Njord");
+                                    playerClass = "Mage 2st Circle";
+                                    break;
+                                case "Mage 2nd Circle":
+                                    checkResistence("COLD", "Blizzard");
+                                    checkResistence("DARK", "Disintegrate");
+                                    checkResistence("ELEC", "Chained Lightning");
+                                    checkResistence("FIRE", "Inferno");
+                                    checkResistence("HOLY", "Banishment");
+                                    checkResistence("WIND", "Downburst");
+                                    playerClass = "Mage 1st Circle";
+                                    break;
+                                case "Mage 1st Circle":
+                                    checkResistence("COLD", "Freeze", true);
+                                    checkResistence("DARK", "Corruption", true);
+                                    checkResistence("ELEC", "Shockblast", true);
+                                    checkResistence("FIRE", "Fiery Blast", true);
+                                    checkResistence("HOLY", "Smite", true);
+                                    checkResistence("WIND", "Gale", true);
+                                    playerClass = "Mage Melee";
+                                    break;
+                                case "One-Handed":
+                                    checkResistence("CRUSHING", "Shield Bash", true);
+                                    checkResistence("PIERCING", "Vital Strike", true);
+                                    checkResistence("SLASHING", "Merciful Blow", true);
+                                    playerClass = "Melee";
+                                    break;
+                                case "Dual Wielding":
+                                    checkResistence("CRUSHING", "Iris Strike", true);
+                                    checkResistence("PIERCING", "Backstab", true);
+                                    checkResistence("SLASHING", "Frenzied Blows", true);
+                                    playerClass = "Melee";
+                                    break;
+                                case "2-Handed Weapon":
+                                    checkResistence("CRUSHING", "Great Cleave", true);
+                                    checkResistence("PIERCING", "Rending Blow", true);
+                                    checkResistence("SLASHING", "Shatter Strike", true);
+                                    playerClass = "Melee";
+                                    break;
+                                case "Niten Ichiryu":
+                                    spell = "Skyward Sword";
+                                    playerClass = "Melee";
+                                    break;
+                                case "Mage Melee":
+                                    spell = "Concussive Strike";
+                                    playerClass = "Melee";
+                                    break;
+                                case "Melee":
+                                    spell = "Attack";
+                                    playerClass = "Default";
+                                    break;
+                                default:
+                                    return false;
+                                    break;
+                            }
+
+                            if (spell != "" && NotABot.UseSpell(spell)) {
+                                monster.click();
+                                return true;
+                            }
+                        }
+
                         //checkResistence("SOUL", "");
                         //checkResistence("VOID", "");
-                    } else { // I have to makeup something to not need HVStat
-                        alert('You need to install HVStat and Enable "Record monster scan results"');
-                        NotABot.Stop();
+                    } else { // Doesn't have HVStat
+
+                        function AttackMonster(spell) {
+                            if (spell != "" && NotABot.UseSpell(spell)) {
+                                monster.click();
+                                return true;
+                            }
+
+                            return false;
+                        }
+
+                        while (true) {
+                            switch (playerClass) {
+                                case "Mage 3rd Circle":
+                                    if (AttackMonster("Fimbulvertr") || AttackMonster("Ragnarok") || AttackMonster("Wrath of Thor") || AttackMonster("Flames of Loki") || AttackMonster("Paradise Lost") || AttackMonster("Storms of Njord"))
+                                        return true;
+
+                                    playerClass = "Mage 2st Circle";
+                                    break;
+                                case "Mage 2nd Circle":
+                                    if (AttackMonster("Blizzard") || AttackMonster("Disintegrate") || AttackMonster("Chained Lightning") || AttackMonster("Inferno") || AttackMonster("Banishment") || AttackMonster("Downburst"))
+                                        return true;
+
+                                    playerClass = "Mage 1st Circle";
+                                    break;
+                                case "Mage 1st Circle":
+                                    if (AttackMonster("Freeze") || AttackMonster("Corruption") || AttackMonster("Shockblast") || AttackMonster("Fiery Blast") || AttackMonster("Smite") || AttackMonster("Gale"))
+                                        return true;
+
+                                    playerClass = "Mage Melee";
+                                    break;
+                                case "One-Handed":
+                                    if (AttackMonster("Shield Bash") || AttackMonster("Vital Strike") || AttackMonster("Merciful Blow"))
+                                        return true;
+
+                                    playerClass = "Melee";
+                                    break;
+                                case "Dual Wielding":
+                                    if (AttackMonster("Iris Strike") || AttackMonster("Backstab") || AttackMonster("Frenzied Blows"))
+                                        return true;
+
+                                    playerClass = "Melee";
+                                    break;
+
+                                case "2-Handed Weapon":
+                                    if (AttackMonster("Great Cleave") || AttackMonster("Rending Blow") || AttackMonster("Shatter Strike"))
+                                        return true;
+
+                                    playerClass = "Melee";
+                                    break;
+
+                                case "Niten Ichiryu":
+                                    if (AttackMonster("Skyward Sword"))
+                                        return true;
+
+                                    playerClass = "Melee";
+                                    break;
+
+                                case "Mage Melee":
+                                    if (AttackMonster("Concussive Strike"))
+                                        return true;
+
+                                    playerClass = "Melee";
+                                    break;
+
+                                case "Melee":
+                                    if (AttackMonster("Attack"))
+                                        return true;
+
+                                    playerClass = "Default";
+                                    break;
+
+                                default:
+                                    return false;
+                                    break;
+                            }
+                        }
                     }
 
-                    if (spell == "")
-                        NotABot.ForceStop({
-                            Message: "Coundn't select a spell!!",
-                            Monster: monster,
-                            RoundContext: roundContext,
-                        });
+                    //if (spell == "")
+                    //    NotABot.ForceStop({
+                    //        Message: "Coundn't select a spell!!",
+                    //        Monster: monster,
+                    //        RoundContext: roundContext,
+                    //    });
 
-                    if (NotABot.UseSpell(spell)) {
-                        monster.click();
-                        return true;
-                    }
+                    //if (NotABot.UseSpell(spell)) {
+                    //    monster.click();
+                    //    return true;
+                    //}
 
-                    console.log("Could not use spell:" + spell);
+                    //console.log("Could not use spell:" + spell);
                 }
 
                 return false;
@@ -1697,10 +1920,24 @@ else {
         ///
         ListSkill: {
             //Skills
-            "Flee": 1001, "Scan": 1011,
+            "Flee": 1001, "Scan": 1011, "Attack": "ckey_attack",
+
+            // Niten Ichiryu
+            "Skyward Sword": 2101,
+
+            // One-Handed
+            "Shield Bash": 2201, "Vital Strike": 2202, "Merciful Blow": 2203,
+
+            // 2-Handed Weapon
+            "Great Cleave": 2301, "Rending Blow": 2302, "Shatter Strike": 2303,
+
+            // Dual Wielding
+            "Iris Strike": 2401, "Backstab": 2402, "Frenzied Blows": 2403,
+
+            // Staff
             "Concussive Strike": 2501,
 
-            //Spells
+            // Spells
             "Fiery Blast": 111, "Inferno": 112, "Flames of Loki": 113,
             "Freeze": 121, "Blizzard": 122, "Fimbulvertr": 123,
             "Shockblast": 131, "Chained Lightning": 132, "Wrath of Thor": 133,
@@ -1708,30 +1945,31 @@ else {
             "Smite": 151, "Banishment": 152, "Paradise Lost": 153,
             "Corruption": 161, "Disintegrate": 162, "Ragnarok": 163,
 
-            //Deprecating
+            // Deprecating
             "Drain": 211, "Weaken": 212, "Imperil": 213,
             "Slow": 221, "Sleep": 222, "Confuse": 223,
             "Blind": 231, "Silence": 232, "MagNet": 233,
 
-            //Curative
+            // Curative
             "Cure": 311, "Regen": 312, "Full-Cure": 313,
 
-            //Supportive
+            // Supportive
             "Protection": 411, "Haste": 412, "Shadow Veil": 413,
             "Absorb": 421, "Spark of Life": 422, "Spirit Shield": 423,
-            "Heartseeker": 431, "Arcane Focus": 432
+            "Heartseeker": 431, "Arcane Focus": 432,
+
+            // Specials
+            "Orbital Friendship Cannon": 0, "FUS RO DAH": 0
         },
         UseSpell: function (spellName) {
-            var spell = $$("#" + this.ListSkill[spellName]);
+            var spell = $$(`[id='${NotABot.ListSkill[spellName]}']`);
+            //var spell = $$("#" + this.ListSkill[spellName]);
 
-            if (spell.style.opacity != "0.5") {
+            if (spell && spell.style.opacity != "0.5") {
                 spell.click();
-
-                // console.log("Spell Used: " + spellName);
                 return true;
             }
 
-            // console.log("Could not use Spell:" + spellName);
             return false;
         },
         UseItem: function (itemName) {
