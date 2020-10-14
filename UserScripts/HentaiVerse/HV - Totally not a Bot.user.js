@@ -46,6 +46,7 @@ if (localStorage.NotABot == null)
 
 if (localStorage.NABConfig == null) {
     LocalStorage.NABConfig = {
+        CharacterType: "Mage", // "Mage", "Melee"
         SleepTimer: 400,
 
         Fight: {
@@ -77,7 +78,7 @@ if (localStorage.NABConfig == null) {
                 PriorityOrder: ["Health", "Mana", "Spirit"],
                 Health: [
                     { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: ["Health Gem", "Health Potion"] },
-                    { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: "Health Gem" }, //35
+                    { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: ["Health Gem"] }, //35
                     { Type: "Item", Name: "Health Draught", UseAt: 60, CheckBuff: "Regeneration" }, // 40
                     { Type: "Item", Name: "Health Gem", UseAt: 50 }, //60
                     { Type: "Spell", Name: "Cure", UseAt: 40 },  // 50
@@ -85,15 +86,15 @@ if (localStorage.NABConfig == null) {
                 ],
                 Mana: [
                     { Type: "Item", Name: "Mana Elixir", UseAt: 2, CheckItem: ["Mana Gem", "Mana Potion"] },
-                    { Type: "Item", Name: "Mana Potion", UseAt: 15, CheckItem: "Mana Gem"  },
+                    { Type: "Item", Name: "Mana Potion", UseAt: 15, CheckItem: ["Mana Gem"] },
                     { Type: "Item", Name: "Mana Draught", UseAt: 40, CheckBuff: "Replenishment" },
                     { Type: "Item", Name: "Mana Gem", UseAt: 55 }
                 ],
                 Spirit: [
                     { Type: "Item", Name: "Spirit Elixir", UseAt: 2, CheckItem: ["Spirit Gem", "Spirit Potion"] },
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 10, CheckItem: "Spirit Gem" },
+                    { Type: "Item", Name: "Spirit Potion", UseAt: 10, CheckItem: ["Spirit Gem"] },
                     { Type: "Item", Name: "Spirit Draught", UseAt: 30, CheckBuff: "Refreshment" },
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 } 
+                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 }
                 ]
             },
 
@@ -869,6 +870,14 @@ else {
             console.log("Something Wrong isn't right.");
             this.Stop();
         },
+        ForceStop: function (param) {
+            console.warn("------------- ERROR -------------");
+            console.warn(param);
+            console.warn("---------------------------------");
+
+            this.Stop();
+            throw "FORCE STOP";
+        },
 
         Fight: Object.assign({}, LocalStorage.NABConfig.Fight, {
             NotScanList: [],
@@ -988,15 +997,12 @@ else {
                                         hasBuff = $$(`#pane_effects img[onmouseover*='${checkBuff}']`);
 
                                     if (checkItem && ((checkBuff && hasBuff) || !checkBuff)) {
-                                        if (typeof checkItem == "string") {
-                                            if (NotABot.UseItem(checkItem))
+                                        if (typeof checkItem == "string")
+                                            checkItem = [checkItem];
+
+                                        for (let i = 0; i < checkItem.length; i++)
+                                            if (NotABot.UseItem(checkItem[i]))
                                                 return true;
-                                        } else {
-                                            for (let i = 0; i < checkItem.length; i++) {
-                                                if (NotABot.UseItem(checkItem[i]))
-                                                    return true;
-                                            }
-                                        }
                                     }
 
                                     if (hasBuff)
@@ -1062,7 +1068,6 @@ else {
 
                             beep();
                             setInterval(beep, 150);
-                            //alert("HiddleAlert");
                         }
 
 
@@ -1253,18 +1258,15 @@ else {
                         //
                         //if(monster == null)
                         //  monster = this.GetMonsterByName("Real Life");
-                        //  
+                        //
                     }
 
                     if (monster == null)
                         monster = this.GetTarget();
 
 
-                    if (monster == null) {
-                        console.log("Can't find a monster to attack.")
-                        return true;
-                    }
-
+                    if (monster == null)
+                        NotABot.ForceStop("Can't find a monster to attack.")
 
 
                     /* Weakest Stats */
@@ -1277,7 +1279,12 @@ else {
                         if (monsterID == -1) monsterID = 9;
 
                         roundContext = JSON.parse(roundContext).monsters[monsterID];
-                        roundContext = roundContext.scanResult.defenseLevel;
+                        roundContext = roundContext.scanResult
+
+                        if (!roundContext)
+                            return true;
+
+                        roundContext = roundContext.defenseLevel;
                         var pResistence = 999;
 
                         function checkResistence(pName, pSpell) {
@@ -1298,14 +1305,17 @@ else {
                         //checkResistence("SLASHING", "");
                         //checkResistence("SOUL", "");
                         //checkResistence("VOID", "");
-                    }
-
-                    if (spell == "") {  // WTF
-                        alert("Some shit happened!!");
-                        console.log(monster);
-                        console.log(weakness);
+                    } else { // I have to makeup something to not need HVStat
+                        alert('You need to install HVStat and Enable "Record monster scan results"');
                         NotABot.Stop();
                     }
+
+                    if (spell == "")
+                        NotABot.ForceStop({
+                            Message: "Coundn't select a spell!!",
+                            Monster: monster,
+                            RoundContext: roundContext,
+                        });
 
                     if (NotABot.UseSpell(spell)) {
                         monster.click();
