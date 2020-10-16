@@ -16,7 +16,7 @@ TODO List
 if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.5") {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
-    localStorage.NABVersion = "2.5.1";
+    localStorage.NABVersion = "2.5.5";
     console.log("Cleared Cache of old LocalStorage")
 }
 
