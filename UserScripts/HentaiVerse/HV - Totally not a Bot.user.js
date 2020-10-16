@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.1
+// @version    2.5.5
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
@@ -13,7 +13,7 @@ TODO List
  */
 
 
-if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.1") {
+if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.5") {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
     localStorage.NABVersion = "2.5.1";
@@ -45,7 +45,6 @@ if (localStorage.NotABot == null)
 
 if (localStorage.NABConfig == null) {
     LocalStorage.NABConfig = {
-        // I  thought about names like Arch-Mage, Mage, Mage-Apprentice, but would confuse people
         CharacterType: "Mage 1st Circle",
         SleepTimer: 350,
         VitalBar: "Utilitarian",
@@ -397,6 +396,8 @@ if (Url.has("?NABConfig")) {
                 <label class="tooltip" for="CharacterType">
                     Character Type
                     <span class="tooltiptext">
+                        <b>Arch-Mage</b> will scale it's magic between circles according with the amount of monsters.
+                        <br>
                         <b>Mage 3rd Circle</b> uses the strongest spells, uses more MP, good against higher amount of monsters
                         <br>
                         <b>Mage 2nd Circle</b> uses the intermediate spells, uses less MP than the 3rd circle, good area
@@ -407,6 +408,7 @@ if (Url.has("?NABConfig")) {
                 </label>
 
                 <select id="CharacterType">
+                    <option value="Arch-Mage" ${LocalStorage.NABConfig.CharacterType == "Arch-Mage" ? "selected" : ""}>Arch-Mages</option>
                     <option value="Mage 3rd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 3rd Circle" ? "selected" : ""}>Mage 3rd Circle</option>
                     <option value="Mage 2nd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 2nd Circle" ? "selected" : ""}>Mage 2nd Circle</option>
                     <option value="Mage 1st Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 1st Circle" ? "selected" : ""}>Mage 1st Circle</option>
@@ -1196,7 +1198,8 @@ else {
                     "a1691c3bca": "A", "d3a232166a": "A", "417922cf6f": "A", "86bd55029d": "A", "ecd040753e": "A", "98f0b05812": "A", "0133dcf8ff": "A", "0db0d1e7ca": "A",
                     "2f611c7e9d": "A", "800e90373a": "A", "350832f33b": "A", "5f9bc1e329": "A", "080aebe956": "A", "35718c3461": "A", "3152a5c492": "A", "577c9249b4": "A",
                     "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A", "3d9db08e8b": "A", "c1f3b70a0d": "A", "8dcf30cf81": "A",
-                    "5dd60754c0": "A",
+                    "5dd60754c0": "A", "5c004127ff": "A", "7ef6e104ed": "A", "43d715d790": "A", "328a375b54": "A", "447f89b1aa": "A", "24323f7591": "A", "41728c37ee": "A",
+                    "d61d979dc3": "A", "da031759a6": "A", "e7d9b3dfec": "A", "f962c97a60": "A",
 
 
                     "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -1205,7 +1208,8 @@ else {
                     "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B", "ec992e36b2": "B", "cddf856293": "B",
                     "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
                     "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
-                    "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B",
+                    "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B", "2da4a7f68b": "B", "3e39cd2b93": "B", "6e3a791a83": "B", "040d29fafc": "B", "0345981b22": "B",
+                    "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B",
 
 
                     "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -1216,8 +1220,8 @@ else {
                     "850537ea00": "C", "915b437112": "C", "0f1c10d2c4": "C", "3167499740": "C", "2abcc758a0": "C", "47eb93fefd": "C", "648db2ffbd": "C", "eb5e0b6a1e": "C",
                     "670a179c05": "C", "63879d1d3b": "C", "c409289cf9": "C", "db6ea25f49": "C", "423eec71f8": "C", "4bfe8af641": "C", "cce87a3fa1": "C", "e6c556688d": "C",
                     "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C", "439d60f539": "C",
-                    "91d7cc49ec": "C",
-
+                    "91d7cc49ec": "C", "6c13b1759e": "C", "6bb644d7dc": "C", "2a9145c902": "C", "7d59f43a5f": "C", "64bcacb74d": "C", "164d361036": "C", "393e649d8f": "C",
+                    "816569e0bb": "C", "551237152b": "C", "ad0abfc3d6": "C", "bd8efb9594": "C",
                 })
             }),
 
@@ -1417,6 +1421,17 @@ else {
                             pResistence = 999;
 
                             switch (playerClass) {
+                                case "Arch-Mage":
+                                    var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
+
+                                    if (monsterList.length > 7)
+                                        playerClass = "Mage 3rd Circle";
+                                    else if (monsterList.length > 5)
+                                        playerClass = "Mage 2nd Circle";
+                                    else
+                                        playerClass = "Mage 1st Circle";
+
+                                    break;
                                 case "Mage 3rd Circle": // Will not check if have spell available, this way you can attack the monster with his weakest element with a lower tier Spell
                                     checkResistence("COLD", "Fimbulvertr");
                                     checkResistence("DARK", "Ragnarok");
@@ -1424,7 +1439,7 @@ else {
                                     checkResistence("FIRE", "Flames of Loki");
                                     checkResistence("HOLY", "Paradise Lost");
                                     checkResistence("WIND", "Storms of Njord");
-                                    playerClass = "Mage 2st Circle";
+                                    playerClass = "Mage 2nd Circle";
                                     break;
                                 case "Mage 2nd Circle":
                                     checkResistence("COLD", "Blizzard");
