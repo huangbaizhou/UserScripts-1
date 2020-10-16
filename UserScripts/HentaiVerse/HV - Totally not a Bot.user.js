@@ -1603,11 +1603,11 @@ else {
 
                 var monster = monsterList[0];
 
-                switch (this.Order) { // Tactics
-                    case 1:  //  Use AoE middle
+                switch (this.Order.toString()) { // Tactics
+                    case '1':  //  Use AoE middle
                         monster = monsterList[monsterList.length > 1 ? parseInt(monsterList.length / 2) : 0];
                         break;
-                    case 2: //  Kill the weakest first
+                    case '2': //  Kill the weakest first
                         var monsterID = -1;
 
                         var roundContext = localStorage["hvStat.roundContext"];
@@ -1663,7 +1663,7 @@ else {
                         monster = monsterList[monsterID];
 
                         break;
-                    case 3: //  Kill the Lower HP First
+                    case '3': //  Kill the Lower HP First
                         var lowerHealth = 9999999999999;
                         var lowerID = 0;
 
