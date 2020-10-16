@@ -47,7 +47,7 @@ if (localStorage.NABConfig == null) {
     LocalStorage.NABConfig = {
         // I  thought about names like Arch-Mage, Mage, Mage-Apprentice, but would confuse people
         CharacterType: "Mage 1st Circle",
-        SleepTimer: 400,
+        SleepTimer: 350,
         VitalBar: "Utilitarian",
 
         Fight: {
@@ -70,7 +70,7 @@ if (localStorage.NABConfig == null) {
             Debuff: {
                 Active: true,
                 MinMana: 25,
-                Use: ["Weaken", "Imperil"]
+                Use: ["Weaken", "Imperil", "Drain"]
             },
 
             Potion: {
@@ -82,7 +82,7 @@ if (localStorage.NABConfig == null) {
                     { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: ["Health Gem"] },
                     { Type: "Item", Name: "Health Draught", UseAt: 60, CheckBuff: "Regeneration" },
                     { Type: "Item", Name: "Health Gem", UseAt: 50 },
-                    { Type: "Spell", Name: "Cure", UseAt: 40, CheckItem: ["Health Gem"] }, 
+                    { Type: "Spell", Name: "Cure", UseAt: 40, CheckItem: ["Health Gem"] },
                     { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
                 ],
                 Mana: [
@@ -204,12 +204,36 @@ function $(b) {
         if (parseInt(b[b.indexOf("#") + 1]))
             b = b.replace(b[b.indexOf("#") + 1], CSS.escape(b[b.indexOf("#") + 1]))
 
-    return document.querySelectorAll(b);
+    return Array.from(document.querySelectorAll(b));
 }
 
-function In(list, str) {
+var isLogging = false;
+
+function Log(obj, logLevel) {
+    switch (logLevel) {
+        case "info":
+            if (isLogging)
+                console.info(obj);
+            break;
+        case "warn":
+            console.warn(obj);
+            break;
+        case "error":
+            console.warn("-----------------------------------------");
+            console.warn("------------  *** ERROR ***  ------------");
+            console.warn("-----------------------------------------");
+            console.error(obj);
+            break;
+        default:
+            if (isLogging)
+                console.log(obj);
+            break;
+    }
+}
+
+String.prototype.In = function (list) {
     for (var i = 0; i < list.length; i++)
-        if (list[i].has(str))
+        if (list[i].has(this))
             return true;
 
     return false;
@@ -792,89 +816,96 @@ if (Url.has("?NABConfig")) {
 
     $$("#mainpane").innerHTML = configHTML;
 
-    $$("#applyChanges").onclick = function () {
-        //Validation, maybe later?
+    setTimeout(function () {
 
-        LocalStorage.NABConfig.SleepTimer = $$("#SleepTimer").value;
-        LocalStorage.NABConfig.VitalBar = $$("#VitalBar").value;
-        LocalStorage.NABConfig.CharacterType = $$("#CharacterType").value;
+        $$("#applyChanges").onclick = function () {
+            //Validation, maybe later?
 
-        // Fight
-        LocalStorage.NABConfig.Fight.Active = $$("#fightActive").checked;
-        LocalStorage.NABConfig.Fight.ScanCreature = $$("#fightScanCreature").checked;
-        LocalStorage.NABConfig.Fight.AttackCreature = $$("#fightAttackCreature").checked;
-        LocalStorage.NABConfig.Fight.AdvanceOnVictory = $$("#fightAdvanceOnVictory").checked;
-        LocalStorage.NABConfig.Fight.Order = $$("#fightOrder").value;
+            LocalStorage.NABConfig.SleepTimer = $$("#SleepTimer").value;
+            LocalStorage.NABConfig.VitalBar = $$("#VitalBar").value;
+            LocalStorage.NABConfig.CharacterType = $$("#CharacterType").value;
 
-        // Riddle
-        LocalStorage.NABConfig.Fight.Riddle.Active = $$("#fightRiddleActive").checked;
+            // Fight
+            LocalStorage.NABConfig.Fight.Active = $$("#fightActive").checked;
+            LocalStorage.NABConfig.Fight.ScanCreature = $$("#fightScanCreature").checked;
+            LocalStorage.NABConfig.Fight.AttackCreature = $$("#fightAttackCreature").checked;
+            LocalStorage.NABConfig.Fight.AdvanceOnVictory = $$("#fightAdvanceOnVictory").checked;
+            LocalStorage.NABConfig.Fight.Order = $$("#fightOrder").value;
 
-        // Buff
-        LocalStorage.NABConfig.Fight.Buff.Active = $$("#fightBuffActive").checked;
-        LocalStorage.NABConfig.Fight.Buff.Use = getSelectValues($("#fightBuffUse"));
+            // Riddle
+            LocalStorage.NABConfig.Fight.Riddle.Active = $$("#fightRiddleActive").checked;
 
-        // Debuff
-        LocalStorage.NABConfig.Fight.Debuff.Active = $$("#fightDebuffActive").checked;
-        LocalStorage.NABConfig.Fight.Debuff.MinMana = $$("#fightDebuffActive").value;
-        LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($("#fightDebuffUse"));
+            // Buff
+            LocalStorage.NABConfig.Fight.Buff.Active = $$("#fightBuffActive").checked;
+            LocalStorage.NABConfig.Fight.Buff.Use = getSelectValues($$("#fightBuffUse"));
 
-        // Potion
-        LocalStorage.NABConfig.Fight.Potion.Active = $$("#fightPotionActive").checked;
-        LocalStorage.NABConfig.Fight.Potion.UseMysticGem = $$("#fightPotionUseMysticGem").checked;
+            // Debuff
+            LocalStorage.NABConfig.Fight.Debuff.Active = $$("#fightDebuffActive").checked;
+            LocalStorage.NABConfig.Fight.Debuff.MinMana = $$("#fightDebuffMinMana").value;
+            LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($$("#fightDebuffUse"));
 
-        // Spirit Abilities
-        LocalStorage.NABConfig.Fight.Spirit.Active = $$("#fightSpiritActive").checked;
-        LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = $$("#fightSpiritSpiritActive").checked;
-        LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = $$("#fightSpiritSpiritManaEnableAt").value;
-        LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = $$("#fightSpiritSpiritManaDisableAt").value;
-        LocalStorage.NABConfig.Fight.Spirit.Defend.Active = $$("#fightSpiritDefendActive").checked;
-        LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = $$("#fightSpiritDefendHealthEnableAt").value;
-        LocalStorage.NABConfig.Fight.Spirit.Focus.Active = $$("#fightSpiritFocusActive").checked;
-        LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = $$("#fightSpiritFocusManaEnableAt").value;
+            // Potion
+            LocalStorage.NABConfig.Fight.Potion.Active = $$("#fightPotionActive").checked;
+            LocalStorage.NABConfig.Fight.Potion.UseMysticGem = $$("#fightPotionUseMysticGem").checked;
 
-        // Idle
-        LocalStorage.NABConfig.Idle.Active = $$("#idleActive").checked;
+            // Spirit Abilities
+            LocalStorage.NABConfig.Fight.Spirit.Active = $$("#fightSpiritActive").checked;
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = $$("#fightSpiritSpiritActive").checked;
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = $$("#fightSpiritSpiritManaEnableAt").value;
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = $$("#fightSpiritSpiritManaDisableAt").value;
+            LocalStorage.NABConfig.Fight.Spirit.Defend.Active = $$("#fightSpiritDefendActive").checked;
+            LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = $$("#fightSpiritDefendHealthEnableAt").value;
+            LocalStorage.NABConfig.Fight.Spirit.Focus.Active = $$("#fightSpiritFocusActive").checked;
+            LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = $$("#fightSpiritFocusManaEnableAt").value;
 
-        // Auto-Start Arena
-        LocalStorage.NABConfig.Idle.Arena.Active = $$("#idleArenaActive").checked;
-        LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood = $$("#idleArenaDoRingOfBlood").checked;
-        LocalStorage.NABConfig.Idle.Arena.MinimumStamina = $$("#idleArenaMinimumStamina").value;
-        LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty = $$("#idleArenaChangeDifficulty").checked;
-        LocalStorage.NABConfig.Idle.Arena.UseRestoratives = $$("#idleArenaUseRestoratives").checked;
-        LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative = $$("#idleArenaMaxStaminaToUseRestorative").value;
+            // Idle
+            LocalStorage.NABConfig.Idle.Active = $$("#idleActive").checked;
 
-        // Training
-        LocalStorage.NABConfig.Idle.Training.Active = $$("#idleTrainingActive").checked;
-        LocalStorage.NABConfig.Idle.Training.MinCredits = $$("#idleTrainingMinCredits").value;
+            // Auto-Start Arena
+            LocalStorage.NABConfig.Idle.Arena.Active = $$("#idleArenaActive").checked;
+            LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood = $$("#idleArenaDoRingOfBlood").checked;
+            LocalStorage.NABConfig.Idle.Arena.MinimumStamina = $$("#idleArenaMinimumStamina").value;
+            LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty = $$("#idleArenaChangeDifficulty").checked;
+            LocalStorage.NABConfig.Idle.Arena.UseRestoratives = $$("#idleArenaUseRestoratives").checked;
+            LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative = $$("#idleArenaMaxStaminaToUseRestorative").value;
 
-        // Item Repair
-        LocalStorage.NABConfig.Idle.Repair.Active = $$("#idleRepairActive").checked;
+            // Training
+            LocalStorage.NABConfig.Idle.Training.Active = $$("#idleTrainingActive").checked;
+            LocalStorage.NABConfig.Idle.Training.MinCredits = $$("#idleTrainingMinCredits").value;
 
-        // Item Enchant
-        LocalStorage.NABConfig.Idle.Enchant.Active = $$("#idleEnchantActive").checked;
-        LocalStorage.NABConfig.Idle.Enchant.Use = getSelectValues($("#idleEnchantUse"));
+            // Item Repair
+            LocalStorage.NABConfig.Idle.Repair.Active = $$("#idleRepairActive").checked;
 
-        // Shopping
-        LocalStorage.NABConfig.Idle.Shop.Active = $$("#idleShopActive").checked;
+            // Item Enchant
+            LocalStorage.NABConfig.Idle.Enchant.Active = $$("#idleEnchantActive").checked;
+            LocalStorage.NABConfig.Idle.Enchant.Use = getSelectValues($$("#idleEnchantUse"));
 
-        // UPDATE
-        LocalStorage.UpdateConfig();
-    }
+            // Shopping
+            LocalStorage.NABConfig.Idle.Shop.Active = $$("#idleShopActive").checked;
 
-    function getSelectValues(select) {
-        var result = [];
-        var options = select && select.options;
-        var opt;
+            // UPDATE
+            LocalStorage.UpdateConfig();
 
-        for (var i = 0, iLen = options.length; i < iLen; i++) {
-            opt = options[i];
-
-            if (opt.selected) {
-                result.push(opt.value || opt.text);
-            }
+            //
+            location.reload();
         }
-        return result;
-    }
+
+        function getSelectValues(select) {
+            var result = [];
+            var options = select && select.options;
+            var opt;
+
+            for (var i = 0, iLen = options.length; i < iLen; i++) {
+                opt = options[i];
+
+                if (opt.selected) {
+                    result.push(opt.value || opt.text);
+                }
+            }
+            return result;
+        }
+    }, 100);
+
 }
 else {
     window.NotABot = {
@@ -919,7 +950,7 @@ else {
             if ($$("#startStopBot"))
                 $$("#startStopBot").innerText = "Stop Bot";
 
-            console.log("Bot Started");
+            Log("Bot Started");
         },
         Stop: function () {
             clearInterval(this.Interval);
@@ -928,7 +959,7 @@ else {
             if ($$("#startStopBot"))
                 $$("#startStopBot").innerText = "Start Bot";
 
-            console.log("Bot Stopped");
+            Log("Bot Stopped");
         },
         Run: function () {
             if (this.Idle.Start())
@@ -937,13 +968,11 @@ else {
             if (this.Fight.Start())
                 return;
 
-            console.log("Something Wrong isn't right.");
+            Log("Something Wrong isn't right.", 'warn');
             this.Stop();
         },
         ForceStop: function (param) {
-            console.warn("------------- ERROR -------------");
-            console.warn(param);
-            console.warn("---------------------------------");
+            Log(param, 'error');
 
             this.Stop();
             throw "FORCE STOP";
@@ -1003,7 +1032,7 @@ else {
 
                     if (this.Active && this.Use && this.Use.length > 0)
                         for (let i = 0; i < this.Use.length; i++)
-                            if (!In(this.ListOfBuffsOn, this.Use[i]))
+                            if (!this.Use[i].In(this.ListOfBuffsOn))
                                 if (NotABot.UseSpell(this.Use[i]))
                                     return true;
 
@@ -1013,8 +1042,12 @@ else {
 
             Debuff: Object.assign({}, LocalStorage.NABConfig.Fight.Debuff, {
                 Start: function () {
-                    if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) { // Don't debuff if you have low mana
-                        var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
+                    if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) {
+                        //Order by Higher HP to Lower
+                        var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']").sort((o, r) =>
+                            parseInt(r.querySelector(".hvstat-monster-health").innerText.split('/')[0]) -
+                            parseInt(o.querySelector(".hvstat-monster-health").innerText.split('/')[0])
+                        );
 
                         for (let i = 0; i < monsterList.length; i++) {
                             var listOfDebuffsOn = [];
@@ -1028,7 +1061,7 @@ else {
                             }
 
                             for (let j = 0; j < this.Use.length; j++) {
-                                if (!In(listOfDebuffsOn, this.Use[j])) {
+                                if (!this.Use[j].In(listOfDebuffsOn)) {
                                     if (NotABot.UseSpell(this.Use[j])) {
                                         monsterList[i].click();
                                         return true;
@@ -1082,8 +1115,6 @@ else {
                                         return true;
                                     else if (type == "Spell" && NotABot.UseSpell(name))
                                         return true;
-
-                                    //console.log(`Err: USE: ${useAt} || Type: ${type} || Name: ${name}`);
                                 }
                             }
                         }
@@ -1097,22 +1128,24 @@ else {
                 Health: 0,
                 Mana: 0,
                 Spirit: 0,
+                Overcharge: 0,
                 GetStatus: function () {
                     try {
                         if (NotABot.VitalBar == "Utilitarian") {
                             this.Health = $$("#dvbh img").width / $$("#dvbh").clientWidth * 100;
                             this.Mana = $$("#dvbm img").width / $$("#dvbm").clientWidth * 100;
                             this.Spirit = $$("#dvbs img").width / $$("#dvbs").clientWidth * 100;
+                            this.Overcharge = $$("#dvbc img").width / $$("#dvbc").clientWidth * 100;
                         } else {
                             this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
                             this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
                             this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
+                            //this.Overcharge = $$("#vbc img").width / $$("#vbc").clientWidth * 100;
                         }
 
                         return false;
                     } catch (e) {
-                        //console.log("Cound not get your life/mana/spirit data.");
-                        NotABot.Stop();
+                        NotABot.ForceStop("Cound not get your life/mana/spirit/overcharge data.");
                     }
 
                     return true;
@@ -1131,7 +1164,7 @@ else {
                             LocalStorage.NotABot.LastRiddleAnswer = "Your ass has been saved by the all mighty god. Answer: " + answer;
                             LocalStorage.Update();
 
-                            console.log(LocalStorage.NotABot.LastRiddleAnswer);
+                            Log(LocalStorage.NotABot.LastRiddleAnswer, 'info');
 
                             $$('#riddleanswer').value = answer;
                             $$('#riddleform').submit();
@@ -1201,15 +1234,16 @@ else {
                 Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Spirit, {
                     Start: function () {
                         if (this.Active) {
-                            let isActive = $$("#ckey_spirit").src.has("spirit_s.png") || $$("#ckey_spirit").src.has("spirit_a.png");
+                            let isSet = $$("#ckey_spirit").src.has("spirit_s.png");
+                            let isActive = $$("#ckey_spirit").src.has("spirit_a.png");
 
-                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && !isActive) {
+                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > 20 && !isActive && !isSet) {
                                 $$("#ckey_spirit").click();
                                 return true;
                             }
 
                             ////// Toggle off not working
-                            if (NotABot.Fight.Player >= this.Mana.DisableAt && isActive) {
+                            if (NotABot.Fight.Player >= this.Mana.DisableAt && isActive && !isSet) {
                                 $$("#ckey_spirit").click();
                                 return true;
                             }
@@ -1221,7 +1255,7 @@ else {
                 Defend: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Defend, {
                     Start: function () {
                         if (this.Active) {
-                            if (NotABot.Fight.Player.Health <= this.Health.EnableAt) {
+                            if (NotABot.Fight.Player.Health <= this.Health.EnableAt && NotABot.Fight.Player.Overcharge > 10) {
                                 battle.lock_action(this, 0, 'defend')
                                 $$("#ckey_defend").click();
                                 return true;
@@ -1234,7 +1268,7 @@ else {
                 Focus: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Focus, {
                     Start: function () {
                         if (this.Active) {
-                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt) {
+                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > 10) {
                                 //battle.lock_action(this,0,'focus')
                                 $$("#ckey_focus").click();
                                 return true;
@@ -1266,8 +1300,8 @@ else {
                         } else
                             message = "You won!";
 
+                        Log(message, 'info');
 
-                        // console.log(message);
                         LocalStorage.NotABot.LastMatch = message;
                         LocalStorage.Update();
                         common.goto_arena();
@@ -1286,14 +1320,13 @@ else {
                     if (newMonsters.length > 0) {
                         var i = 0;
 
-                        while (i < newMonsters.length && In(this.NotScanList, newMonsters[i].parentElement.innerText))
+                        while (i < newMonsters.length && newMonsters[i].parentElement.innerText.In(this.NotScanList))
                             i++;
-
 
                         if (i < newMonsters.length) {
                             let monsterName = newMonsters[i].parentElement.innerText;
 
-                            if (!In(this.NotScanList, monsterName)) {
+                            if (!monsterName.In(this.NotScanList)) {
                                 this.NotScanList.push(monsterName);
 
                                 if (NotABot.UseSpell("Scan")) {
@@ -1303,7 +1336,7 @@ else {
                                 }
                             } else {
                                 //setInterval(beep, 350);  
-                                console.log("Error Scan.");
+                                Log("Error Scan.", 'warn');
                                 //NotABot.Stop();
                                 //return;
                             }
@@ -1366,7 +1399,7 @@ else {
                         function checkResistence(pName, pSpell, checkSpell) {
                             if (checkSpell) {
                                 // Check if you have the spell
-                                var spellObj = $$(`[id='${NotABot.ListSkill[pSpell]}']`);
+                                var spellObj = $$('#' + NotABot.ListSkill[pSpell]);
                                 if (!spellObj || spellObj.style.opacity == "0.5")
                                     return;
                             }
@@ -1533,19 +1566,7 @@ else {
                         }
                     }
 
-                    //if (spell == "")
-                    //    NotABot.ForceStop({
-                    //        Message: "Coundn't select a spell!!",
-                    //        Monster: monster,
-                    //        RoundContext: roundContext,
-                    //    });
-
-                    //if (NotABot.UseSpell(spell)) {
-                    //    monster.click();
-                    //    return true;
-                    //}
-
-                    //console.log("Could not use spell:" + spell);
+                    Log("Could not use skill/spell", 'warn');
                 }
 
                 return false;
@@ -1573,43 +1594,54 @@ else {
                         break;
                     case 2: //  Kill the weakest first
                         var monsterID = -1;
-                        let tempList = [];
 
-                        // Check Weakness
-                        for (var i = 0; i < monsterList.length; i++) {
-                            var hasWeakness = monsterList[i].querySelector('.hvstat-monster-status-weakness').innerText != "";
+                        var roundContext = localStorage["hvStat.roundContext"];
 
-                            if (hasWeakness)
-                                tempList.push(i);
-                        }
+                        if (roundContext) {
+                            roundContext = JSON.parse(roundContext).monsters;
 
-                        // Check Resistence
-                        if (tempList.length == 0) {
-                            for (var i = 0; i < monsterList.length; i++) {
-                                var hasResistence = monsterList[i].querySelector('.hvstat-monster-status-resistance').innerText != "";
+                            var weakestStats = 999;
+                            for (var i = 0; i < roundContext.length; i++) {
+                                var mContext = roundContext[i].scanResult;
 
-                                if (!hasResistence)
-                                    tempList.push(i);
+                                if (!mContext)
+                                    continue;
+
+                                mContext = mContext.defenseLevel;
+                                function checkAttribute(attr) {
+                                    if (mContext[attr] && mContext[attr] < weakestStats) {
+                                        monsterID = i;
+                                        weakestStats = mContext[attr];
+                                    }
+                                }
+
+                                if (["Mage 3rd Circle", "Mage 2nd Circle", "Mage 1st Circle"].contains(NotABot.CharacterType)) {
+                                    checkAttribute("COLD");
+                                    checkAttribute("DARK");
+                                    checkAttribute("ELEC");
+                                    checkAttribute("FIRE");
+                                    checkAttribute("HOLY");
+                                    checkAttribute("WIND");
+                                } else {
+                                    checkAttribute("CRUSHING");
+                                    checkAttribute("PIERCING");
+                                    checkAttribute("SLASHING");
+                                }
+
+                                //checkAttribute("SOUL");
+                                //checkAttribute("VOID");
                             }
                         }
 
-                        // Get List
-                        if (tempList.length > 0) {
-                            let newList = [];
-
-                            for (let i = 0; i < tempList.length; i++)
-                                newList.push(monsterList[tempList[i]]);
-
-                            monsterList = newList;
-                        }
-
-                        // Check H.
-                        var lowerHealth = 9999999999999;
-                        for (var i = 0; i < monsterList.length; i++) {
-                            var hp = parseInt(monsterList[i].querySelector(".hvstat-monster-health").innerText.split('/')[0]);
-                            if (hp < lowerHealth) {
-                                lowerHealth = hp;
-                                monsterID = i;
+                        if (monsterID == -1) {
+                            // Check Health
+                            var lowerHealth = 9999999999999;
+                            for (var i = 0; i < monsterList.length; i++) {
+                                var hp = parseInt(monsterList[i].querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+                                if (hp < lowerHealth) {
+                                    lowerHealth = hp;
+                                    monsterID = i;
+                                }
                             }
                         }
 
@@ -1826,7 +1858,7 @@ else {
                             //    let $equip = LocalStorage.NotABot.Enchant[0];
                             //
                             //    if ($equip == "End") {
-                            //        console.log("Finished Enchanting");
+                            //        Log("Finished Enchanting", 'info');
                             //        return true;
                             //    }
                             //
@@ -1962,14 +1994,15 @@ else {
             "Orbital Friendship Cannon": 0, "FUS RO DAH": 0
         },
         UseSpell: function (spellName) {
-            var spell = $$(`[id='${NotABot.ListSkill[spellName]}']`);
-            //var spell = $$("#" + this.ListSkill[spellName]);
+            var spell = $$('#' + this.ListSkill[spellName]);
 
             if (spell && spell.style.opacity != "0.5") {
+                Log('  Skill/Spell Used: ' + spellName)
                 spell.click();
                 return true;
             }
 
+            //Log('  Could not use Skill/Spell: ' + spellName)
             return false;
         },
         UseItem: function (itemName) {
@@ -1978,11 +2011,11 @@ else {
             if (items.length > 0) {
                 items[0].click();
 
-                // console.log("Item Used " + itemName);
+                Log("  Item Used " + itemName);
                 return true;
             }
 
-            // console.log("Could not use Item: " + itemName)
+            //Log("  Could not use Item: " + itemName)
             return false;
         },
     };
