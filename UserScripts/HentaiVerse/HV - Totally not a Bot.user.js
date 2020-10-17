@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.5
+// @version    2.5.6
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
@@ -13,10 +13,10 @@ TODO List
  */
 
 
-if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.5") {
+if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.6") {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
-    localStorage.NABVersion = "2.5.5";
+    localStorage.NABVersion = "2.5.6";
     console.log("Cleared Cache of old LocalStorage")
 }
 
@@ -45,8 +45,7 @@ if (localStorage.NotABot == null)
 
 if (localStorage.NABConfig == null) {
     LocalStorage.NABConfig = {
-        CharacterType: "Mage 1st Circle",
-        SleepTimer: 350,
+        CharacterType: "Arch-Mage",
         VitalBar: "Utilitarian",
 
         Fight: {
@@ -78,23 +77,23 @@ if (localStorage.NABConfig == null) {
                 PriorityOrder: ["Health", "Mana", "Spirit"],
                 Health: [
                     { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: ["Health Gem", "Health Potion"] },
-                    { Type: "Item", Name: "Health Potion", UseAt: 30, CheckItem: ["Health Gem"] },
-                    { Type: "Item", Name: "Health Draught", UseAt: 60, CheckBuff: "Regeneration" },
+                    { Type: "Item", Name: "Health Potion", UseAt: 35, CheckItem: ["Health Gem"] },
+                    { Type: "Item", Name: "Health Draught", UseAt: 70, CheckBuff: "Regeneration" },
                     { Type: "Item", Name: "Health Gem", UseAt: 50 },
-                    { Type: "Spell", Name: "Cure", UseAt: 40, CheckItem: ["Health Gem"] },
+                    { Type: "Spell", Name: "Cure", UseAt: 60 },
                     { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
                 ],
                 Mana: [
                     { Type: "Item", Name: "Mana Elixir", UseAt: 2, CheckItem: ["Mana Gem", "Mana Potion"] },
-                    { Type: "Item", Name: "Mana Potion", UseAt: 15, CheckItem: ["Mana Gem"] },
-                    { Type: "Item", Name: "Mana Draught", UseAt: 40, CheckBuff: "Replenishment" },
+                    { Type: "Item", Name: "Mana Potion", UseAt: 30, CheckItem: ["Mana Gem"] },
+                    { Type: "Item", Name: "Mana Draught", UseAt: 70, CheckBuff: "Replenishment" },
                     { Type: "Item", Name: "Mana Gem", UseAt: 55 }
                 ],
                 Spirit: [
                     { Type: "Item", Name: "Spirit Elixir", UseAt: 2, CheckItem: ["Spirit Gem", "Spirit Potion"] },
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 10, CheckItem: ["Spirit Gem"] },
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 30, CheckBuff: "Refreshment" },
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 }
+                    { Type: "Item", Name: "Spirit Potion", UseAt: 30, CheckItem: ["Spirit Gem"] },
+                    { Type: "Item", Name: "Spirit Draught", UseAt: 50, CheckBuff: "Refreshment" },
+                    { Type: "Item", Name: "Spirit Gem", UseAt: 70 }
                 ]
             },
 
@@ -376,16 +375,6 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Basic Settings</span>
             <p>
-                <label class="tooltip" for="SleepTimer">Sleep Timer (ms):
-                    <span class="tooltiptext">
-                        Time between each action. <br>
-                        Too fast you might execute the same action twice. <br>
-                        Too slow and it becomes borish.
-                    </span>
-                </label>
-                <input type="number" maxlength="4" id="SleepTimer" value="${LocalStorage.NABConfig.SleepTimer}" />
-            </p>
-            <p>
                 <label for="VitalBar">Vital Bar Style</label>
                 <select id="VitalBar">
                     <option value="Standard" ${LocalStorage.NABConfig.VitalBar == "Standard" ? "selected" : ""}>Standard</option>
@@ -408,7 +397,7 @@ if (Url.has("?NABConfig")) {
                 </label>
 
                 <select id="CharacterType">
-                    <option value="Arch-Mage" ${LocalStorage.NABConfig.CharacterType == "Arch-Mage" ? "selected" : ""}>Arch-Mages</option>
+                    <option value="Arch-Mage" ${LocalStorage.NABConfig.CharacterType == "Arch-Mage" ? "selected" : ""}>Arch-Mage</option>
                     <option value="Mage 3rd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 3rd Circle" ? "selected" : ""}>Mage 3rd Circle</option>
                     <option value="Mage 2nd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 2nd Circle" ? "selected" : ""}>Mage 2nd Circle</option>
                     <option value="Mage 1st Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 1st Circle" ? "selected" : ""}>Mage 1st Circle</option>
@@ -444,12 +433,12 @@ if (Url.has("?NABConfig")) {
                 <label for="fightAdvanceOnVictory">Advance on Victory</label>
             </p>
             <p>
-                <label for="fightOrder">Attack Order</label>
+                <label for="fightOrder">Attack Priority</label>
                 <select id="fightOrder">
                     <option value="1" ${LocalStorage.NABConfig.Fight.Order == 1 ? "selected" : ""}>AoE in the Middle</option>
-                    <option value="2" ${LocalStorage.NABConfig.Fight.Order == 2 ? "selected" : ""}>Attack the weakest</option>
-                    <option value="3" ${LocalStorage.NABConfig.Fight.Order == 3 ? "selected" : ""}>Attack the lower HP</option>
-                    <option value="4" ${LocalStorage.NABConfig.Fight.Order == 4 ? "selected" : ""}>Attack in the disposition order</option>
+                    <option value="2" ${LocalStorage.NABConfig.Fight.Order == 2 ? "selected" : ""}>Weaker</option>
+                    <option value="3" ${LocalStorage.NABConfig.Fight.Order == 3 ? "selected" : ""}>Lower HP</option>
+                    <option value="4" ${LocalStorage.NABConfig.Fight.Order == 4 ? "selected" : ""}>Displayed Order</option>
                 </select>
             </p>
         </div>
@@ -569,10 +558,10 @@ if (Url.has("?NABConfig")) {
                     { Type: "Item", Name: "Mana Gem", UseAt: 55 }
                 ],
                 Spirit: [
-                    { Type: "Item", Name: "Spirit Elixir", UseAt: 2 },
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 10 },
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 30 },
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 100 }
+                    { Type: "Item", Name: "Spirit Elixir", UseAt: 4 },
+                    { Type: "Item", Name: "Spirit Potion", UseAt: 30 },
+                    { Type: "Item", Name: "Spirit Draught", UseAt: 40 },
+                    { Type: "Item", Name: "Spirit Gem", UseAt: 70 }
                 ]
 -->
         </div>
@@ -823,7 +812,6 @@ if (Url.has("?NABConfig")) {
         $$("#applyChanges").onclick = function () {
             //Validation, maybe later?
 
-            LocalStorage.NABConfig.SleepTimer = $$("#SleepTimer").value;
             LocalStorage.NABConfig.VitalBar = $$("#VitalBar").value;
             LocalStorage.NABConfig.CharacterType = $$("#CharacterType").value;
 
@@ -843,7 +831,7 @@ if (Url.has("?NABConfig")) {
 
             // Debuff
             LocalStorage.NABConfig.Fight.Debuff.Active = $$("#fightDebuffActive").checked;
-            LocalStorage.NABConfig.Fight.Debuff.MinMana = $$("#fightDebuffMinMana").value;
+            LocalStorage.NABConfig.Fight.Debuff.MinMana = parseInt($$("#fightDebuffMinMana").value);
             LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($$("#fightDebuffUse"));
 
             // Potion
@@ -853,12 +841,12 @@ if (Url.has("?NABConfig")) {
             // Spirit Abilities
             LocalStorage.NABConfig.Fight.Spirit.Active = $$("#fightSpiritActive").checked;
             LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = $$("#fightSpiritSpiritActive").checked;
-            LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = $$("#fightSpiritSpiritManaEnableAt").value;
-            LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = $$("#fightSpiritSpiritManaDisableAt").value;
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = parseInt($$("#fightSpiritSpiritManaEnableAt").value);
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = parseInt($$("#fightSpiritSpiritManaDisableAt").value);
             LocalStorage.NABConfig.Fight.Spirit.Defend.Active = $$("#fightSpiritDefendActive").checked;
-            LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = $$("#fightSpiritDefendHealthEnableAt").value;
+            LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = parseInt($$("#fightSpiritDefendHealthEnableAt").value);
             LocalStorage.NABConfig.Fight.Spirit.Focus.Active = $$("#fightSpiritFocusActive").checked;
-            LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = $$("#fightSpiritFocusManaEnableAt").value;
+            LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = parseInt($$("#fightSpiritFocusManaEnableAt").value);
 
             // Idle
             LocalStorage.NABConfig.Idle.Active = $$("#idleActive").checked;
@@ -866,14 +854,14 @@ if (Url.has("?NABConfig")) {
             // Auto-Start Arena
             LocalStorage.NABConfig.Idle.Arena.Active = $$("#idleArenaActive").checked;
             LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood = $$("#idleArenaDoRingOfBlood").checked;
-            LocalStorage.NABConfig.Idle.Arena.MinimumStamina = $$("#idleArenaMinimumStamina").value;
+            LocalStorage.NABConfig.Idle.Arena.MinimumStamina = parseInt($$("#idleArenaMinimumStamina").value);
             LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty = $$("#idleArenaChangeDifficulty").checked;
             LocalStorage.NABConfig.Idle.Arena.UseRestoratives = $$("#idleArenaUseRestoratives").checked;
-            LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative = $$("#idleArenaMaxStaminaToUseRestorative").value;
+            LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative = parseInt($$("#idleArenaMaxStaminaToUseRestorative").value);
 
             // Training
             LocalStorage.NABConfig.Idle.Training.Active = $$("#idleTrainingActive").checked;
-            LocalStorage.NABConfig.Idle.Training.MinCredits = $$("#idleTrainingMinCredits").value;
+            LocalStorage.NABConfig.Idle.Training.MinCredits = parseInt($$("#idleTrainingMinCredits").value);
 
             // Item Repair
             LocalStorage.NABConfig.Idle.Repair.Active = $$("#idleRepairActive").checked;
@@ -911,10 +899,11 @@ if (Url.has("?NABConfig")) {
 }
 else {
     window.NotABot = {
-        SleepTimer: LocalStorage.NABConfig.SleepTimer,
         CharacterType: LocalStorage.NABConfig.CharacterType,
         VitalBar: LocalStorage.NABConfig.VitalBar,
         Interval: 0,
+        LastLog: "",
+        LastRun: 0,
         Begin: function () {
             this.Start();
             LocalStorage.Load();
@@ -947,7 +936,10 @@ else {
             }
         },
         Start: function () {
-            this.Interval = setInterval(() => NotABot.Run(), this.SleepTimer);
+            if ($$("#pane_log"))
+                this.Interval = setInterval(() => NotABot.Run(), 100);
+            else
+                NotABot.Run();
 
             if ($$("#startStopBot"))
                 $$("#startStopBot").innerText = "Stop Bot";
@@ -964,11 +956,25 @@ else {
             Log("Bot Stopped");
         },
         Run: function () {
-            if (this.Idle.Start())
-                return;
+            if ($$("#pane_log")) {
+                if ($$("#pane_log").innerText == this.LastLog)
+                    return;
 
-            if (this.Fight.Start())
-                return;
+                if (this.LastRun != 0)
+                    Log(`Sleep Timer: ${new Date() - this.LastRun} ms`);
+
+                this.LastRun = new Date();
+                this.LastLog = $$("#pane_log").innerText;
+
+                if (this.Fight.Start())
+                    return;
+
+            } else {
+                if (this.Idle.Start())
+                    return;
+            }
+
+
 
             Log("Something Wrong isn't right.", 'warn');
             this.Stop();
@@ -1065,7 +1071,9 @@ else {
                             for (let j = 0; j < this.Use.length; j++) {
                                 if (!this.Use[j].In(listOfDebuffsOn)) {
                                     if (NotABot.UseSpell(this.Use[j])) {
+                                        Log('    Monster: ' + monsterList[i].querySelector(".btm3").innerText);
                                         monsterList[i].click();
+
                                         return true;
                                     }
                                 }
@@ -1199,7 +1207,7 @@ else {
                     "2f611c7e9d": "A", "800e90373a": "A", "350832f33b": "A", "5f9bc1e329": "A", "080aebe956": "A", "35718c3461": "A", "3152a5c492": "A", "577c9249b4": "A",
                     "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A", "3d9db08e8b": "A", "c1f3b70a0d": "A", "8dcf30cf81": "A",
                     "5dd60754c0": "A", "5c004127ff": "A", "7ef6e104ed": "A", "43d715d790": "A", "328a375b54": "A", "447f89b1aa": "A", "24323f7591": "A", "41728c37ee": "A",
-                    "d61d979dc3": "A", "da031759a6": "A", "e7d9b3dfec": "A", "f962c97a60": "A",
+                    "d61d979dc3": "A", "da031759a6": "A", "e7d9b3dfec": "A", "f962c97a60": "A", "5d3819f901": "A", "d87995248a": "A", "ff760cb6fa": "A", "0949f79b0d": "A",
 
 
                     "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -1209,7 +1217,7 @@ else {
                     "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
                     "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
                     "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B", "2da4a7f68b": "B", "3e39cd2b93": "B", "6e3a791a83": "B", "040d29fafc": "B", "0345981b22": "B",
-                    "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B",
+                    "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B", "52866efc71": "B",
 
 
                     "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -1221,7 +1229,8 @@ else {
                     "670a179c05": "C", "63879d1d3b": "C", "c409289cf9": "C", "db6ea25f49": "C", "423eec71f8": "C", "4bfe8af641": "C", "cce87a3fa1": "C", "e6c556688d": "C",
                     "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C", "439d60f539": "C",
                     "91d7cc49ec": "C", "6c13b1759e": "C", "6bb644d7dc": "C", "2a9145c902": "C", "7d59f43a5f": "C", "64bcacb74d": "C", "164d361036": "C", "393e649d8f": "C",
-                    "816569e0bb": "C", "551237152b": "C", "ad0abfc3d6": "C", "bd8efb9594": "C",
+                    "816569e0bb": "C", "551237152b": "C", "ad0abfc3d6": "C", "bd8efb9594": "C", "5e16633b1c": "C", "9720fe534a": "C", "ac1138287f": "C", "c66dded406": "C",
+
                 })
             }),
 
@@ -1242,13 +1251,17 @@ else {
                             let isActive = $$("#ckey_spirit").src.has("spirit_a.png");
 
                             if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > 20 && !isActive && !isSet) {
+                                Log("  Enabled Battle Spirit");
                                 $$("#ckey_spirit").click();
+
                                 return true;
                             }
 
                             ////// Toggle off not working
                             if (NotABot.Fight.Player >= this.Mana.DisableAt && isActive && !isSet) {
+                                Log("  Disabled Battle Spirit");
                                 $$("#ckey_spirit").click();
+
                                 return true;
                             }
                         }
@@ -1260,7 +1273,7 @@ else {
                     Start: function () {
                         if (this.Active) {
                             if (NotABot.Fight.Player.Health <= this.Health.EnableAt && NotABot.Fight.Player.Overcharge > 10) {
-                                battle.lock_action(this, 0, 'defend')
+                                Log("  Defense Mode");
                                 $$("#ckey_defend").click();
                                 return true;
                             }
@@ -1273,7 +1286,7 @@ else {
                     Start: function () {
                         if (this.Active) {
                             if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > 10) {
-                                //battle.lock_action(this,0,'focus')
+                                Log("  Focus Mode");
                                 $$("#ckey_focus").click();
                                 return true;
                             }
@@ -1308,7 +1321,7 @@ else {
 
                         LocalStorage.NotABot.LastMatch = message;
                         LocalStorage.Update();
-                        common.goto_arena();
+                        //common.goto_arena();
 
                         NotABot.Stop();
                         return true;
@@ -1334,8 +1347,10 @@ else {
                                 this.NotScanList.push(monsterName);
 
                                 if (NotABot.UseSpell("Scan")) {
+                                    Log('    Monster: ' + newMonsters[i].parentNode.querySelector(".btm3").innerText);
                                     newMonsters[i].className += " scanned";
                                     newMonsters[i].parentElement.click();
+
                                     return true;
                                 }
                             } else {
@@ -1495,7 +1510,9 @@ else {
                             }
 
                             if (spell != "" && NotABot.UseSpell(spell)) {
+                                Log('    Monster: ' + monster.querySelector(".btm3").innerText);
                                 monster.click();
+
                                 return true;
                             }
                         }
@@ -1506,7 +1523,9 @@ else {
 
                         function AttackMonster(spell) {
                             if (spell != "" && NotABot.UseSpell(spell)) {
+                                Log('    Monster: ' + monster.querySelector(".btm3").innerText);
                                 monster.click();
+
                                 return true;
                             }
 
@@ -1515,6 +1534,17 @@ else {
 
                         while (true) {
                             switch (playerClass) {
+                                case "Arch-Mage":
+                                    var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
+
+                                    if (monsterList.length > 7)
+                                        playerClass = "Mage 3rd Circle";
+                                    else if (monsterList.length > 5)
+                                        playerClass = "Mage 2nd Circle";
+                                    else
+                                        playerClass = "Mage 1st Circle";
+
+                                    break;
                                 case "Mage 3rd Circle":
                                     if (AttackMonster("Fimbulvertr") || AttackMonster("Ragnarok") || AttackMonster("Wrath of Thor") || AttackMonster("Flames of Loki") || AttackMonster("Paradise Lost") || AttackMonster("Storms of Njord"))
                                         return true;
@@ -2012,8 +2042,9 @@ else {
             var spell = $$('#' + this.ListSkill[spellName]);
 
             if (spell && spell.style.opacity != "0.5") {
-                Log('  Skill/Spell Used: ' + spellName)
+                Log('  Skill/Spell Used: ' + spellName);
                 spell.click();
+
                 return true;
             }
 
@@ -2024,9 +2055,9 @@ else {
             var items = $("#pane_item div[id^='ikey_']").contains(itemName);
 
             if (items.length > 0) {
+                Log("  Item Used " + itemName);
                 items[0].click();
 
-                Log("  Item Used " + itemName);
                 return true;
             }
 
