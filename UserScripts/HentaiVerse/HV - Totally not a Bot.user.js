@@ -1728,7 +1728,11 @@ else {
                     //TODO: Start Idling Sending people from one side to the other. Check if it's not in the page first,
                     // also be away to no be thrown in a loop, going from one page to another instead of doing the rest
 
-                    if (Url.has("s=Character") && Url.has("ss=tr"))
+                    if (Url.has("s=Character&ss=ch") || Url == "https://hentaiverse.org/")
+                        if (this.Attribute.Start())
+                            return true;
+
+                    if (Url.has("s=Character&ss=tr"))
                         if (this.Training.Start())
                             return true;
 
@@ -1736,20 +1740,64 @@ else {
                         if (this.Arena.Start())
                             return true;
 
-                    if (Url.has("s=Forge") && Url.has("ss=re"))
+                    if (Url.has("s=Forge&ss=re"))
                         if (this.Repair.Start())
                             return true;
 
-                    if (Url.has("s=Forge") && Url.has("ss=en"))
+                    if (Url.has("s=Forge&ss=en"))
                         if (this.Enchant.Start())
                             return true;
 
-                    if (Url.has("s=Bazaar") && Url.has("ss=is"))
+                    if (Url.has("s=Bazaar&ss=is"))
                         if (this.Shop.Start())
                             return true;
                 }
 
                 return false;
+            },
+
+            Attribute: {
+                Start: function () {
+                    window.update_usable_exp = function () {
+                        usable_exp = total_exp;
+
+                        for (i in attr_keys) {
+                            if (i == "contains") continue;
+                            var current_level = attr_current[attr_keys[i]] + attr_delta[attr_keys[i]];
+                            usable_exp -= get_total_expcost(current_level);
+                        }
+                    }
+
+                    window.update_display = function (which) {
+                        document.getElementById(which + "_display").innerHTML = common.get_dynamic_digit_string(attr_current[which] + attr_delta[which]);
+                        document.getElementById(which + "_text").innerHTML = common.get_dynamic_digit_string(attr_delta[which]);
+                        document.getElementById("remaining_exp").innerHTML = common.get_dynamic_digit_string(usable_exp);
+
+                        for (i in attr_keys) {
+                            if (i == "contains") continue;
+                            var current_level = attr_current[attr_keys[i]] + attr_delta[attr_keys[i]];
+                            var next_exp = get_next_expcost(current_level);
+                            var enable_inc = next_exp <= usable_exp;
+                            var enable_dec = attr_delta[attr_keys[i]] > 0 || (doovers > 0 && current_level > 0);
+
+                            document.getElementById(attr_keys[i] + "_inc").src = "/y/character/inc" + (enable_inc ? "" : "_d") + ".png";
+                            document.getElementById(attr_keys[i] + "_dec").src = "/y/character/dec" + (enable_dec ? "" : "_d") + ".png";
+                            document.getElementById(attr_keys[i] + "_left").innerHTML = common.get_dynamic_digit_string(next_exp);
+                        }
+                    }
+
+
+                    window.do_attr_post = function () {
+                        for (i in attr_keys) {
+                            if (i == "contains") continue;
+                            document.getElementById(attr_keys[i] + "_delta").value = attr_delta[attr_keys[i]];
+                        }
+
+                        document.getElementById('attr_form').submit();
+                    }
+
+                    return true;
+                }
             },
 
             Arena: Object.assign({}, LocalStorage.NABConfig.Idle.Arena, {
