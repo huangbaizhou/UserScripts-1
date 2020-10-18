@@ -1079,7 +1079,7 @@ else {
                             }
 
                             for (let j = 0; j < this.Use.length; j++) {
-                                if (!this.Use[j].In(listOfDebuffsOn)) {
+                                if (!this.Use[j].In(listOfDebuffsOn) && !NotABot.LastLog.has(monster.Name + " gains the effect " + this.Use[j])) {
                                     if (NotABot.UseSpell(this.Use[j])) {
                                         monster.Click();
 
