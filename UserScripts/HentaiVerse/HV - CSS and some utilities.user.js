@@ -36,6 +36,7 @@ var newStyle = `
     div#infopane, div#pane_log { width: auto; }
     
     /* Battle*/
+    div.bte > img, div.btm6 > img { width: 28px !important; height: 30px !important; }
     div#expholder { left: calc(50% - 619px); top: calc(100vh - 25px); }
     div#riddlebar { left: calc(50vw - 344px) !important; }
     div#pane_log { height: calc(100vh - 320px); }
@@ -74,7 +75,6 @@ var newStyle = `
 
 if (url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
     newStyle += "#eqch_left > #compare_pane { top: 80px; left: 50%; } #csp > #popup_box { top: 107px !important; left: calc(50% - 570px) !important; }";
-
 } else if (url.indexOf("?s=Character&ss=eq") > -1) {
     newStyle += "#csp > #popup_box { top: 75px !important; left: calc(50% + 145px) !important; }";
 } else if (url.indexOf("?s=Forge") > -1) {
@@ -125,7 +125,7 @@ setTimeout(function () {
         else
             window.location.href = "https://hentaiverse.org/?s=Character&ss=ch";
     }
-}, 50);
+}, 150);
 
 
 if ((url.indexOf("Character") > -1 || url == "https://hentaiverse.org/") && hasRandomEncounter)
