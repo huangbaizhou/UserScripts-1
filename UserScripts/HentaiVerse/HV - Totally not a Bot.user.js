@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.6
+// @version    2.5.7
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
@@ -12,11 +12,13 @@ TODO List
     * Flee
  */
 
+var NABVersion = "2.5.7";
 
-if (!localStorage.NABVersion || localStorage.NABVersion != "2.5.6") {
+
+if (!localStorage.NABVersion || localStorage.NABVersion != NABVersion) {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
-    localStorage.NABVersion = "2.5.6";
+    localStorage.NABVersion = NABVersion;
     console.log("Cleared Cache of old LocalStorage")
 }
 
@@ -54,11 +56,6 @@ if (localStorage.NABConfig == null) {
             AttackCreature: true,
             AdvanceOnVictory: true,
             Order: 3,
-
-            Riddle: {
-                Active: true,
-                Combinations: {},
-            },
 
             Buff: {
                 Active: true,
@@ -116,6 +113,11 @@ if (localStorage.NABConfig == null) {
                     Mana: { EnableAt: 5 }
                 },
             },
+        },
+
+        Riddle: {
+            Active: true,
+            Combinations: {},
         },
 
         Idle: {
@@ -240,6 +242,7 @@ String.prototype.In = function (list) {
 String.prototype.has = function (val) {
     return this.indexOf(val) > -1;
 }
+
 Object.prototype.contains = function (name) {
     return Array.prototype.filter.call(this, function (element) {
         return RegExp(name).test(element.textContent ?? element);
@@ -447,8 +450,8 @@ if (Url.has("?NABConfig")) {
         <div class="settings_block">
             <span class="item-title">Riddle</span>
             <p>
-                <input type="checkbox" id="fightRiddleActive" ${LocalStorage.NABConfig.Fight.Riddle.Active ? "checked" : ""}> 
-                <label class="tooltip" for="fightRiddleActive">
+                <input type="checkbox" id="riddleActive" ${LocalStorage.NABConfig.Riddle.Active ? "checked" : ""}> 
+                <label class="tooltip" for="riddleActive">
                     Try to do Riddle
                     <span class="tooltiptext">
                         The code has a small database of riddles. <br>
@@ -823,7 +826,7 @@ if (Url.has("?NABConfig")) {
             LocalStorage.NABConfig.Fight.Order = $$("#fightOrder").value;
 
             // Riddle
-            LocalStorage.NABConfig.Fight.Riddle.Active = $$("#fightRiddleActive").checked;
+            LocalStorage.NABConfig.Riddle.Active = $$("#riddleActive").checked;
 
             // Buff
             LocalStorage.NABConfig.Fight.Buff.Active = $$("#fightBuffActive").checked;
@@ -901,9 +904,11 @@ else {
     window.NotABot = {
         CharacterType: LocalStorage.NABConfig.CharacterType,
         VitalBar: LocalStorage.NABConfig.VitalBar,
+
         Interval: 0,
         LastLog: "",
         LastRun: 0,
+
         Begin: function () {
             this.Start();
             LocalStorage.Load();
@@ -969,6 +974,9 @@ else {
                 if (this.Fight.Start())
                     return;
 
+            } else if ($$("#riddlemaster")) {
+                if (this.Riddle.Start())
+                    return true;
             } else {
                 if (this.Idle.Start())
                     return;
@@ -994,10 +1002,10 @@ else {
                     if (this.Advance())
                         return true;
 
-                    if (this.Riddle.Start())
+                    if (this.Player.GetStatus())
                         return true;
 
-                    if (this.Player.GetStatus())
+                    if (this.Monsters.Load())
                         return true;
 
                     if (this.Potion.Start())
@@ -1052,14 +1060,13 @@ else {
                 Start: function () {
                     if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) {
                         //Order by Higher HP to Lower
-                        var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']").sort((o, r) =>
-                            parseInt(r.querySelector(".hvstat-monster-health").innerText.split('/')[0]) -
-                            parseInt(o.querySelector(".hvstat-monster-health").innerText.split('/')[0])
-                        );
+                        var monsterList = NotABot.Fight.Monsters.List.sort((o, r) => r.Health - o.Health);
 
                         for (let i = 0; i < monsterList.length; i++) {
+                            var monster = monsterList[i];
+
                             var listOfDebuffsOn = [];
-                            var listDebuff = monsterList[i].querySelectorAll(".btm6 img");
+                            var listDebuff = monster.Object.querySelectorAll(".btm6 img");
 
                             for (let j = 0; j < listDebuff.length; j++) {
                                 var str = listDebuff[j].onmouseover.toString();
@@ -1071,8 +1078,7 @@ else {
                             for (let j = 0; j < this.Use.length; j++) {
                                 if (!this.Use[j].In(listOfDebuffsOn)) {
                                     if (NotABot.UseSpell(this.Use[j])) {
-                                        Log('    Monster: ' + monsterList[i].querySelector(".btm3").innerText);
-                                        monsterList[i].click();
+                                        monster.Click();
 
                                         return true;
                                     }
@@ -1160,78 +1166,6 @@ else {
 
                     return true;
                 }
-            }),
-
-            Riddle: Object.assign({}, LocalStorage.NABConfig.Fight.Riddle, {
-                Start: function () {
-                    if (this.Active && $("#riddlemaster").length > 0) {
-                        var src = $$("#riddlebot img").src;
-                        src = src.substr(src.indexOf("&v=") + 3);
-
-                        var answer = this.Combinations[src];
-
-                        if (answer != null) {
-                            LocalStorage.NotABot.LastRiddleAnswer = "Your ass has been saved by the all mighty god. Answer: " + answer;
-                            LocalStorage.Update();
-
-                            Log(LocalStorage.NotABot.LastRiddleAnswer, 'info');
-
-                            $$('#riddleanswer').value = answer;
-                            $$('#riddleform').submit();
-                        } else {
-                            // Save Combination
-                            $$("#riddleanswer").addEventListener('change', function () {
-                                LocalStorage.NABConfig.Fight.Riddle.Combinations[src] = $$("#riddleanswer").value;
-                                LocalStorage.UpdateConfig();
-                            });
-
-                            beep();
-                            setInterval(beep, 150);
-                        }
-
-
-                        NotABot.Stop();
-                        return true;
-                    }
-
-                    return false;
-                },
-                //Probe This 
-                Combinations: Object.assign({}, LocalStorage.NABConfig.Fight.Riddle.Combinations, {
-                    "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
-                    "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
-                    "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
-                    "8e73159fd8": "A", "da7a5af305": "A", "6ae1a72220": "A", "6574e82166": "A", "68d3878db4": "A", "13fb1c539a": "A", "f3c423a3c3": "A", "afbdd89f1b": "A",
-                    "69ae72d5fd": "A", "01a5e680e3": "A", "975b585ef2": "A", "989888a608": "A", "cee8e2e514": "A", "15edb52243": "A", "2f008f459e": "A", "7fae3c5378": "A",
-                    "a1691c3bca": "A", "d3a232166a": "A", "417922cf6f": "A", "86bd55029d": "A", "ecd040753e": "A", "98f0b05812": "A", "0133dcf8ff": "A", "0db0d1e7ca": "A",
-                    "2f611c7e9d": "A", "800e90373a": "A", "350832f33b": "A", "5f9bc1e329": "A", "080aebe956": "A", "35718c3461": "A", "3152a5c492": "A", "577c9249b4": "A",
-                    "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A", "3d9db08e8b": "A", "c1f3b70a0d": "A", "8dcf30cf81": "A",
-                    "5dd60754c0": "A", "5c004127ff": "A", "7ef6e104ed": "A", "43d715d790": "A", "328a375b54": "A", "447f89b1aa": "A", "24323f7591": "A", "41728c37ee": "A",
-                    "d61d979dc3": "A", "da031759a6": "A", "e7d9b3dfec": "A", "f962c97a60": "A", "5d3819f901": "A", "d87995248a": "A", "ff760cb6fa": "A", "0949f79b0d": "A",
-
-
-                    "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
-                    "182d227be2": "B", "daefa9752a": "B", "27900890bd": "B", "010cac29dc": "B", "3fa836e583": "B", "2d1cef08dd": "B", "5877a95912": "B", "6728d3c5fb": "B",
-                    "a92887a00d": "B", "983f700578": "B", "e7cd6e413c": "B", "80aa025f23": "B", "39954aa3b8": "B", "99794cbcf5": "B", "b305f18a51": "B", "a00b2b82cc": "B",
-                    "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B", "ec992e36b2": "B", "cddf856293": "B",
-                    "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
-                    "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
-                    "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B", "2da4a7f68b": "B", "3e39cd2b93": "B", "6e3a791a83": "B", "040d29fafc": "B", "0345981b22": "B",
-                    "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B", "52866efc71": "B",
-
-
-                    "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
-                    "454e9d852b": "C", "bd5cc28054": "C", "1a45149570": "C", "5f82e0f9c9": "C", "20fd0048ff": "C", "0861b61cdc": "C", "18fb4b4a6e": "C", "a036f0ba2b": "C",
-                    "1b87a375a0": "C", "08893df887": "C", "6d02b7f91f": "C", "7be47fe5c0": "C", "dead34f02c": "C", "2da78f830e": "C", "e2af2b85b7": "C", "679c46d24f": "C",
-                    "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
-                    "359872d4e2": "C", "359872d4e2": "C", "fa8bd05562": "C", "6a2049d80e": "C", "212b4b2e14": "C", "008a0e7da2": "C", "851e60e433": "C", "eb7730b6e9": "C",
-                    "850537ea00": "C", "915b437112": "C", "0f1c10d2c4": "C", "3167499740": "C", "2abcc758a0": "C", "47eb93fefd": "C", "648db2ffbd": "C", "eb5e0b6a1e": "C",
-                    "670a179c05": "C", "63879d1d3b": "C", "c409289cf9": "C", "db6ea25f49": "C", "423eec71f8": "C", "4bfe8af641": "C", "cce87a3fa1": "C", "e6c556688d": "C",
-                    "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C", "439d60f539": "C",
-                    "91d7cc49ec": "C", "6c13b1759e": "C", "6bb644d7dc": "C", "2a9145c902": "C", "7d59f43a5f": "C", "64bcacb74d": "C", "164d361036": "C", "393e649d8f": "C",
-                    "816569e0bb": "C", "551237152b": "C", "ad0abfc3d6": "C", "bd8efb9594": "C", "5e16633b1c": "C", "9720fe534a": "C", "ac1138287f": "C", "c66dded406": "C",
-
-                })
             }),
 
             Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit, {
@@ -1367,129 +1301,88 @@ else {
             },
             Attack: function () {
                 if (this.AttackCreature) {
-                    var monster = null;
-
-                    if (Url.has("&ss=rb")) {
-                        monster = this.GetMonsterByName("Yggdrasil");  //Heal
-
-                        if (monster == null)
-                            monster = this.GetMonsterByName("Flying Spaghetti Monster");  //Puff of Logic
-
-                        //if(monster == null)
-                        //  monster = this.GetMonsterByName("Drogon");
-                        //
-                        //if(monster == null)
-                        //  monster = this.GetMonsterByName("Rhaegal");
-                        //
-                        //if(monster == null)
-                        //  monster = this.GetMonsterByName("Viserion");
-                        //
-                        //if(monster == null)
-                        //  monster = this.GetMonsterByName("Real Life");
-                        //
-                    }
-
-                    if (monster == null)
-                        monster = this.GetTarget();
-
+                    var monster = this.Monsters.GetTarget()
 
                     if (monster == null)
                         NotABot.ForceStop("Can't find a monster to attack.")
 
+                    let playerClass = NotABot.CharacterType;
 
-                    /* Weakest Stats */
-
-                    var roundContext = localStorage["hvStat.roundContext"];
-
-                    if (roundContext) {
+                    if (monster.Weakness != "") {
                         var spell = "";
-                        let monsterID = parseInt(monster.id.replace("mkey_", "")) - 1;
-                        if (monsterID == -1) monsterID = 9;
-
-                        roundContext = JSON.parse(roundContext).monsters[monsterID];
-                        roundContext = roundContext.scanResult
-
-                        if (!roundContext)
-                            return true;
-
-                        roundContext = roundContext.defenseLevel;
-                        var pResistence = 999;
-
-                        function checkResistence(pName, pSpell, checkSpell) {
-                            if (checkSpell) {
-                                // Check if you have the spell
-                                var spellObj = $$('#' + NotABot.ListSkill[pSpell]);
-                                if (!spellObj || spellObj.style.opacity == "0.5")
-                                    return;
-                            }
-
-                            // Check Monster Resistence
-                            if (roundContext[pName] && roundContext[pName] < pResistence) {
-                                spell = pSpell;
-                                pResistence = parseInt(roundContext[pName]);
-                            }
-                        }
-
-                        let playerClass = NotABot.CharacterType;
 
                         while (true) {
-                            pResistence = 999;
-
                             switch (playerClass) {
                                 case "Arch-Mage":
-                                    var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
-
-                                    if (monsterList.length > 7)
+                                    if (this.Monsters.List.length > 7)
                                         playerClass = "Mage 3rd Circle";
-                                    else if (monsterList.length > 5)
+                                    else if (this.Monsters.List.length > 5)
                                         playerClass = "Mage 2nd Circle";
                                     else
                                         playerClass = "Mage 1st Circle";
 
                                     break;
                                 case "Mage 3rd Circle": // Will not check if have spell available, this way you can attack the monster with his weakest element with a lower tier Spell
-                                    checkResistence("COLD", "Fimbulvertr");
-                                    checkResistence("DARK", "Ragnarok");
-                                    checkResistence("ELEC", "Wrath of Thor");
-                                    checkResistence("FIRE", "Flames of Loki");
-                                    checkResistence("HOLY", "Paradise Lost");
-                                    checkResistence("WIND", "Storms of Njord");
+                                    switch (monster.Weakness) {
+                                        case "COLD": spell = "Fimbulvertr"; break;
+                                        case "DARK": spell = "Ragnarok"; break;
+                                        case "ELEC": spell = "Wrath of Thor"; break;
+                                        case "FIRE": spell = "Flames of Loki"; break;
+                                        case "HOLY": spell = "Paradise Lost"; break;
+                                        case "WIND": spell = "Storms of Njord"; break;
+                                    }
+
                                     playerClass = "Mage 2nd Circle";
                                     break;
                                 case "Mage 2nd Circle":
-                                    checkResistence("COLD", "Blizzard");
-                                    checkResistence("DARK", "Disintegrate");
-                                    checkResistence("ELEC", "Chained Lightning");
-                                    checkResistence("FIRE", "Inferno");
-                                    checkResistence("HOLY", "Banishment");
-                                    checkResistence("WIND", "Downburst");
+                                    switch (monster.Weakness) {
+                                        case "COLD": spell = "Blizzard"; break;
+                                        case "DARK": spell = "Disintegrate"; break;
+                                        case "ELEC": spell = "Chained Lightning"; break;
+                                        case "FIRE": spell = "Inferno"; break;
+                                        case "HOLY": spell = "Banishment"; break;
+                                        case "WIND": spell = "Downburst"; break;
+                                    }
+
                                     playerClass = "Mage 1st Circle";
                                     break;
                                 case "Mage 1st Circle":
-                                    checkResistence("COLD", "Freeze", true);
-                                    checkResistence("DARK", "Corruption", true);
-                                    checkResistence("ELEC", "Shockblast", true);
-                                    checkResistence("FIRE", "Fiery Blast", true);
-                                    checkResistence("HOLY", "Smite", true);
-                                    checkResistence("WIND", "Gale", true);
+                                    switch (monster.Weakness) {
+                                        case "COLD": spell = "Freeze"; break;
+                                        case "DARK": spell = "Corruption"; break;
+                                        case "ELEC": spell = "Shockblast"; break;
+                                        case "FIRE": spell = "Fiery Blast"; break;
+                                        case "HOLY": spell = "Smite"; break;
+                                        case "WIND": spell = "Gale"; break;
+                                    }
+
                                     playerClass = "Mage Melee";
                                     break;
                                 case "One-Handed":
-                                    checkResistence("CRUSHING", "Shield Bash", true);
-                                    checkResistence("PIERCING", "Vital Strike", true);
-                                    checkResistence("SLASHING", "Merciful Blow", true);
+                                    switch (monster.Weakness) {
+                                        case "CRUSHING": spell = "Shield Bash"; break;
+                                        case "PIERCING": spell = "Vital Strike"; break;
+                                        case "SLASHING": spell = "Merciful Blow"; break;
+                                    }
+
                                     playerClass = "Melee";
                                     break;
                                 case "Dual Wielding":
-                                    checkResistence("CRUSHING", "Iris Strike", true);
-                                    checkResistence("PIERCING", "Backstab", true);
-                                    checkResistence("SLASHING", "Frenzied Blows", true);
+                                    switch (monster.Weakness) {
+                                        case "CRUSHING": spell = "Iris Strike"; break;
+                                        case "PIERCING": spell = "Backstab"; break;
+                                        case "SLASHING": spell = "Frenzied Blows"; break;
+                                    }
+
                                     playerClass = "Melee";
                                     break;
                                 case "2-Handed Weapon":
-                                    checkResistence("CRUSHING", "Great Cleave", true);
-                                    checkResistence("PIERCING", "Rending Blow", true);
-                                    checkResistence("SLASHING", "Shatter Strike", true);
+                                    switch (monster.Weakness) {
+                                        case "CRUSHING": spell = "Great Cleave"; break;
+                                        case "PIERCING": spell = "Rending Blow"; break;
+                                        case "SLASHING": spell = "Shatter Strike"; break;
+                                    }
+
                                     playerClass = "Melee";
                                     break;
                                 case "Niten Ichiryu":
@@ -1505,41 +1398,33 @@ else {
                                     playerClass = "Default";
                                     break;
                                 default:
+                                    Log("Could not use skill/spell", 'warn');
                                     return false;
                                     break;
                             }
 
                             if (spell != "" && NotABot.UseSpell(spell)) {
-                                Log('    Monster: ' + monster.querySelector(".btm3").innerText);
-                                monster.click();
-
+                                monster.Click();
                                 return true;
                             }
                         }
 
-                        //checkResistence("SOUL", "");
-                        //checkResistence("VOID", "");
                     } else { // Doesn't have HVStat
 
                         function AttackMonster(spell) {
                             if (spell != "" && NotABot.UseSpell(spell)) {
-                                Log('    Monster: ' + monster.querySelector(".btm3").innerText);
-                                monster.click();
-
+                                monster.Click();
                                 return true;
                             }
-
                             return false;
                         }
 
                         while (true) {
                             switch (playerClass) {
                                 case "Arch-Mage":
-                                    var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
-
-                                    if (monsterList.length > 7)
+                                    if (this.Monsters.List.length > 7)
                                         playerClass = "Mage 3rd Circle";
-                                    else if (monsterList.length > 5)
+                                    else if (this.Monsters.List.length > 5)
                                         playerClass = "Mage 2nd Circle";
                                     else
                                         playerClass = "Mage 1st Circle";
@@ -1605,62 +1490,55 @@ else {
                                     break;
 
                                 default:
+                                    Log("Could not use skill/spell", 'warn');
                                     return false;
                                     break;
                             }
                         }
                     }
-
-                    Log("Could not use skill/spell", 'warn');
                 }
 
                 return false;
             },
 
-            GetMonsterByName: function (name) {
-                var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']").contains(name);
+            Monsters: {
+                List: [],
+                Load: function () {
+                    this.List = [];
+                    var listMonster = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
 
-                if (monsterList.length > 0)
-                    return monsterList[0];
+                    var roundContext = localStorage["hvStat.roundContext"];
 
-                return null;
-            },
-            GetTarget: function () {
-                var monsterList = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
+                    if (roundContext) {
+                        roundContext = JSON.parse(roundContext).monsters;
+                        roundContext = roundContext.filter(a => a.actualHealthPoint > 0);
+                    }
 
-                if (monsterList.length == 0)
-                    return null;
-
-                var monster = monsterList[0];
-
-                switch (this.Order.toString()) { // Tactics
-                    case '1':  //  Use AoE middle
-                        monster = monsterList[monsterList.length > 1 ? parseInt(monsterList.length / 2) : 0];
-                        break;
-                    case '2': //  Kill the weakest first
-                        var monsterID = -1;
-
-                        var roundContext = localStorage["hvStat.roundContext"];
+                    for (var i = 0; i < listMonster.length; i++) {
+                        var Object = listMonster[i];
+                        var Name = Object.querySelector(".btm3").innerText;
+                        var Weakness = "";
+                        var WeaknessValue = 9999;
+                        var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+                        var Click = function () {
+                            Log('    Monster: ' + this.Name);
+                            this.Object.click();
+                        };
 
                         if (roundContext) {
-                            roundContext = JSON.parse(roundContext).monsters;
+                            var mContext = roundContext[i].scanResult;
 
-                            var weakestStats = 999;
-                            for (var i = 0; i < roundContext.length; i++) {
-                                var mContext = roundContext[i].scanResult;
-
-                                if (!mContext)
-                                    continue;
-
+                            // Didn't scan this monster yet
+                            if (mContext) {
                                 mContext = mContext.defenseLevel;
                                 function checkAttribute(attr) {
-                                    if (mContext[attr] && mContext[attr] < weakestStats) {
-                                        monsterID = i;
-                                        weakestStats = mContext[attr];
+                                    if (mContext[attr] && mContext[attr] < WeaknessValue) {
+                                        Weakness = attr;
+                                        WeaknessValue = parseInt(mContext[attr]);
                                     }
                                 }
 
-                                if (["Mage 3rd Circle", "Mage 2nd Circle", "Mage 1st Circle"].contains(NotABot.CharacterType)) {
+                                if (["Arch-Mage", "Mage 3rd Circle", "Mage 2nd Circle", "Mage 1st Circle"].contains(NotABot.CharacterType)) {
                                     checkAttribute("COLD");
                                     checkAttribute("DARK");
                                     checkAttribute("ELEC");
@@ -1678,42 +1556,168 @@ else {
                             }
                         }
 
-                        if (monsterID == -1) {
-                            // Check Health
-                            var lowerHealth = 9999999999999;
-                            for (var i = 0; i < monsterList.length; i++) {
-                                var hp = parseInt(monsterList[i].querySelector(".hvstat-monster-health").innerText.split('/')[0]);
-                                if (hp < lowerHealth) {
-                                    lowerHealth = hp;
-                                    monsterID = i;
-                                }
-                            }
-                        }
+                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, Click });
+                    }
 
-                        monster = monsterList[monsterID];
+                    return false;
+                },
 
-                        break;
-                    case '3': //  Kill the Lower HP First
-                        var lowerHealth = 9999999999999;
-                        var lowerID = 0;
+                GetByName: function (name) {
+                    var monster = this.List.filter(r => r.Name == name);
 
-                        for (var i = 0; i < monsterList.length; i++) {
-                            var hp = parseInt(monsterList[i].querySelector(".hvstat-monster-health").innerText.split('/')[0]);
-                            if (hp < lowerHealth) {
-                                lowerHealth = hp;
-                                lowerID = i;
-                            }
-                        }
+                    if (monster.length > 0)
+                        return monster[0];
 
-                        monster = monsterList[lowerID];
-                        break;
-                    default: //  Dumbest Strategy First in First Out.
-                        monster = monsterList[0];
-                        break;
-                };
+                    return null;
+                },
 
-                return monster;
+                GetWeakest: function () {
+                    var monster = this.List.sort((a, b) => a.WeaknessValue - b.WeaknessValue)[0];
+
+                    if (monster.WeaknessValue > 100)
+                        return null;
+
+                    return monster;
+                },
+
+                GetLowerHP: function () {
+                    var monster = this.List.sort((a, b) => a.Health - b.Health)[0];
+
+                    return monster;
+                },
+
+                GetBosses: function () {
+                    /// Monsters to Focus Damage
+                    var monster = this.GetByName("Yggdrasil");  //Heal
+
+                    if (monster == null)
+                        monster = this.GetByName("Flying Spaghetti Monster");  //Puff of Logic
+
+                    //if(monster == null)
+                    //  monster = this.GetByName("Drogon");
+                    //
+                    //if(monster == null)
+                    //  monster = this.GetByName("Rhaegal");
+                    //
+                    //if(monster == null)
+                    //  monster = this.GetByName("Viserion");
+                    //
+                    //if(monster == null)
+                    //  monster = this.GetByName("Real Life");
+
+                    return monster;
+                },
+
+                GetTarget: function () {
+                    if (this.List.length == 0) {
+                        this.Load();
+
+                        if (this.List.length == 0)
+                            return null;
+                    }
+
+                    var monster = this.GetBosses();
+
+                    if (monster != null)
+                        return monster;
+
+                    switch (NotABot.Fight.Order.toString()) { // Tactics
+                        case '1':  //  Use AoE middle
+                            monster = this.List[this.List > 1 ? parseInt(this.List.length / 2) : 0];
+                            break;
+                        case '2': //  Kill the weakest first
+                            monster = this.GetWeakest();
+
+                            if (monster == null)
+                                monster = this.GetLowerHP();
+
+                            break;
+                        case '3': //  Kill the Lower HP First
+                            monster = this.GetLowerHP();
+                            break;
+                        default: //  Dumbest Strategy First in First Out.
+                            monster = this.List[0];
+                            break;
+                    };
+
+                    if (monster == null)
+                        monster = this.List[0];
+
+                    return monster;
+                }
             },
+        }),
+        Riddle: Object.assign({}, LocalStorage.NABConfig.Riddle, {
+            Start: function () {
+                if (this.Active) {
+                    var src = $$("#riddlebot img").src;
+                    src = src.substr(src.indexOf("&v=") + 3);
+
+                    var answer = this.Combinations[src];
+
+                    if (answer != null) {
+                        LocalStorage.NotABot.LastRiddleAnswer = "Your ass has been saved by the all mighty god. Answer: " + answer;
+                        LocalStorage.Update();
+
+                        Log(LocalStorage.NotABot.LastRiddleAnswer, 'info');
+
+                        $$('#riddleanswer').value = answer;
+                        $$('#riddleform').submit();
+                    } else {
+                        // Save Combination
+                        $$("#riddleanswer").addEventListener('change', function () {
+                            LocalStorage.NABConfig.Riddle.Combinations[src] = $$("#riddleanswer").value;
+                            LocalStorage.UpdateConfig();
+                        });
+
+                        beep();
+                        setInterval(beep, 150);
+                    }
+
+
+                    NotABot.Stop();
+                    return true;
+                }
+
+                return false;
+            },
+            //Probe This 
+            Combinations: Object.assign({}, LocalStorage.NABConfig.Riddle.Combinations, {
+                "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
+                "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
+                "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
+                "8e73159fd8": "A", "da7a5af305": "A", "6ae1a72220": "A", "6574e82166": "A", "68d3878db4": "A", "13fb1c539a": "A", "f3c423a3c3": "A", "afbdd89f1b": "A",
+                "69ae72d5fd": "A", "01a5e680e3": "A", "975b585ef2": "A", "989888a608": "A", "cee8e2e514": "A", "15edb52243": "A", "2f008f459e": "A", "7fae3c5378": "A",
+                "a1691c3bca": "A", "d3a232166a": "A", "417922cf6f": "A", "86bd55029d": "A", "ecd040753e": "A", "98f0b05812": "A", "0133dcf8ff": "A", "0db0d1e7ca": "A",
+                "2f611c7e9d": "A", "800e90373a": "A", "350832f33b": "A", "5f9bc1e329": "A", "080aebe956": "A", "35718c3461": "A", "3152a5c492": "A", "577c9249b4": "A",
+                "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A", "3d9db08e8b": "A", "c1f3b70a0d": "A", "8dcf30cf81": "A",
+                "5dd60754c0": "A", "5c004127ff": "A", "7ef6e104ed": "A", "43d715d790": "A", "328a375b54": "A", "447f89b1aa": "A", "24323f7591": "A", "41728c37ee": "A",
+                "d61d979dc3": "A", "da031759a6": "A", "e7d9b3dfec": "A", "f962c97a60": "A", "5d3819f901": "A", "d87995248a": "A", "ff760cb6fa": "A", "0949f79b0d": "A",
+                "59d5524260": "A",
+
+
+                "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
+                "182d227be2": "B", "daefa9752a": "B", "27900890bd": "B", "010cac29dc": "B", "3fa836e583": "B", "2d1cef08dd": "B", "5877a95912": "B", "6728d3c5fb": "B",
+                "a92887a00d": "B", "983f700578": "B", "e7cd6e413c": "B", "80aa025f23": "B", "39954aa3b8": "B", "99794cbcf5": "B", "b305f18a51": "B", "a00b2b82cc": "B",
+                "9a585d1555": "B", "06b7fce8e3": "B", "284e31f095": "B", "3469f0a205": "B", "1f5ab6f560": "B", "a7d8cc63ed": "B", "ec992e36b2": "B", "cddf856293": "B",
+                "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
+                "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
+                "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B", "2da4a7f68b": "B", "3e39cd2b93": "B", "6e3a791a83": "B", "040d29fafc": "B", "0345981b22": "B",
+                "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B", "52866efc71": "B",
+
+
+                "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
+                "454e9d852b": "C", "bd5cc28054": "C", "1a45149570": "C", "5f82e0f9c9": "C", "20fd0048ff": "C", "0861b61cdc": "C", "18fb4b4a6e": "C", "a036f0ba2b": "C",
+                "1b87a375a0": "C", "08893df887": "C", "6d02b7f91f": "C", "7be47fe5c0": "C", "dead34f02c": "C", "2da78f830e": "C", "e2af2b85b7": "C", "679c46d24f": "C",
+                "5fd15f8441": "C", "dff931677d": "C", "5d77db91eb": "C", "e644af1f91": "C", "8df9c54ecd": "C", "0476ce9792": "C", "0a22ae7ab8": "C", "f21aec32a1": "C",
+                "359872d4e2": "C", "359872d4e2": "C", "fa8bd05562": "C", "6a2049d80e": "C", "212b4b2e14": "C", "008a0e7da2": "C", "851e60e433": "C", "eb7730b6e9": "C",
+                "850537ea00": "C", "915b437112": "C", "0f1c10d2c4": "C", "3167499740": "C", "2abcc758a0": "C", "47eb93fefd": "C", "648db2ffbd": "C", "eb5e0b6a1e": "C",
+                "670a179c05": "C", "63879d1d3b": "C", "c409289cf9": "C", "db6ea25f49": "C", "423eec71f8": "C", "4bfe8af641": "C", "cce87a3fa1": "C", "e6c556688d": "C",
+                "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C", "439d60f539": "C",
+                "91d7cc49ec": "C", "6c13b1759e": "C", "6bb644d7dc": "C", "2a9145c902": "C", "7d59f43a5f": "C", "64bcacb74d": "C", "164d361036": "C", "393e649d8f": "C",
+                "816569e0bb": "C", "551237152b": "C", "ad0abfc3d6": "C", "bd8efb9594": "C", "5e16633b1c": "C", "9720fe534a": "C", "ac1138287f": "C", "c66dded406": "C",
+
+            })
         }),
         Idle: Object.assign({}, LocalStorage.NABConfig.Idle, {
             Start: function () {
@@ -1994,7 +1998,6 @@ else {
             }),
         }),
 
-        ///
         ListSkill: {
             //Skills
             "Flee": 1001, "Scan": 1011, "Attack": "ckey_attack",
