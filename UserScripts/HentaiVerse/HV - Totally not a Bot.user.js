@@ -269,6 +269,116 @@ if ($$("#child_Character > div"))
 
 
 if (Url.has("?NABConfig")) {
+    var listOfBuffs = ["Regen", "Protection", "Haste", "Shadow Veil", "Absorb", "Spark of Life", "Spirit Shield", "Heartseeker", "Arcane Focus"];
+    var listOfDebuffs = ["Drain", "Weaken", "Imperil", "Slow", "Sleep", "Confuse", "Blind", "Silence", "MagNet"];
+    var listOfEnchants = ["Voidseeker's Blessing", "Suffused Aether", "Featherweight Charm", "Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"];
+    var listOfPotions = ["Health", "Mana", "Spirit"];
+    var listOfTraining = ["Adept Learner", "Assimilator", "Ability Boost", "Manifest Destiny", "Scavenger", "Luck of the Draw", "Quartermaster", "Archaeologist", "Metabolism", "Inspiration", "Scholar of War", "Tincture", "Pack Rat", "Dissociation", "Set Collector"];
+
+    var multiButton = `<td>
+        <button type="button" class="rotate moveUp">&lsaquo;</button>
+        <button type="button" class="rotate moveDown">&rsaquo;</button>
+    </td>`;
+
+    function GetMultiple(id, name, listUse, listTotal) {
+
+        var str = `<table>
+            <thead>
+                <tr>
+                    <th>Use</th>
+                    <th style="width: 200px">${name}</th>
+                    <th style="text-align: center;">Order</th>
+                </tr>
+            </thead>
+            <tbody class="checkMultiple">`;
+
+        listTotal = listTotal.filter(o => !o.In(listUse));
+
+        for (var i = 0; i < listUse.length; i++) {
+            var name = listUse[i];
+
+            str += `
+                <tr class='selected'>
+                    <td><input id='${id}' type='checkbox' value='${name}' checked /></td>
+                    <td class='pad-left'>${name}</td>
+                    ${multiButton}
+                </tr>`
+        }
+
+        for (var i = 0; i < listTotal.length; i++) {
+            var name = listTotal[i];
+            str += `
+                <tr>
+                    <td><input id='${id}' type='checkbox' value='${name}' /></td>
+                    <td class='pad-left'>${name}</td>
+                    ${multiButton}
+                </tr>`;
+        }
+
+        str += `
+            </tbody>
+        </table>`;
+
+        return str;
+    }
+
+    function GetSpiritTable() {
+        var spirit = `
+            <tr ${LocalStorage.NABConfig.Fight.Spirit.Spirit.Active ? "class='selected'" : ""}>
+                <td class=center><input type="checkbox" id="fightSpiritPriorityOrder" value="Spirit" ${LocalStorage.NABConfig.Fight.Spirit.Spirit.Active ? "checked" : ""} /></td>
+                <th>Spirit</th>
+                <td><input type="number" id="fightSpiritSpiritManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt}"/></td>
+                <td><input type="number" id="fightSpiritSpiritManaDisableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt}"/></td>
+                <td><input type="number" disabled /></td>
+                ${multiButton}
+            </tr>`
+        var defend = `
+            <tr ${LocalStorage.NABConfig.Fight.Spirit.Defend.Active ? "class='selected'" : ""}>
+                <td class=center><input type="checkbox" id="fightSpiritPriorityOrder" value="Defend" ${LocalStorage.NABConfig.Fight.Spirit.Defend.Active ? "checked" : ""} /></td>
+                <th>Defend</th>
+                <td><input type="number" disabled /></td>
+                <td><input type="number" disabled /></td>
+                <td><input type="number" id="fightSpiritDefendHealthEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt}" /></td>
+                ${multiButton}
+            </tr>`
+
+        var focus = `
+            <tr ${LocalStorage.NABConfig.Fight.Spirit.Focus.Active ? "class='selected'" : ""}>
+                <td class=center><input type="checkbox" id="fightSpiritPriorityOrder" value="Focus" ${LocalStorage.NABConfig.Fight.Spirit.Focus.Active ? "checked" : ""} /></td>
+                <th>Focus</th>
+                <td><input type="number" id="fightSpiritFocusManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt}"/></td>
+                <td><input type="number" disabled /></td>
+                <td><input type="number" disabled /></td>
+                ${multiButton}
+            </tr>`
+
+        var str = "";
+
+        for (var i = 0; i < LocalStorage.NABConfig.Fight.Spirit.PriorityOrder.length; i++) {
+            var priority = LocalStorage.NABConfig.Fight.Spirit.PriorityOrder[i];
+
+            if (priority == "Spirit")
+                str += spirit;
+            else if (priority == "Defend")
+                str += defend;
+            else if (priority == "Focus")
+                str += focus;
+        }
+
+        var listRest = ["Spirit", "Defend", "Focus"].filter(o => !o.In(LocalStorage.NABConfig.Fight.Spirit.PriorityOrder));
+        for (var i = 0; i < listRest.length; i++) {
+            var priority = listRest[i];
+
+            if (priority == "Spirit")
+                str += spirit;
+            else if (priority == "Defend")
+                str += defend;
+            else if (priority == "Focus")
+                str += focus;
+        }
+
+        return str;
+    }
 
     var configHTML = `
 <style>
@@ -295,11 +405,6 @@ if (Url.has("?NABConfig")) {
         text-align: center;
     }
 
-    select[multiple] {
-        width: 300px;
-        height: 150px;
-    }
-
     select:not(multiple) {
         width: 200px;
     }
@@ -320,6 +425,34 @@ if (Url.has("?NABConfig")) {
         padding: 0 4px 1px 4px;
         cursor: pointer;
     }
+
+    table {
+        margin: 0 auto;
+    }
+
+    .pad-left {
+        padding-left: 8px;
+    }
+
+    /** Select Multiple **/
+    .checkMultiple > tr > td:first-child {
+        text-align: center;
+    }
+
+    .checkMultiple > tr.selected {
+        background: #9f9fb7;
+        color: white;
+    }
+
+    .checkMultiple button.rotate {
+        transform: rotate(90deg);
+        padding: 0 6px 2px;
+        cursor: pointer;
+    }
+
+        .checkMultiple button.rotate + button.rotate {
+            margin-left: -2px;
+        }
 
     /** Tooltip **/
     .tooltip {
@@ -477,26 +610,7 @@ if (Url.has("?NABConfig")) {
             </p>
             <p>
 
-            <table>
-                <tbody>
-                    <tr>
-                        <td class="label"><label for="fightBuffUse">List of Buffs</label></td>
-                        <td>
-                            <select id="fightBuffUse" multiple>
-                                <option value="Regen" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Regen").length > 0 ? "selected" : ""} >Regen</option>
-                                <option value="Protection" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Protection").length > 0 ? "selected" : ""} >Protection</option>
-                                <option value="Haste" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Haste").length > 0 ? "selected" : ""} >Haste</option>
-                                <option value="Shadow Veil" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Shadow Veil").length > 0 ? "selected" : ""} >Shadow Veil</option>
-                                <option value="Absorb" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Absorb").length > 0 ? "selected" : ""} >Absorb</option>
-                                <option value="Spark of Life" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Spark of Life").length > 0 ? "selected" : ""} >Spark of Life</option>
-                                <option value="Spirit Shield" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Spirit Shield").length > 0 ? "selected" : ""} >Spirit Shield</option>
-                                <option value="Heartseeker" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Heartseeker").length > 0 ? "selected" : ""} >Heartseeker</option>
-                                <option value="Arcane Focus" ${LocalStorage.NABConfig.Fight.Buff.Use.contains("Arcane Focus").length > 0 ? "selected" : ""} >Arcane Focus</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            ${GetMultiple("fightBuffUse", "Buff", LocalStorage.NABConfig.Fight.Buff.Use, listOfBuffs)}
         </div>
 
         <div class="settings_block">
@@ -514,26 +628,7 @@ if (Url.has("?NABConfig")) {
                 </label>
                 <input type="number" maxlength="3" id="fightDebuffMinMana" value="${LocalStorage.NABConfig.Fight.Debuff.MinMana}" />
             </p>
-            <table>
-                <tbody>
-                    <tr>
-                        <td class="label"><label for="fightDebuffUse">List of Debuffs</label></td>
-                        <td>
-                            <select id="fightDebuffUse" multiple>
-                                <option value="Drain" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Drain").length > 0 ? "selected" : ""} >Drain</option>
-                                <option value="Weaken" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Weaken").length > 0 ? "selected" : ""} >Weaken</option>
-                                <option value="Imperil" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Imperil").length > 0 ? "selected" : ""} >Imperil</option>
-                                <option value="Slow" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Slow").length > 0 ? "selected" : ""} >Slow</option>
-                                <option value="Sleep" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Sleep").length > 0 ? "selected" : ""} >Sleep</option>
-                                <option value="Confuse" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Confuse").length > 0 ? "selected" : ""} >Confuse</option>
-                                <option value="Blind" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Blind").length > 0 ? "selected" : ""} >Blind</option>
-                                <option value="Silence" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("Silence").length > 0 ? "selected" : ""} >Silence</option>
-                                <option value="MagNet" ${LocalStorage.NABConfig.Fight.Debuff.Use.contains("MagNet").length > 0 ? "selected" : ""} >MagNet</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            ${GetMultiple("fightDebuffUse", "Debuff", LocalStorage.NABConfig.Fight.Debuff.Use, listOfDebuffs)}
         </div>
 
         <div class="settings_block">
@@ -546,11 +641,10 @@ if (Url.has("?NABConfig")) {
                     <input type="checkbox" id="fightPotionUseMysticGem" ${LocalStorage.NABConfig.Fight.Potion.UseMysticGem ? "checked" : ""}>
                     <label for="fightPotionUseMysticGem">Use Mystic Gem</label>
                 </p>
+                
+                ${GetMultiple("fightPotionPriorityOrder", "Potions", LocalStorage.NABConfig.Fight.Potion.PriorityOrder, listOfPotions)}
 
-
-<!-- How will I do this? TODO
-                PriorityOrder: ["Health", "Mana", "Spirit"],
-
+<!--
 --This will probably become a Table
                 // All are in Percentage -- To remove any specific Potion change the value to -1
                 // Don't change the name or the type unless you know exacly what you are doing.
@@ -579,26 +673,18 @@ if (Url.has("?NABConfig")) {
 
         <div class="settings_block">
             <span class="item-title">Spirit Abilities</span>
-                <p>
-                    <input type="checkbox" id="fightSpiritActive" ${LocalStorage.NABConfig.Fight.Spirit.Active ? "checked" : ""}>
-                    <label for="fightSpiritActive">Active</label>
-                </p>
-
-
-
-<!-- How will I do this? TODO
-                /// Defensive Stance = [ "Defend", "Spirit", "Focus" ]
-                /// Offensive Stance = [ "Spirit", "Focus", "Defend" ]
-                PriorityOrder: ["Focus", "Spirit", "Defend"],
-!-->
-
+            <p>
+                <input type="checkbox" id="fightSpiritActive" ${LocalStorage.NABConfig.Fight.Spirit.Active ? "checked" : ""}>
+                <label for="fightSpiritActive">Active</label>
+            </p>
             <table>
                 <thead>
                     <tr>
+                        <th class=center>Use</th>
                         <th class=center>Ability</th>
-                        <th class=center>Active</th>
                         <th class=center colspan=2>Mana</th>
                         <th class=center>Health</th>
+                        <th></th>
                     </tr>
                     <tr>
                         <td>&nbsp;</td>
@@ -624,30 +710,11 @@ if (Url.has("?NABConfig")) {
                                 </span>
                             </label>
                         </td>
+                        <td style="text-align: center;">Order</td>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <th>Spirit</th>
-                        <td class=center><input type="checkbox" id="fightSpiritSpiritActive" ${LocalStorage.NABConfig.Fight.Spirit.Spirit.Active ? "checked" : ""} /></td>
-                        <td><input type="number" id="fightSpiritSpiritManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt}"/></td>
-                        <td><input type="number" id="fightSpiritSpiritManaDisableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt}"/></td>
-                        <td><input type="number" disabled /></td>
-                    </tr>
-                    <tr>
-                        <th>Defend</th>
-                        <td class=center><input type="checkbox" id="fightSpiritDefendActive" ${LocalStorage.NABConfig.Fight.Spirit.Defend.Active ? "checked" : ""} /></td>
-                        <td><input type="number" disabled /></td>
-                        <td><input type="number" disabled /></td>
-                        <td><input type="number" id="fightSpiritDefendHealthEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt}" /></td>
-                    </tr>
-                    <tr>
-                        <th>Focus</th>
-                        <td class=center><input type="checkbox" id="fightSpiritFocusActive" ${LocalStorage.NABConfig.Fight.Spirit.Focus.Active ? "checked" : ""} /></td>
-                        <td><input type="number" id="fightSpiritFocusManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt}"/></td>
-                        <td><input type="number" disabled /></td>
-                        <td><input type="number" disabled /></td>
-                    </tr>
+                <tbody class='checkMultiple'>
+                    ${GetSpiritTable()}
                 </tbody>
             </table>
         </div>
@@ -726,13 +793,12 @@ if (Url.has("?NABConfig")) {
             <p>
                 <label for="idleTrainingMinCredits" class="tooltip">Minimum Credits:
                     <span class="tooltiptext">
+                        Minimum amount of credits needed to train
                     </span>
                 </label>
                 <input type="number" id="idleTrainingMinCredits" value="${LocalStorage.NABConfig.Idle.Training.MinCredits}">
             </p>
-<!-- TODO
-                PriorityOrder: ["Adept Learner", "Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
--->
+            ${GetMultiple("idleTrainingPriorityOrder", "Train", LocalStorage.NABConfig.Idle.Training.PriorityOrder, listOfTraining)}
         </div>
 
         <div class="settings_block">
@@ -750,27 +816,7 @@ if (Url.has("?NABConfig")) {
                 <label for="idleEnchantActive">Active</label>
             </p>
 
-            <table>
-                <tbody>
-                    <tr>
-                        <td class="label"><label for="idleEnchantUse">Enchantments:</label></td>
-                        <td>
-                            <select id="idleEnchantUse" multiple>
-                                <option value="Voidseeker's Blessing" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Voidseeker's Blessing").length > 0 ? "selected" : ""} >Voidseeker's Blessing</option>
-                                <option value="Suffused Aether" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Suffused Aether").length > 0 ? "selected" : ""} >Suffused Aether</option>
-                                <option value="Featherweight Charm" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Featherweight Charm").length > 0 ? "selected" : ""} >Featherweight Charm</option>
-                                <option value="Infused Flames" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Infused Flames").length > 0 ? "selected" : ""} >Infused Flames</option>
-                                <option value="Infused Frost" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Infused Frost").length > 0 ? "selected" : ""} >Infused Frost</option>
-                                <option value="Infused Lightning" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Infused Lightning").length > 0 ? "selected" : ""} >Infused Lightning</option>
-                                <option value="Infused Storm" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Infused Storm").length > 0 ? "selected" : ""} >Infused Storms</option>
-                                <option value="Infused Divinity" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Infused Divinity").length > 0 ? "selected" : ""} >Infused Divinity</option>
-                                <option value="Infused Darkness" ${LocalStorage.NABConfig.Idle.Enchant.Use.contains("Infused Darkness").length > 0 ? "selected" : ""} >Infused Darkness</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-<!-- TODO        -- Time -->
+            ${GetMultiple("idleEnchantUse", "Enchantment", LocalStorage.NABConfig.Idle.Enchant.Use, listOfEnchants)}
         </div>
         <div class="settings_block">
             <span class="item-title">Shopping</span>
@@ -838,25 +884,32 @@ if (Url.has("?NABConfig")) {
 
             // Buff
             LocalStorage.NABConfig.Fight.Buff.Active = $$("#fightBuffActive").checked;
-            LocalStorage.NABConfig.Fight.Buff.Use = getSelectValues($$("#fightBuffUse"));
+            LocalStorage.NABConfig.Fight.Buff.Use = getSelectValues($("#fightBuffUse"));
 
             // Debuff
             LocalStorage.NABConfig.Fight.Debuff.Active = $$("#fightDebuffActive").checked;
             LocalStorage.NABConfig.Fight.Debuff.MinMana = parseInt($$("#fightDebuffMinMana").value);
-            LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($$("#fightDebuffUse"));
+            LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($("#fightDebuffUse"));
 
             // Potion
             LocalStorage.NABConfig.Fight.Potion.Active = $$("#fightPotionActive").checked;
             LocalStorage.NABConfig.Fight.Potion.UseMysticGem = $$("#fightPotionUseMysticGem").checked;
+            LocalStorage.NABConfig.Fight.Potion.PriorityOrder = getSelectValues($("#fightPotionPriorityOrder"));
 
             // Spirit Abilities
             LocalStorage.NABConfig.Fight.Spirit.Active = $$("#fightSpiritActive").checked;
-            LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = $$("#fightSpiritSpiritActive").checked;
+
+            var spiritPriorityOrder = getSelectValues($("#fightSpiritPriorityOrder"));
+            LocalStorage.NABConfig.Fight.Spirit.PriorityOrder = spiritPriorityOrder;
+
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = "Spirit".In(spiritPriorityOrder);
             LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = parseInt($$("#fightSpiritSpiritManaEnableAt").value);
             LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = parseInt($$("#fightSpiritSpiritManaDisableAt").value);
-            LocalStorage.NABConfig.Fight.Spirit.Defend.Active = $$("#fightSpiritDefendActive").checked;
+
+            LocalStorage.NABConfig.Fight.Spirit.Defend.Active = "Defend".In(spiritPriorityOrder);
             LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = parseInt($$("#fightSpiritDefendHealthEnableAt").value);
-            LocalStorage.NABConfig.Fight.Spirit.Focus.Active = $$("#fightSpiritFocusActive").checked;
+
+            LocalStorage.NABConfig.Fight.Spirit.Focus.Active = "Focus".In(spiritPriorityOrder);
             LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = parseInt($$("#fightSpiritFocusManaEnableAt").value);
 
             // Idle
@@ -873,13 +926,14 @@ if (Url.has("?NABConfig")) {
             // Training
             LocalStorage.NABConfig.Idle.Training.Active = $$("#idleTrainingActive").checked;
             LocalStorage.NABConfig.Idle.Training.MinCredits = parseInt($$("#idleTrainingMinCredits").value);
+            LocalStorage.NABConfig.Idle.Training.PriorityOrder = getSelectValues($("#idleTrainingPriorityOrder"));
 
             // Item Repair
             LocalStorage.NABConfig.Idle.Repair.Active = $$("#idleRepairActive").checked;
 
             // Item Enchant
             LocalStorage.NABConfig.Idle.Enchant.Active = $$("#idleEnchantActive").checked;
-            LocalStorage.NABConfig.Idle.Enchant.Use = getSelectValues($$("#idleEnchantUse"));
+            LocalStorage.NABConfig.Idle.Enchant.Use = getSelectValues($("#idleEnchantUse"));
 
             // Shopping
             LocalStorage.NABConfig.Idle.Shop.Active = $$("#idleShopActive").checked;
@@ -891,20 +945,42 @@ if (Url.has("?NABConfig")) {
             location.reload();
         }
 
+        $(".checkMultiple .moveUp").forEach(e => e.onclick = function () {
+            var tr = this.parentNode.parentNode
+            var prev = tr.previousElementSibling;
+
+            if (prev && prev.nodeName == "TR")
+                prev.before(tr);
+        });
+
+        $(".checkMultiple .moveDown").forEach(e => e.onclick = function () {
+            var tr = this.parentNode.parentNode
+            var next = tr.nextElementSibling;
+
+            if (next && next.nodeName == "TR")
+                next.after(tr);
+        });
+
+        $(".checkMultiple input[type=checkbox]").forEach(e => e.onchange = function () {
+            if (this.checked)
+                this.parentNode.parentNode.className = 'selected';
+            else
+                this.parentNode.parentNode.className = '';
+        });
+
         function getSelectValues(select) {
             var result = [];
-            var options = select && select.options;
-            var opt;
 
-            for (var i = 0, iLen = options.length; i < iLen; i++) {
-                opt = options[i];
+            for (var i = 0; i < select.length; i++) {
+                let opt = select[i];
 
-                if (opt.selected) {
-                    result.push(opt.value || opt.text);
-                }
+                if (opt.checked)
+                    result.push(opt.value);
             }
+
             return result;
         }
+
     }, 100);
 
 }
@@ -1034,26 +1110,13 @@ else {
             },
 
             Buff: Object.assign({}, LocalStorage.NABConfig.Fight.Buff, {
-                ListOfBuffsOn: [],
-
-                LoadActive: function () {
-                    this.ListOfBuffsOn = [];
-
-                    for (let i = 0; i < $("#pane_effects img").length; i++) {
-                        var str = $("#pane_effects img")[i].onmouseover.toString();
-                        str = str.substr(str.indexOf("effect('") + 8);
-                        str = str.substr(0, str.indexOf("\',"));
-                        this.ListOfBuffsOn.push(str);
-                    }
-                },
                 Start: function () {
-                    this.LoadActive();
-
-                    if (this.Active && this.Use && this.Use.length > 0)
+                    if (this.Active && this.Use && this.Use.length > 0) {
                         for (let i = 0; i < this.Use.length; i++)
-                            if (!this.Use[i].In(this.ListOfBuffsOn))
+                            if (!this.Use[i].In(NotABot.Fight.Player.Buff))
                                 if (NotABot.UseSpell(this.Use[i]))
                                     return true;
+                    }
 
                     return false;
                 }
@@ -1067,24 +1130,13 @@ else {
 
                         for (let i = 0; i < monsterList.length; i++) {
                             var monster = monsterList[i];
+                            var listDebuff = this.Use.filter(o => !o.In(monster.Debuff) && !NotABot.LastLog.has(monster.Name + " gains the effect " + o));
 
-                            var listOfDebuffsOn = [];
-                            var listDebuff = monster.Object.querySelectorAll(".btm6 img");
+                            for (var j = 0; j < listDebuff.length; j++) {
+                                if (NotABot.UseSpell(listDebuff[j])) {
+                                    monster.Click();
 
-                            for (let j = 0; j < listDebuff.length; j++) {
-                                var str = listDebuff[j].onmouseover.toString();
-                                str = str.substr(str.indexOf("effect('") + 8);
-                                str = str.substr(0, str.indexOf("\',"));
-                                listOfDebuffsOn.push(str);
-                            }
-
-                            for (let j = 0; j < this.Use.length; j++) {
-                                if (!this.Use[j].In(listOfDebuffsOn) && !NotABot.LastLog.has(monster.Name + " gains the effect " + this.Use[j])) {
-                                    if (NotABot.UseSpell(this.Use[j])) {
-                                        monster.Click();
-
-                                        return true;
-                                    }
+                                    return true;
                                 }
                             }
                         }
@@ -1148,6 +1200,7 @@ else {
                 Mana: 0,
                 Spirit: 0,
                 Overcharge: 0,
+                Buff: [],
                 GetStatus: function () {
                     try {
                         if (NotABot.VitalBar == "Utilitarian") {
@@ -1162,13 +1215,27 @@ else {
                             //this.Overcharge = $$("#vbc img").width / $$("#vbc").clientWidth * 100;
                         }
 
+                        this.GetBuffs();
+
                         return false;
                     } catch (e) {
                         NotABot.ForceStop("Cound not get your life/mana/spirit/overcharge data.");
                     }
 
                     return true;
-                }
+                },
+
+                GetBuffs: function () {
+                    this.Buff = [];
+
+                    for (let i = 0; i < $("#pane_effects img").length; i++) {
+                        var buff = $("#pane_effects img")[i].onmouseover.toString();
+                        buff = buff.substr(buff.indexOf("effect('") + 8);
+                        buff = buff.substr(0, buff.indexOf("\',"));
+
+                        this.Buff.push(buff);
+                    }
+                },
             }),
 
             Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit, {
@@ -1523,6 +1590,7 @@ else {
                         var Weakness = "";
                         var WeaknessValue = 9999;
                         var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+                        var Debuff = [];
                         var Click = function () {
                             Log('    Monster: ' + this.Name);
                             this.Object.click();
@@ -1559,7 +1627,16 @@ else {
                             }
                         }
 
-                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, Click });
+                        var listDebuff = Object.querySelectorAll(".btm6 img");
+                        for (let j = 0; j < listDebuff.length; j++) {
+                            var debuff = listDebuff[j].onmouseover.toString();
+                            debuff = debuff.substr(debuff.indexOf("effect('") + 8);
+                            debuff = debuff.substr(0, debuff.indexOf("\',"));
+
+                            Debuff.push(debuff);
+                        }
+
+                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, Debuff, Click });
                     }
 
                     return false;

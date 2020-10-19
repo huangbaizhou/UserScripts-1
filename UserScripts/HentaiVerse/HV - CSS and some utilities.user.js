@@ -60,6 +60,9 @@ var newStyle = `
     div#settings_outer { height: 100%; }
     div#settings_outer form { margin-bottom: 20px; }
 
+    /* Forge */
+    div#messagebox { left: calc(50% + 68px); }
+
     /* HVStat */
     div#hvstat-icon { right: 23px; }
     body > div#popup_box { right: 220px; left: unset !important; top: 25px !important; right: 460px; }
