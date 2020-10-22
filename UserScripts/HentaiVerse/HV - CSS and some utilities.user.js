@@ -82,6 +82,10 @@ if (url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
     newStyle += "#csp > #popup_box { top: 75px !important; left: calc(50% + 145px) !important; }";
 } else if (url.indexOf("?s=Forge") > -1) {
     newStyle += "#csp > #popup_box { top: 100px !important; left: calc(50% + 80px) !important; }";
+} else if (url.indexOf("?s=Character&ss=in") > -1) {
+    newStyle += "#csp > #popup_box { top: 200px; left: calc(50% - 250px) !important; }"
+} else if (url.indexOf("?s=Bazaar&ss=es") > -1) {
+    newStyle += "#csp > #popup_box { top: 200px; left: calc(50% - 300px) !important; }"
 }
 
 newStyle += "</style>";

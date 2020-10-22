@@ -83,15 +83,15 @@ if (localStorage.NABConfig == null) {
                     { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
                 ],
                 Mana: [
-                    { Type: "Item", Name: "Mana Elixir", UseAt: 2, CheckItem: ["Mana Gem", "Mana Potion"] },
+                    { Type: "Item", Name: "Mana Elixir", UseAt: 5, CheckItem: ["Mana Gem", "Mana Potion"] },
                     { Type: "Item", Name: "Mana Potion", UseAt: 30, CheckItem: ["Mana Gem"] },
                     { Type: "Item", Name: "Mana Draught", UseAt: 70, CheckBuff: "Replenishment" },
                     { Type: "Item", Name: "Mana Gem", UseAt: 55 }
                 ],
                 Spirit: [
-                    { Type: "Item", Name: "Spirit Elixir", UseAt: 2, CheckItem: ["Spirit Gem", "Spirit Potion"] },
+                    { Type: "Item", Name: "Spirit Elixir", UseAt: 5, CheckItem: ["Spirit Gem", "Spirit Potion"] },
                     { Type: "Item", Name: "Spirit Potion", UseAt: 30, CheckItem: ["Spirit Gem"] },
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 50, CheckBuff: "Refreshment" },
+                    { Type: "Item", Name: "Spirit Draught", UseAt: 60, CheckBuff: "Refreshment" },
                     { Type: "Item", Name: "Spirit Gem", UseAt: 70 }
                 ]
             },
