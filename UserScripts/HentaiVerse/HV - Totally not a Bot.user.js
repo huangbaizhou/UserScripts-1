@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.7
+// @version    2.5.8
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
@@ -12,182 +12,220 @@ TODO List
     * Flee
  */
 
-var NABVersion = "2.5.7";
+var NABVersion = "2.5.8";
 
 
 if (!localStorage.NABVersion || localStorage.NABVersion != NABVersion) {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
     localStorage.NABVersion = NABVersion;
-    console.log("Cleared Cache of old LocalStorage")
+    console.log("Cleared Cache of old LocalStorage");
+
 }
 
 
 window.LocalStorage = {
     NotABot: {},
     NABConfig: {},
+    Persona: "",
+    ListPersona: [],
+
     Update: function () {
         localStorage.NotABot = JSON.stringify(LocalStorage.NotABot);
     },
     Load: function () {
         if (localStorage.NotABot)
             this.NotABot = JSON.parse(localStorage.NotABot)
+        else
+            localStorage.NotABot = "{}";
     },
 
     UpdateConfig: function () {
-        localStorage.NABConfig = JSON.stringify(LocalStorage.NABConfig);
+        localStorage["NABConfig." + this.Persona] = JSON.stringify(LocalStorage.NABConfig);
     },
     LoadConfig: function () {
-        this.NABConfig = JSON.parse(localStorage.NABConfig)
-    }
-};
-LocalStorage.Load();
+        if (!localStorage["NABConfig." + this.Persona]) {
+            this.NewConfig();
+            this.UpdateConfig();
+        } else {
+            this.NABConfig = JSON.parse(localStorage["NABConfig." + this.Persona]);
+        }
+    },
+    NewConfig: function () {
+        this.NABConfig = {
+            CharacterType: "Arch-Mage",
+            VitalBar: "Utilitarian",
 
-/*** Local Storage ****/
-if (localStorage.NotABot == null)
-    localStorage.NotABot = "{}";
-
-if (localStorage.NABConfig == null) {
-    LocalStorage.NABConfig = {
-        CharacterType: "Arch-Mage",
-        VitalBar: "Utilitarian",
-
-        Fight: {
-            Active: true,
-            ScanCreature: true,
-            AttackCreature: true,
-            AdvanceOnVictory: true,
-            Order: 3,
-
-            Buff: {
+            Fight: {
                 Active: true,
-                Use: ["Spark of Life", "Absorb", "Haste", "Regen", "Protection", "Shadow Veil", "Arcane Focus", "Spirit Shield"],
-            },
+                ScanCreature: true,
+                AttackCreature: true,
+                AdvanceOnVictory: true,
+                Order: 3,
 
-            Debuff: {
-                Active: true,
-                MinMana: 25,
-                Use: ["Weaken", "Imperil", "Drain"]
-            },
+                Buff: {
+                    Active: true,
+                    Use: ["Spark of Life", "Absorb", "Regen", "Protection", "Arcane Focus", "Spirit Shield"],
+                },
 
-            Potion: {
-                Active: true,
-                UseMysticGem: true,
-                PriorityOrder: ["Health", "Mana", "Spirit"],
-                Health: [
-                    { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: ["Health Gem", "Health Potion"] },
-                    { Type: "Item", Name: "Health Potion", UseAt: 35, CheckItem: ["Health Gem"] },
-                    { Type: "Item", Name: "Health Draught", UseAt: 70, CheckBuff: "Regeneration" },
-                    { Type: "Item", Name: "Health Gem", UseAt: 50 },
-                    { Type: "Spell", Name: "Cure", UseAt: 60 },
-                    { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
-                ],
-                Mana: [
-                    { Type: "Item", Name: "Mana Elixir", UseAt: 5, CheckItem: ["Mana Gem", "Mana Potion"] },
-                    { Type: "Item", Name: "Mana Potion", UseAt: 30, CheckItem: ["Mana Gem"] },
-                    { Type: "Item", Name: "Mana Draught", UseAt: 70, CheckBuff: "Replenishment" },
-                    { Type: "Item", Name: "Mana Gem", UseAt: 55 }
-                ],
-                Spirit: [
-                    { Type: "Item", Name: "Spirit Elixir", UseAt: 5, CheckItem: ["Spirit Gem", "Spirit Potion"] },
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 30, CheckItem: ["Spirit Gem"] },
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 60, CheckBuff: "Refreshment" },
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 70 }
-                ]
-            },
+                Debuff: {
+                    Active: true,
+                    MinMana: 25,
+                    Use: ["Weaken", "Imperil", "Drain"]
+                },
 
-            Spirit: {
-                Active: true,
-                PriorityOrder: ["Focus", "Spirit", "Defend"],
+                Potion: {
+                    Active: true,
+                    UseMysticGem: true,
+                    PriorityOrder: ["Health", "Mana", "Spirit"],
+                    Health: [
+                        { Type: "Item", Name: "Health Elixir", UseAt: 10, CheckBuff: "Regeneration", CheckItem: ["Health Gem", "Health Potion"] },
+                        { Type: "Item", Name: "Health Potion", UseAt: 40, CheckItem: ["Health Gem"] },
+                        { Type: "Item", Name: "Health Draught", UseAt: 70, CheckBuff: "Regeneration" },
+                        { Type: "Item", Name: "Health Gem", UseAt: 50 },
+                        { Type: "Spell", Name: "Cure", UseAt: 60 },
+                        { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
+                    ],
+                    Mana: [
+                        { Type: "Item", Name: "Mana Elixir", UseAt: 5, CheckItem: ["Mana Gem", "Mana Potion"] },
+                        { Type: "Item", Name: "Mana Potion", UseAt: 40, CheckItem: ["Mana Gem"] },
+                        { Type: "Item", Name: "Mana Draught", UseAt: 70, CheckBuff: "Replenishment" },
+                        { Type: "Item", Name: "Mana Gem", UseAt: 55 }
+                    ],
+                    Spirit: [
+                        { Type: "Item", Name: "Spirit Elixir", UseAt: 5, CheckItem: ["Spirit Gem", "Spirit Potion"] },
+                        { Type: "Item", Name: "Spirit Potion", UseAt: 40, CheckItem: ["Spirit Gem"] },
+                        { Type: "Item", Name: "Spirit Draught", UseAt: 60, CheckBuff: "Refreshment" },
+                        { Type: "Item", Name: "Spirit Gem", UseAt: 70 }
+                    ]
+                },
 
                 Spirit: {
-                    Active: true,
-                    Mana: { EnableAt: 65, DisableAt: 70 }
-                },
+                    Active: false,
+                    PriorityOrder: ["Focus", "Spirit", "Defend"],
 
-                Defend: {
-                    Active: true,
-                    Health: { EnableAt: 30 }
-                },
+                    Spirit: {
+                        Active: true,
+                        Mana: { EnableAt: 65, DisableAt: 70 }
+                    },
 
-                Focus: {
-                    Active: true,
-                    Mana: { EnableAt: 5 }
+                    Defend: {
+                        Active: true,
+                        Health: { EnableAt: 30 }
+                    },
+
+                    Focus: {
+                        Active: true,
+                        Mana: { EnableAt: 5 }
+                    },
                 },
             },
-        },
 
-        Riddle: {
-            Active: true,
-            Combinations: {},
-        },
-
-        Idle: {
-            Active: true,
-
-            Arena: {
-                Active: false,
-                DoRingOfBlood: false,
-                MinimumStamina: 80,
-                ChangeDifficulty: true,
-                UseRestoratives: true,
-                MaxStaminaToUseRestorative: 79,
-            },
-
-            Training: {
+            Riddle: {
                 Active: true,
-                MinCredits: 400000,
-                PriorityOrder: ["Adept Learner", "Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
+                Combinations: {},
             },
 
-            Repair: {
-                Active: true,
-            },
-
-            Enchant: {
-                Active: false,
-                Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
-            },
-
-            Shop: {
+            Idle: {
                 Active: true,
 
-                ListToBuy: [
-                    { Name: "Health Draught", Amount: 1000 },
-                    { Name: "Health Potion", Amount: 500 },
-                    { Name: "Health Elixir", Amount: 100 },
+                Arena: {
+                    Active: false,
+                    DoRingOfBlood: false,
+                    MinimumStamina: 80,
+                    ChangeDifficulty: true,
+                    UseRestoratives: true,
+                    MaxStaminaToUseRestorative: 79,
+                },
 
-                    { Name: "Mana Draught", Amount: 1000 },
-                    { Name: "Mana Potion", Amount: 500 },
-                    { Name: "Mana Elixir", Amount: 100 },
+                Training: {
+                    Active: true,
+                    MinCredits: 400000,
+                    PriorityOrder: ["Adept Learner", "Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
+                },
 
-                    { Name: "Spirit Draught", Amount: 500 },
-                    { Name: "Spirit Potion", Amount: 250 },
-                    { Name: "Spirit Elixir", Amount: 10 },
+                Repair: {
+                    Active: true,
+                },
 
-                    ////// Repair
-                    { Name: "Scrap Cloth", Amount: 100 },
-                    { Name: "Scrap Wood", Amount: 50 },
-                    { Name: "Energy Cell", Amount: 50 },
+                Enchant: {
+                    Active: false,
+                    Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
+                },
 
-                    ////// Enchants
-                    //{ Name: "Voidseeker Shard", Amount: 30 },
-                    //{ Name: "Aether Shard", Amount: 30 },
+                Shop: {
+                    Active: true,
 
-                    { Name: "Infusion of Flames", Amount: 100 },
-                    { Name: "Infusion of Frost", Amount: 100 },
-                    { Name: "Infusion of Lightning", Amount: 100 },
-                    { Name: "Infusion of Storms", Amount: 100 },
-                    { Name: "Infusion of Divinity", Amount: 100 },
-                    { Name: "Infusion of Darkness", Amount: 100 },
-                ]
-            }
-        },
-    };
-    LocalStorage.UpdateConfig();
-} else {
-    LocalStorage.LoadConfig();
-}
+                    ListToBuy: [
+                        { Name: "Health Draught", Amount: 1000 },
+                        { Name: "Health Potion", Amount: 500 },
+                        { Name: "Health Elixir", Amount: 100 },
+
+                        { Name: "Mana Draught", Amount: 1000 },
+                        { Name: "Mana Potion", Amount: 500 },
+                        { Name: "Mana Elixir", Amount: 100 },
+
+                        { Name: "Spirit Draught", Amount: 500 },
+                        { Name: "Spirit Potion", Amount: 250 },
+                        { Name: "Spirit Elixir", Amount: 10 },
+
+                        ////// Repair
+                        { Name: "Scrap Cloth", Amount: 100 },
+                        { Name: "Scrap Wood", Amount: 50 },
+                        { Name: "Energy Cell", Amount: 50 },
+
+                        ////// Enchants
+                        //{ Name: "Voidseeker Shard", Amount: 30 },
+                        //{ Name: "Aether Shard", Amount: 30 },
+
+                        { Name: "Infusion of Flames", Amount: 100 },
+                        { Name: "Infusion of Frost", Amount: 100 },
+                        { Name: "Infusion of Lightning", Amount: 100 },
+                        { Name: "Infusion of Storms", Amount: 100 },
+                        { Name: "Infusion of Divinity", Amount: 100 },
+                        { Name: "Infusion of Darkness", Amount: 100 },
+                    ]
+                }
+            },
+        };
+
+        LocalStorage.UpdateConfig();
+    },
+
+    LoadPersona: function () {
+        if (this.ListPersona.length == 0 && localStorage["NAB.ListPersona"])
+            this.ListPersona = localStorage["NAB.ListPersona"].split(",");
+
+        if (!this.Persona || this.Persona == "")
+            this.Persona = localStorage["NAB.Persona"];
+
+        if ((!this.Persona || this.Persona == "") && this.ListPersona.length > 0) {
+            this.Persona = this.ListPersona[0];
+            localStorage["NAB.Persona"] = this.Persona;
+        }
+    },
+    CheckPersona: function (name) {
+        if (!name.In(this.ListPersona)) {
+            this.ListPersona.push(name);
+            localStorage["NAB.ListPersona"] = this.ListPersona.toString();
+        }
+
+        if (this.Persona != name) {
+            this.ChangePersona(name);
+        }
+    },
+    ChangePersona: function (name) {
+        this.Persona = name;
+        localStorage["NAB.Persona"] = this.Persona;
+
+        this.CheckPersona(name);
+        this.LoadConfig();
+    }
+};
+
+LocalStorage.Load();
+LocalStorage.LoadPersona();
+LocalStorage.LoadConfig();
 
 /**********/
 
@@ -383,13 +421,35 @@ if (Url.has("?NABConfig")) {
     var configHTML = `
 <style>
     #settings_outer {
-        margin-top: 15px;
+        height: 100%;
+        font-size: 9pt;
+        margin: 0 auto;
+        padding-top: 5px;
+        overflow: auto;
     }
 
         #settings_outer > div {
-            margin-bottom: 30px;
+            width: 650px;
+            text-align: justify;
+            margin: 0 auto 30px;
         }
 
+    .settings_block {
+        padding-top: 20px;
+        clear: both;
+        text-align: left;
+    }
+
+    #settings_apply {
+        padding-top: 10px;
+        text-align: center;
+    }
+
+    p {
+        padding: 3px 1px;
+        margin: 1px;
+    }
+    
     .title {
         font-weight: bolder;
         text-transform: uppercase;
@@ -1773,7 +1833,10 @@ else {
                 "ea39531e99": "A", "80ef2d34ba": "A", "71a0540ab3": "A", "74aa048e5f": "A", "6104552404": "A", "3d9db08e8b": "A", "c1f3b70a0d": "A", "8dcf30cf81": "A",
                 "5dd60754c0": "A", "5c004127ff": "A", "7ef6e104ed": "A", "43d715d790": "A", "328a375b54": "A", "447f89b1aa": "A", "24323f7591": "A", "41728c37ee": "A",
                 "d61d979dc3": "A", "da031759a6": "A", "e7d9b3dfec": "A", "f962c97a60": "A", "5d3819f901": "A", "d87995248a": "A", "ff760cb6fa": "A", "0949f79b0d": "A",
-                "59d5524260": "A",
+                "59d5524260": "A", "0aade01716": "A", "1d5cbef3ee": "A", "3f5ec4383f": "A", "5f5e040a45": "A", "5fddd55baa": "A", "6c3e2b1858": "A", "9ca1ec8fd3": "A",
+                "125d9d2f0d": "A", "213bb32b6b": "A", "854ed0bade": "A", "2253afffab": "A", "4246b4e95e": "A", "558818d786": "A", "b3b858b48a": "A", "bdff26caa2": "A",
+                "c704934088": "A", "cc92cdb622": "A", "cf8c85583c": "A", "d679928a20": "A", "e5f9f8abc8": "A", "e8a2695658": "A", "5e4cde11e2": "A", "6c56fa21d2": "A",
+                "7f88b35f55": "A", "8f6dfc9dca": "A", "045fe92900": "A", "70fd7170d9": "A", "82a815a1fc": "A", "aeb1cd41bf": "A", "cd900bb990": "A", "eea1c39409": "A",
 
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -1783,7 +1846,11 @@ else {
                 "289c82d71f": "B", "4e10610033": "B", "04f4ea5393": "B", "1a7571fbc4": "B", "3c2f3077c6": "B", "2d9d279375": "B", "4636d7656c": "B", "bd6182d69a": "B",
                 "a59e91221d": "B", "2d218742d1": "B", "3de66c069f": "B", "6c4f507af1": "B", "bee3e88016": "B", "f6c0f4a32d": "B", "7584915107": "B", "00827da8f1": "B",
                 "96cd09f7a7": "B", "65802d548c": "B", "b776986bf6": "B", "2da4a7f68b": "B", "3e39cd2b93": "B", "6e3a791a83": "B", "040d29fafc": "B", "0345981b22": "B",
-                "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B", "52866efc71": "B",
+                "1248400ddd": "B", "a97c0754e4": "B", "af0ef68601": "B", "d8f2654483": "B", "e98c0df177": "B", "52866efc71": "B", "0f93b2989f": "B", "1d74c365cc": "B",
+                "6d871fdccb": "B", "7f5ddf4bf2": "B", "676ece5b8d": "B", "797a27f695": "B", "838510f311": "B", "a5bdf6e7f6": "B", "a7a40bb35c": "B", "adb155e026": "B",
+                "b42e26a312": "B", "d4d1e968d8": "B", "e09327199c": "B", "e9f76266a4": "B", "f24e4146b7": "B", "f3598206c6": "B", "8b1f535295": "B", "23c50130fe": "B",
+                "38a4f15107": "B", "614b755d75": "B", "2371a167d0": "B", "6409d489ef": "B", "8083c26166": "B", "65520f5bab": "B", "b7d4f997c2": "B", "c5b4003837": "B",
+                "d584219d07": "B", "e916efd5c4": "B",
 
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -1796,6 +1863,11 @@ else {
                 "05f277f84c": "C", "77630db5f3": "C", "80e3f62a40": "C", "6bf9d9c0dd": "C", "4e84ef9d66": "C", "9137191227": "C", "abdd96e8b5": "C", "439d60f539": "C",
                 "91d7cc49ec": "C", "6c13b1759e": "C", "6bb644d7dc": "C", "2a9145c902": "C", "7d59f43a5f": "C", "64bcacb74d": "C", "164d361036": "C", "393e649d8f": "C",
                 "816569e0bb": "C", "551237152b": "C", "ad0abfc3d6": "C", "bd8efb9594": "C", "5e16633b1c": "C", "9720fe534a": "C", "ac1138287f": "C", "c66dded406": "C",
+                "3dba4c6b4b": "C", "4e11d95f32": "C", "7f9517b7b4": "C", "7a5a2ba592": "C", "25e510f1cc": "C", "27cf3be022": "C", "81ebefc331": "C", "95d4bf1014": "C",
+                "671a96664e": "C", "829cc3b035": "C", "951eeee4a5": "C", "2241d169cc": "C", "2567a160c8": "C", "8813ecb8dd": "C", "479871fdc6": "C", "34376007a5": "C",
+                "ab0fb16121": "C", "af39a39a80": "C", "baa7060ef8": "C", "c5a0d1f62a": "C", "c885d3a521": "C", "ccae497e5f": "C", "d934e13eec": "C", "eb6b1a4f96": "C",
+                "ff76d701b7": "C", "8f9636de64": "C", "113e1732e4": "C", "946d4b98ca": "C", "9832b0b8d4": "C", "271760f0aa": "C", "0381933a1e": "C", "604375f4d6": "C",
+                "624114fc48": "C", "1789479028": "C", "a47407f629": "C", "b5b92bdd30": "C",
 
             })
         }),
@@ -1835,6 +1907,11 @@ else {
 
             Attribute: {
                 Start: function () {
+                    /* Persona */
+                    var persona = $$("[name='persona_set'] [selected]").innerText;
+                    LocalStorage.CheckPersona(persona);
+
+                    /* Correct Bugs */
                     window.update_usable_exp = function () {
                         usable_exp = total_exp;
 
@@ -1862,7 +1939,6 @@ else {
                             document.getElementById(attr_keys[i] + "_left").innerHTML = common.get_dynamic_digit_string(next_exp);
                         }
                     }
-
 
                     window.do_attr_post = function () {
                         for (i in attr_keys) {
