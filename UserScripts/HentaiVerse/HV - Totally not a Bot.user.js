@@ -10,17 +10,15 @@
 TODO List
   Fight: https://ehwiki.org/wiki/Battles#Combat
     * Flee
- */
+*/
 
 var NABVersion = "2.5.8";
-
 
 if (!localStorage.NABVersion || localStorage.NABVersion != NABVersion) {
     localStorage.removeItem("NotABot");
     localStorage.removeItem("NABConfig");
     localStorage.NABVersion = NABVersion;
     console.log("Cleared Cache of old LocalStorage");
-
 }
 
 
@@ -203,6 +201,9 @@ window.LocalStorage = {
             this.Persona = this.ListPersona[0];
             localStorage["NAB.Persona"] = this.Persona;
         }
+
+        if (!this.Persona || this.Persona == "")
+            location.href = "https://hentaiverse.org/";
     },
     CheckPersona: function (name) {
         if (!name.In(this.ListPersona)) {
@@ -1236,15 +1237,12 @@ else {
 
                                         for (let i = 0; i < checkItem.length; i++)
                                             if (NotABot.UseItem(checkItem[i]))
-                                                return true;
+                                                return this.UpdateEconomy(name, checkItem[i]);
                                     }
-
-                                    if (hasBuff)
+                                    else if (hasBuff)
                                         continue;
 
-                                    if (type == "Item" && NotABot.UseItem(name))
-                                        return true;
-                                    else if (type == "Spell" && NotABot.UseSpell(name))
+                                    if ((type == "Item" && NotABot.UseItem(name)) || (type == "Spell" && NotABot.UseSpell(name)))
                                         return true;
                                 }
                             }
@@ -1252,6 +1250,22 @@ else {
                     }
 
                     return false;
+                },
+
+                UpdateEconomy: function (thisItem, usedItem) {
+                    if (!LocalStorage.NotABot.Economy)
+                        LocalStorage.NotABot.Economy = 0;
+
+                    if (thisItem.has("Elixir") && usedItem.has("Gem"))
+                        LocalStorage.NotABot.Economy += 1000;
+                    else if (thisItem.has("Elixir") && usedItem.has("Potion"))
+                        LocalStorage.NotABot.Economy += 900;
+                    else if (thisItem.has("Potion") && usedItem.has("Gem"))
+                        LocalStorage.NotABot.Economy += 100;
+
+                    LocalStorage.Update();
+
+                    return true;
                 }
             }),
 
