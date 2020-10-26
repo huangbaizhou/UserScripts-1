@@ -12,7 +12,7 @@ TODO List
     * Flee
 */
 
-var NABVersion = "2.5.8";
+var NABVersion = "2.5.9";
 
 if (!localStorage.NABVersion || localStorage.NABVersion != NABVersion) {
     localStorage.removeItem("NotABot");
@@ -47,10 +47,17 @@ window.LocalStorage = {
             this.UpdateConfig();
         } else {
             this.NABConfig = JSON.parse(localStorage["NABConfig." + this.Persona]);
+
+            if (this.NABConfig.Version != NABVersion) {
+                this.NewConfig();
+                this.UpdateConfig();
+                console.log("Cleared Cache of old LocalStorage");
+            }
         }
     },
     NewConfig: function () {
         this.NABConfig = {
+            Version: NABVersion,
             CharacterType: "Arch-Mage",
             VitalBar: "Utilitarian",
 
@@ -127,7 +134,40 @@ window.LocalStorage = {
             Idle: {
                 Active: true,
 
-                Arena: {
+                Character: {
+                    Active: true,
+
+                    Training: {
+                        Active: true,
+                        MinCredits: 400000,
+                        PriorityOrder: ["Adept Learner", "Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
+                    },
+
+                },
+
+                Bazaar: {
+                    Active: true,
+
+                    Equipment: {
+                        Active: true,
+                    },
+
+                    Item: {
+                        Active: true,
+                        ListToBuy: [
+                            // Potions - Check Forum
+
+                            ////// Repair
+                            { Name: "Scrap Cloth", Amount: 100 },
+                            { Name: "Scrap Wood", Amount: 50 },
+                            { Name: "Energy Cell", Amount: 50 },
+
+                            ////// Enchants - Check Forum
+                        ]
+                    },
+                },
+
+                Battle: {
                     Active: false,
                     DoRingOfBlood: false,
                     MinimumStamina: 80,
@@ -136,54 +176,19 @@ window.LocalStorage = {
                     MaxStaminaToUseRestorative: 79,
                 },
 
-                Training: {
-                    Active: true,
-                    MinCredits: 400000,
-                    PriorityOrder: ["Adept Learner", "Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
-                },
-
-                Repair: {
-                    Active: true,
-                },
-
-                Enchant: {
-                    Active: false,
-                    Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
-                },
-
-                Shop: {
+                Forge: {
                     Active: true,
 
-                    ListToBuy: [
-                        { Name: "Health Draught", Amount: 1000 },
-                        { Name: "Health Potion", Amount: 500 },
-                        { Name: "Health Elixir", Amount: 100 },
+                    Repair: {
+                        Active: true,
+                    },
 
-                        { Name: "Mana Draught", Amount: 1000 },
-                        { Name: "Mana Potion", Amount: 500 },
-                        { Name: "Mana Elixir", Amount: 100 },
+                    Enchant: {
+                        Active: false,
+                        Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
+                    },
+                },
 
-                        { Name: "Spirit Draught", Amount: 500 },
-                        { Name: "Spirit Potion", Amount: 250 },
-                        { Name: "Spirit Elixir", Amount: 10 },
-
-                        ////// Repair
-                        { Name: "Scrap Cloth", Amount: 100 },
-                        { Name: "Scrap Wood", Amount: 50 },
-                        { Name: "Energy Cell", Amount: 50 },
-
-                        ////// Enchants
-                        //{ Name: "Voidseeker Shard", Amount: 30 },
-                        //{ Name: "Aether Shard", Amount: 30 },
-
-                        { Name: "Infusion of Flames", Amount: 100 },
-                        { Name: "Infusion of Frost", Amount: 100 },
-                        { Name: "Infusion of Lightning", Amount: 100 },
-                        { Name: "Infusion of Storms", Amount: 100 },
-                        { Name: "Infusion of Divinity", Amount: 100 },
-                        { Name: "Infusion of Darkness", Amount: 100 },
-                    ]
-                }
             },
         };
 
@@ -571,7 +576,7 @@ if (Url.has("?NABConfig")) {
             <p>
                 <b>NaB</b> is better used with: <br>
                 <b>&emsp;** HVSTAT</b> - To save and check monster weaknesses and resistences <br>
-                <b>&emsp;** Inline Difficulty Changer</b> - To auto-set game difficulty when using Auto-Arena <br>
+                <b>&emsp;** Inline Difficulty Changer</b> - To auto-set game difficulty when using Auto-Battle <br>
                 <b>&emsp;** Random Encounter Notification</b> - To auto-start Random Encounters <br>
                 <b>&emsp;** RiddleLimiter Plus</b> - To do Riddles faster
             </p>
@@ -787,26 +792,26 @@ if (Url.has("?NABConfig")) {
                     <label for="idleActive" class="tooltip">Active
                         <span class="tooltiptext">
                             Enable/disable all out of combat activities<br>
-                            <i>As Auto-Start Arena, Training, Item Repair, Item Enchant and Shopping</i>
+                            <i>As Auto-Start Battle, Training, Item Repair, Item Enchant and Shopping</i>
                         </span>
                     </label>
                 </p>
         </div>
 
         <div class="settings_block">
-            <span class="item-title">Auto-Start Arena</span>
+            <span class="item-title">Auto-Start Battle</span>
                 <p>
-                    <input type="checkbox" id="idleArenaActive" ${LocalStorage.NABConfig.Idle.Arena.Active ? "checked" : ""}>
-                    <label for="idleArenaActive" class="tooltip">Active
+                    <input type="checkbox" id="idleBattleActive" ${LocalStorage.NABConfig.Idle.Battle.Active ? "checked" : ""}>
+                    <label for="idleBattleActive" class="tooltip">Active
                         <span class="tooltiptext">
-                            Auto start all enabled arenas one after another <br>
+                            Auto start all enabled battles one after another <br>
                             <i>Be aware of your items, it'll not repair or enchant them</i>
                         </span>
                     </label>
                 </p>
                 <p>
-                    <input type="checkbox" id="idleArenaDoRingOfBlood" ${LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood ? "checked" : ""}>
-                    <label for="idleArenaDoRingOfBlood" class="tooltip">Ring of Blood
+                    <input type="checkbox" id="idleBattleDoRingOfBlood" ${LocalStorage.NABConfig.Idle.Battle.DoRingOfBlood ? "checked" : ""}>
+                    <label for="idleBattleDoRingOfBlood" class="tooltip">Ring of Blood
                         <span class="tooltiptext">
                             Auto-start Ring of Blood, only "Flying Spaghetti Monster" <br>
                             <i>Only works if you have enough tokens</i>
@@ -814,16 +819,16 @@ if (Url.has("?NABConfig")) {
                     </label>
                 </p>
                 <p>
-                    <label for="idleArenaMinimumStamina" class="tooltip">Minimum Stamina:
+                    <label for="idleBattleMinimumStamina" class="tooltip">Minimum Stamina:
                         <span class="tooltiptext">
                             Minimum stamina needed to auto-start the challange
                         </span>
                     </label>
-                    <input type="number" id="idleArenaMinimumStamina" value="${LocalStorage.NABConfig.Idle.Arena.MinimumStamina}">
+                    <input type="number" id="idleBattleMinimumStamina" value="${LocalStorage.NABConfig.Idle.Battle.MinimumStamina}">
                 </p>
                 <p>
-                    <input type="checkbox" id="idleArenaChangeDifficulty" ${LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty ? "checked" : ""}>
-                    <label for="idleArenaChangeDifficulty" class="tooltip">Change Challange Level
+                    <input type="checkbox" id="idleBattleChangeDifficulty" ${LocalStorage.NABConfig.Idle.Battle.ChangeDifficulty ? "checked" : ""}>
+                    <label for="idleBattleChangeDifficulty" class="tooltip">Change Challange Level
                         <span class="tooltiptext">
                             Changes <b>CL</b> to the highest you played the next challenge <br>
                             <i>You need <b>Inline Difficulty Changer</b> for it to work</i>
@@ -832,87 +837,106 @@ if (Url.has("?NABConfig")) {
                 </p>
 
                 <p>
-                    <input type="checkbox" id="idleArenaUseRestoratives" ${LocalStorage.NABConfig.Idle.Arena.UseRestoratives ? "checked" : ""}>
-                    <label for="idleArenaUseRestoratives">Use Restoratives</label>
+                    <input type="checkbox" id="idleBattleUseRestoratives" ${LocalStorage.NABConfig.Idle.Battle.UseRestoratives ? "checked" : ""}>
+                    <label for="idleBattleUseRestoratives">Use Restoratives</label>
                 </p>
                 <p>
-                    <label for="idleArenaMaxStaminaToUseRestorative" class="tooltip">Max. Stamina Restore
+                    <label for="idleBattleMaxStaminaToUseRestorative" class="tooltip">Max. Stamina Restore
                         <span class="tooltiptext">
                             You have to have this much of stamina or less for it to auto-use a restorative
                         </span>
                     </label>
-                    <input type="number" id="idleArenaMaxStaminaToUseRestorative" value="${LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative}">
+                    <input type="number" id="idleBattleMaxStaminaToUseRestorative" value="${LocalStorage.NABConfig.Idle.Battle.MaxStaminaToUseRestorative}">
                 </p>
         </div>
 
         <div class="settings_block">
-            <span class="item-title">Training</span>
+            <span class="item-title">Character</span>
             <p>
-                <input type="checkbox" id="idleTrainingActive" ${LocalStorage.NABConfig.Idle.Training.Active ? "checked" : ""}>
-                <label for="idleTrainingActive">Active</label>
+                <input type="checkbox" id="idleCharacterActive" ${LocalStorage.NABConfig.Idle.Character.Active ? "checked" : ""}>
+                <label for="idleCharacterActive">Active</label>
+            </p>
+
+            <p>
+                <input type="checkbox" id="idleCharacterTrainingActive" ${LocalStorage.NABConfig.Idle.Character.Training.Active ? "checked" : ""}>
+                <label for="idleCharacterTrainingActive">Training</label>
             </p>
             <p>
-                <label for="idleTrainingMinCredits" class="tooltip">Minimum Credits:
+                <label for="idleCharacterTrainingMinCredits" class="tooltip">Minimum Credits:
                     <span class="tooltiptext">
                         Minimum amount of credits needed to train
                     </span>
                 </label>
-                <input type="number" id="idleTrainingMinCredits" value="${LocalStorage.NABConfig.Idle.Training.MinCredits}">
+                <input type="number" id="idleCharacterTrainingMinCredits" value="${LocalStorage.NABConfig.Idle.Character.Training.MinCredits}">
             </p>
-            ${GetMultiple("idleTrainingPriorityOrder", "Train", LocalStorage.NABConfig.Idle.Training.PriorityOrder, listOfTraining)}
+            ${GetMultiple("idleCharacterTrainingPriorityOrder", "Train", LocalStorage.NABConfig.Idle.Character.Training.PriorityOrder, listOfTraining)}
         </div>
 
         <div class="settings_block">
-            <span class="item-title">Item Repair</span>
+            <span class="item-title">Forge</span>
             <p>
-                <input type="checkbox" id="idleRepairActive" ${LocalStorage.NABConfig.Idle.Repair.Active ? "checked" : ""}>
-                <label for="idleRepairActive">Active</label>
-            </p>
-        </div>
-
-        <div class="settings_block">
-            <span class="item-title">Item Enchant</span>
-            <p>
-                <input type="checkbox" id="idleEnchantActive" ${LocalStorage.NABConfig.Idle.Enchant.Active ? "checked" : ""}>
-                <label for="idleEnchantActive">Active</label>
+                <input type="checkbox" id="idleForgeActive" ${LocalStorage.NABConfig.Idle.Forge.Active ? "checked" : ""}>
+                <label for="idleForgeActive">Active</label>
             </p>
 
-            ${GetMultiple("idleEnchantUse", "Enchantment", LocalStorage.NABConfig.Idle.Enchant.Use, listOfEnchants)}
+            <p>
+                <input type="checkbox" id="idleForgeRepairActive" ${LocalStorage.NABConfig.Idle.Forge.Repair.Active ? "checked" : ""}>
+                <label for="idleForgeRepairActive">Repair Items</label>
+            </p>
+
+            <p>
+                <input type="checkbox" id="idleForgeEnchantActive" ${LocalStorage.NABConfig.Idle.Forge.Enchant.Active ? "checked" : ""}>
+                <label for="idleForgeEnchantActive">Enchant Items</label>
+            </p>
+
+            ${GetMultiple("idleForgeEnchantUse", "Enchantment", LocalStorage.NABConfig.Idle.Forge.Enchant.Use, listOfEnchants)}
         </div>
         <div class="settings_block">
-            <span class="item-title">Shopping</span>
+            <span class="item-title">Bazaar</span>
             <p>
-                <input type="checkbox" id="idleShopActive" ${LocalStorage.NABConfig.Idle.Shop.Active ? "checked" : ""}>
-                <label for="idleShopActive">Active</label>
+                <input type="checkbox" id="idleBazaarActive" ${LocalStorage.NABConfig.Idle.Bazaar.Active ? "checked" : ""}>
+                <label for="idleBazaarActive">Active</label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleBazaarEquipmentActive" ${LocalStorage.NABConfig.Idle.Bazaar.Equipment.Active ? "checked" : ""}>
+                <label for="idleBazaarEquipmentActive" class="tooltip">Sell Trash Equipments
+                    <span class="tooltiptext">
+                        Rules of Selling:<br>
+                        <b>Crude/Fair/Average/Fine</b> items that are worth more than 300 Credits<br>
+                        <b>Superior</b> all items<br>
+                        <b>Exquisite</b> items that are worth more than 700 Credits<br>
+                        <i>&nbsp;• The ones not sold with these qualities are worth Salvaging<br>
+                        &nbsp;• The ones with higher quality check if you can sell them in the forum</i>
+                    </span>
+                </label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleBazaarItemActive" ${LocalStorage.NABConfig.Idle.Bazaar.Item.Active ? "checked" : ""}>
+                <label for="idleBazaarItemActive">Buy Items</label>
             </p>
 <!-- TODO
-                // You can also add other items, by name. Like scrolls, Infusions, 
-                // Amount to keep in your inventory of each item.
-                { Name: "Health Draught", Amount: 1000 },
-                { Name: "Health Potion", Amount: 500 },
-                { Name: "Health Elixir", Amount: 100 },
 
-                { Name: "Mana Draught", Amount: 1000 },
-                { Name: "Mana Potion", Amount: 500 },
-                { Name: "Mana Elixir", Amount: 100 },
+                Bazaar: {
+                    Active: true,
 
-                { Name: "Spirit Draught", Amount: 500 },
-                { Name: "Spirit Potion", Amount: 250 },
-                { Name: "Spirit Elixir", Amount: 10 },
+                    Equipment: {
+                        Active: true,
+                    },
 
-                ////// Repair
-                { Name: "Energy Cell", Amount: 50 },
+                    Item: {
+                        Active: true,
+                        ListToBuy: [
+                            // Potions - Check Forum
 
-                ////// Enchants
-                { Name: "Voidseeker Shard", Amount: 30 },
-                { Name: "Aether Shard", Amount: 30 },
+                            ////// Repair
+                            { Name: "Scrap Cloth", Amount: 100 },
+                            { Name: "Scrap Wood", Amount: 50 },
+                            { Name: "Energy Cell", Amount: 50 },
 
-                { Name: "Infusion of Flames", Amount: 100 },
-                { Name: "Infusion of Frost", Amount: 100 },
-                { Name: "Infusion of Lightning", Amount: 100 },
-                { Name: "Infusion of Storms", Amount: 100 },
-                { Name: "Infusion of Divinity", Amount: 100 },
-                { Name: "Infusion of Darkness", Amount: 100 }
+                            ////// Enchants - Check Forum
+                        ]
+                    },
+                }
 -->
         </div>
 
@@ -976,28 +1000,31 @@ if (Url.has("?NABConfig")) {
             // Idle
             LocalStorage.NABConfig.Idle.Active = $$("#idleActive").checked;
 
-            // Auto-Start Arena
-            LocalStorage.NABConfig.Idle.Arena.Active = $$("#idleArenaActive").checked;
-            LocalStorage.NABConfig.Idle.Arena.DoRingOfBlood = $$("#idleArenaDoRingOfBlood").checked;
-            LocalStorage.NABConfig.Idle.Arena.MinimumStamina = parseInt($$("#idleArenaMinimumStamina").value);
-            LocalStorage.NABConfig.Idle.Arena.ChangeDifficulty = $$("#idleArenaChangeDifficulty").checked;
-            LocalStorage.NABConfig.Idle.Arena.UseRestoratives = $$("#idleArenaUseRestoratives").checked;
-            LocalStorage.NABConfig.Idle.Arena.MaxStaminaToUseRestorative = parseInt($$("#idleArenaMaxStaminaToUseRestorative").value);
+            // Auto-Start Battle
+            LocalStorage.NABConfig.Idle.Battle.Active = $$("#idleBattleActive").checked;
+            LocalStorage.NABConfig.Idle.Battle.DoRingOfBlood = $$("#idleBattleDoRingOfBlood").checked;
+            LocalStorage.NABConfig.Idle.Battle.MinimumStamina = parseInt($$("#idleBattleMinimumStamina").value);
+            LocalStorage.NABConfig.Idle.Battle.ChangeDifficulty = $$("#idleBattleChangeDifficulty").checked;
+            LocalStorage.NABConfig.Idle.Battle.UseRestoratives = $$("#idleBattleUseRestoratives").checked;
+            LocalStorage.NABConfig.Idle.Battle.MaxStaminaToUseRestorative = parseInt($$("#idleBattleMaxStaminaToUseRestorative").value);
 
-            // Training
-            LocalStorage.NABConfig.Idle.Training.Active = $$("#idleTrainingActive").checked;
-            LocalStorage.NABConfig.Idle.Training.MinCredits = parseInt($$("#idleTrainingMinCredits").value);
-            LocalStorage.NABConfig.Idle.Training.PriorityOrder = getSelectValues($("#idleTrainingPriorityOrder"));
+            // Character
+            LocalStorage.NABConfig.Idle.Character.Active = $$("#idleCharacterActive").checked;
+            LocalStorage.NABConfig.Idle.Character.Training.Active = $$("#idleCharacterTrainingActive").checked;
+            LocalStorage.NABConfig.Idle.Character.Training.MinCredits = parseInt($$("#idleCharacterTrainingMinCredits").value);
+            LocalStorage.NABConfig.Idle.Character.Training.PriorityOrder = getSelectValues($("#idleCharacterTrainingPriorityOrder"));
 
-            // Item Repair
-            LocalStorage.NABConfig.Idle.Repair.Active = $$("#idleRepairActive").checked;
+            // Forge
+            LocalStorage.NABConfig.Idle.Forge.Active = $$("#idleForgeActive").checked;
+            LocalStorage.NABConfig.Idle.Forge.Repair.Active = $$("#idleForgeRepairActive").checked;
+            LocalStorage.NABConfig.Idle.Forge.Enchant.Active = $$("#idleForgeEnchantActive").checked;
+            LocalStorage.NABConfig.Idle.Forge.Enchant.Use = getSelectValues($("#idleForgeEnchantUse"));
 
-            // Item Enchant
-            LocalStorage.NABConfig.Idle.Enchant.Active = $$("#idleEnchantActive").checked;
-            LocalStorage.NABConfig.Idle.Enchant.Use = getSelectValues($("#idleEnchantUse"));
 
-            // Shopping
-            LocalStorage.NABConfig.Idle.Shop.Active = $$("#idleShopActive").checked;
+            // Bazaar
+            LocalStorage.NABConfig.Idle.Bazaar.Active = $$("#idleBazaarActive").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.Equipment.Active = $$("#idleBazaarEquipmentActive").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.Item.Active = $$("#idleBazaarItemActive").checked;
 
             // UPDATE
             LocalStorage.UpdateConfig();
@@ -1382,8 +1409,8 @@ else {
 
                         if ($$("#btcp").onclick.toString().has("battle.battle_continue()")) {
                             battle.battle_continue();
-                            NotABot.Stop();
 
+                            NotABot.Stop();
                             return true;
                         } else if ($$("#btcp").innerText.has("You have been defeated!")) {
                             let counter = "";
@@ -1399,7 +1426,7 @@ else {
 
                         LocalStorage.NotABot.LastMatch = message;
                         LocalStorage.Update();
-                        //common.goto_arena();
+                        common.goto_arena();
 
                         NotABot.Stop();
                         return true;
@@ -1509,7 +1536,7 @@ else {
                                         case "SLASHING": spell = "Merciful Blow"; break;
                                     }
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
                                 case "Dual Wielding":
                                     switch (monster.Weakness) {
@@ -1518,7 +1545,7 @@ else {
                                         case "SLASHING": spell = "Frenzied Blows"; break;
                                     }
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
                                 case "2-Handed Weapon":
                                     switch (monster.Weakness) {
@@ -1527,16 +1554,26 @@ else {
                                         case "SLASHING": spell = "Shatter Strike"; break;
                                     }
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
                                 case "Niten Ichiryu":
                                     spell = "Skyward Sword";
+                                    playerClass = "Dovahkiin";
+                                    break;
+                                case "Pony Damage":
+                                    spell = "Orbital Friendship Cannon";
+                                    playerClass = "Dovahkiin";
+                                    break;
+                                case "Dovahkiin":
+                                    spell = "FUS RO DAH";
                                     playerClass = "Melee";
                                     break;
+
                                 case "Mage Melee":
                                     spell = "Concussive Strike";
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
+
                                 case "Melee":
                                     spell = "Attack";
                                     playerClass = "Default";
@@ -1596,24 +1633,38 @@ else {
                                     if (AttackMonster("Shield Bash") || AttackMonster("Vital Strike") || AttackMonster("Merciful Blow"))
                                         return true;
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
                                 case "Dual Wielding":
                                     if (AttackMonster("Iris Strike") || AttackMonster("Backstab") || AttackMonster("Frenzied Blows"))
                                         return true;
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "2-Handed Weapon":
                                     if (AttackMonster("Great Cleave") || AttackMonster("Rending Blow") || AttackMonster("Shatter Strike"))
                                         return true;
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "Niten Ichiryu":
                                     if (AttackMonster("Skyward Sword"))
+                                        return true;
+
+                                    playerClass = "Pony Damage";
+                                    break;
+
+                                case "Pony Damage":
+                                    if (AttackMonster("Orbital Friendship Cannon"))
+                                        return true;
+
+                                    playerClass = "Dovahkiin";
+                                    break;
+
+                                case "Dovahkiin":
+                                    if (AttackMonster("FUS RO DAH"))
                                         return true;
 
                                     playerClass = "Melee";
@@ -1623,7 +1674,7 @@ else {
                                     if (AttackMonster("Concussive Strike"))
                                         return true;
 
-                                    playerClass = "Melee";
+                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "Melee":
@@ -1828,8 +1879,6 @@ else {
                         setInterval(beep, 150);
                     }
 
-
-                    NotABot.Stop();
                     return true;
                 }
 
@@ -1851,6 +1900,9 @@ else {
                 "125d9d2f0d": "A", "213bb32b6b": "A", "854ed0bade": "A", "2253afffab": "A", "4246b4e95e": "A", "558818d786": "A", "b3b858b48a": "A", "bdff26caa2": "A",
                 "c704934088": "A", "cc92cdb622": "A", "cf8c85583c": "A", "d679928a20": "A", "e5f9f8abc8": "A", "e8a2695658": "A", "5e4cde11e2": "A", "6c56fa21d2": "A",
                 "7f88b35f55": "A", "8f6dfc9dca": "A", "045fe92900": "A", "70fd7170d9": "A", "82a815a1fc": "A", "aeb1cd41bf": "A", "cd900bb990": "A", "eea1c39409": "A",
+                "0b8b6b712a": "A", "0cbe6bea25": "A", "4b9482ca7c": "A", "5e1860ee81": "A", "53c15f7ce0": "A", "9032d471c1": "A", "42598d740a": "A", "cb0ea0641e": "A",
+                "d86498d578": "A", "fd154582fd": "A", "b806d988bb": "A", "5bd6f4650c": "A", "6d2ddb1099": "A", "2148fa674c": "A", "361813807d": "A", "a66bcfafc2": "A",
+                "ea093c0e86": "A", "e72f190d05": "A",
 
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -1864,7 +1916,10 @@ else {
                 "6d871fdccb": "B", "7f5ddf4bf2": "B", "676ece5b8d": "B", "797a27f695": "B", "838510f311": "B", "a5bdf6e7f6": "B", "a7a40bb35c": "B", "adb155e026": "B",
                 "b42e26a312": "B", "d4d1e968d8": "B", "e09327199c": "B", "e9f76266a4": "B", "f24e4146b7": "B", "f3598206c6": "B", "8b1f535295": "B", "23c50130fe": "B",
                 "38a4f15107": "B", "614b755d75": "B", "2371a167d0": "B", "6409d489ef": "B", "8083c26166": "B", "65520f5bab": "B", "b7d4f997c2": "B", "c5b4003837": "B",
-                "d584219d07": "B", "e916efd5c4": "B",
+                "d584219d07": "B", "e916efd5c4": "B", "28a1ffbecc": "B", "054cf7a313": "B", "059a67a6a4": "B", "611c5645a0": "B", "c135ae5d87": "B", "e86ff53284": "B",
+                "8c5699fce7": "B", "83f78fd6fa": "B", "57003f680f": "B", "a7bb88d67a": "B", "b04f6cbfd5": "B", "b06459b9f5": "B", "b97f44709f": "B", "c78c1fe270": "B",
+                "e5dcace5b0": "B", "eb56ed9cd9": "B", "fecd79b20d": "B", "684cd7a565": "B",
+
 
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -1881,7 +1936,8 @@ else {
                 "671a96664e": "C", "829cc3b035": "C", "951eeee4a5": "C", "2241d169cc": "C", "2567a160c8": "C", "8813ecb8dd": "C", "479871fdc6": "C", "34376007a5": "C",
                 "ab0fb16121": "C", "af39a39a80": "C", "baa7060ef8": "C", "c5a0d1f62a": "C", "c885d3a521": "C", "ccae497e5f": "C", "d934e13eec": "C", "eb6b1a4f96": "C",
                 "ff76d701b7": "C", "8f9636de64": "C", "113e1732e4": "C", "946d4b98ca": "C", "9832b0b8d4": "C", "271760f0aa": "C", "0381933a1e": "C", "604375f4d6": "C",
-                "624114fc48": "C", "1789479028": "C", "a47407f629": "C", "b5b92bdd30": "C",
+                "624114fc48": "C", "1789479028": "C", "a47407f629": "C", "b5b92bdd30": "C", "4c54913696": "C", "67ae24a491": "C", "2c5edddd31": "C", "53cf1b7ff6": "C",
+                "5055d73a6a": "C", "40062a32f7": "C", "a730a860d3": "C", "dff16b6b10": "C", "4deb8a6d40": "C",
 
             })
         }),
@@ -1891,83 +1947,253 @@ else {
                     //TODO: Start Idling Sending people from one side to the other. Check if it's not in the page first,
                     // also be away to no be thrown in a loop, going from one page to another instead of doing the rest
 
-                    if (Url.has("s=Character&ss=ch") || Url == "https://hentaiverse.org/")
-                        if (this.Attribute.Start())
-                            return true;
+                    if (Url.has("s=Character") || Url == "https://hentaiverse.org/")
+                        return this.Character.Start();
 
-                    if (Url.has("s=Character&ss=tr"))
-                        if (this.Training.Start())
-                            return true;
+                    if (Url.has("s=Bazaar"))
+                        return this.Bazaar.Start();
 
                     if (Url.has("s=Battle") && (Url.has("ss=ar") || Url.has("ss=rb")))
-                        if (this.Arena.Start())
-                            return true;
+                        return this.Battle.Start();
 
-                    if (Url.has("s=Forge&ss=re"))
-                        if (this.Repair.Start())
-                            return true;
-
-                    if (Url.has("s=Forge&ss=en"))
-                        if (this.Enchant.Start())
-                            return true;
-
-                    if (Url.has("s=Bazaar&ss=is"))
-                        if (this.Shop.Start())
-                            return true;
+                    if (Url.has("s=Forge"))
+                        return this.Forge.Start();
                 }
 
                 return false;
             },
 
-            Attribute: {
+            Character: Object.assign({}, LocalStorage.NABConfig.Idle.Character, {
                 Start: function () {
-                    /* Persona */
-                    var persona = $$("[name='persona_set'] [selected]").innerText;
-                    LocalStorage.CheckPersona(persona);
+                    if (this.Active) {
+                        if (Url.has("ss=ch") || Url == "https://hentaiverse.org/") // Character
+                            return this.Character.Start();
 
-                    /* Correct Bugs */
-                    window.update_usable_exp = function () {
-                        usable_exp = total_exp;
+                        if (Url.has("ss=eq")) // Equipment
+                            return true;
 
-                        for (i in attr_keys) {
-                            if (i == "contains") continue;
-                            var current_level = attr_current[attr_keys[i]] + attr_delta[attr_keys[i]];
-                            usable_exp -= get_total_expcost(current_level);
-                        }
+                        if (Url.has("ss=ab")) // Abilities
+                            return true;
+
+                        if (Url.has("ss=tr")) //  Training
+                            return this.Training.Start();
+
+                        if (Url.has("ss=it")) // Item Inventory
+                            return true;
+
+                        if (Url.has("ss=in")) // Equip Inventory
+                            return true;
+
+                        if (Url.has("ss=se")) // Settings
+                            return true;
                     }
 
-                    window.update_display = function (which) {
-                        document.getElementById(which + "_display").innerHTML = common.get_dynamic_digit_string(attr_current[which] + attr_delta[which]);
-                        document.getElementById(which + "_text").innerHTML = common.get_dynamic_digit_string(attr_delta[which]);
-                        document.getElementById("remaining_exp").innerHTML = common.get_dynamic_digit_string(usable_exp);
+                    return false;
+                },
 
-                        for (i in attr_keys) {
-                            if (i == "contains") continue;
-                            var current_level = attr_current[attr_keys[i]] + attr_delta[attr_keys[i]];
-                            var next_exp = get_next_expcost(current_level);
-                            var enable_inc = next_exp <= usable_exp;
-                            var enable_dec = attr_delta[attr_keys[i]] > 0 || (doovers > 0 && current_level > 0);
+                Training: Object.assign({}, LocalStorage.NABConfig.Idle.Character.Training, {
+                    ListTrain: {
+                        "Adept Learner": 50,
+                        "Assimilator": 51,
+                        "Ability Boost": 80,
+                        "Manifest Destiny": null,
+                        "Scavenger": 70,
+                        "Luck of the Draw": 71,
+                        "Quartermaster": 72,
+                        "Archaeologist": 73,
+                        "Metabolism": null,
+                        "Inspiration": null,
+                        "Scholar of War": 90,
+                        "Tincture": 91,
+                        "Pack Rat": 98,
+                        "Dissociation": null,
+                        "Set Collector": 96
+                    },
 
-                            document.getElementById(attr_keys[i] + "_inc").src = "/y/character/inc" + (enable_inc ? "" : "_d") + ".png";
-                            document.getElementById(attr_keys[i] + "_dec").src = "/y/character/dec" + (enable_dec ? "" : "_d") + ".png";
-                            document.getElementById(attr_keys[i] + "_left").innerHTML = common.get_dynamic_digit_string(next_exp);
+                    Start: function () {
+                        if (this.Active) {
+                            let credits = $(".fc4.fal.fcb").contains('Credits')[0].innerText.replace('Credits: ', '').replace(',', '');
+
+                            credits = parseInt(credits);
+
+                            if (credits > this.MinCredits) {
+                                for (var i = 0; i < this.PriorityOrder.length; i++) {
+                                    let num = this.ListTrain[this.PriorityOrder[i]];
+
+                                    if (num && $$(`img[onclick='training.start_training(${num})']`)) {
+                                        training.start_training(num);
+                                        LocalStorage.NotABot.LastTraining = new Date();
+                                        LocalStorage.Update();
+
+                                        return true;
+                                    }
+                                }
+                            }
                         }
+
+                        return false;
+                    },
+                }),
+
+                Character: {
+                    Start: function () {
+                        /* Persona */
+                        var persona = $$("[name='persona_set'] [selected]").innerText;
+                        LocalStorage.CheckPersona(persona);
+
+                        /* Correct Bugs */
+                        window.update_usable_exp = function () {
+                            usable_exp = total_exp;
+
+                            for (i in attr_keys) {
+                                if (i == "contains") continue;
+                                var current_level = attr_current[attr_keys[i]] + attr_delta[attr_keys[i]];
+                                usable_exp -= get_total_expcost(current_level);
+                            }
+                        }
+
+                        window.update_display = function (which) {
+                            document.getElementById(which + "_display").innerHTML = common.get_dynamic_digit_string(attr_current[which] + attr_delta[which]);
+                            document.getElementById(which + "_text").innerHTML = common.get_dynamic_digit_string(attr_delta[which]);
+                            document.getElementById("remaining_exp").innerHTML = common.get_dynamic_digit_string(usable_exp);
+
+                            for (i in attr_keys) {
+                                if (i == "contains") continue;
+                                var current_level = attr_current[attr_keys[i]] + attr_delta[attr_keys[i]];
+                                var next_exp = get_next_expcost(current_level);
+                                var enable_inc = next_exp <= usable_exp;
+                                var enable_dec = attr_delta[attr_keys[i]] > 0 || (doovers > 0 && current_level > 0);
+
+                                document.getElementById(attr_keys[i] + "_inc").src = "/y/character/inc" + (enable_inc ? "" : "_d") + ".png";
+                                document.getElementById(attr_keys[i] + "_dec").src = "/y/character/dec" + (enable_dec ? "" : "_d") + ".png";
+                                document.getElementById(attr_keys[i] + "_left").innerHTML = common.get_dynamic_digit_string(next_exp);
+                            }
+                        }
+
+                        window.do_attr_post = function () {
+                            for (i in attr_keys) {
+                                if (i == "contains") continue;
+                                document.getElementById(attr_keys[i] + "_delta").value = attr_delta[attr_keys[i]];
+                            }
+
+                            document.getElementById('attr_form').submit();
+                        }
+
+                        return true;
+                    }
+                },
+            }),
+
+            Bazaar: Object.assign({}, LocalStorage.NABConfig.Idle.Bazaar, {
+                Start: function () {
+                    if (this.Active) {
+                        if (Url.has("&ss=es")) // Equipment Shop
+                            return this.Equipment.Sell();
+
+                        if (Url.has("&ss=is")) // Item Shop
+                            return this.Item.Buy();
+
+                        if (Url.has("&ss=ib")) // Item Bot
+                            return true;
+
+                        if (Url.has("&ss=ml")) // Monster Lab
+                            return true;
+
+                        if (Url.has("&ss=ss")) // Shrine
+                            return true;
+
+                        if (Url.has("&ss=mm")) // Mail
+                            return true;
+
+                        if (Url.has("&ss=ss")) //Shrine
+                            return true;
+
+                        if (Url.has("&ss=lt")) // Armor Lottery
+                            return true;
+
+                        if (Url.has("&ss=la")) // Weapon Lottery
+                            return true;
                     }
 
-                    window.do_attr_post = function () {
-                        for (i in attr_keys) {
-                            if (i == "contains") continue;
-                            document.getElementById(attr_keys[i] + "_delta").value = attr_delta[attr_keys[i]];
+                    return false;
+                },
+
+                Equipment: Object.assign({}, LocalStorage.NABConfig.Idle.Bazaar.Equipment, {
+                    QualityList: ['Crude', 'Fair', 'Average', 'Fine', 'Superior', 'Exquisite', 'Magnificent', 'Legendary', 'Peerless'],
+
+                    Sell: function () {
+                        if (this.Active) {
+                            var items = $("#item_pane.cspp .eqp > div:not(.iu)");
+                            var itemsSelected = 0;
+
+                            for (var i = 0; i < items.length; i++) {
+                                var item = items[i];
+                                var itemId = item.id.replace("e", "")
+                                var itemName = item.innerText;
+
+                                var quality = this.GetItemQuality(itemName);
+                                var price = eqvalue[itemId];
+
+                                if ((quality.In(['Crude', 'Fair', 'Average', 'Fine']) && price > 300) || quality == 'Superior' || (quality == 'Exquisite' && price > 700)) {
+                                    equipshop.set_equip(item, null, 'item_pane')
+                                    itemsSelected++;
+                                }
+                            }
+
+                            if (itemsSelected > 0)
+                                $$("#accept_button").click()
+
+                            return true;
                         }
 
-                        document.getElementById('attr_form').submit();
+                        return false;
+                    },
+
+                    GetItemQuality: function (item) {
+                        for (var i = 0; i < this.QualityList.length; i++)
+                            if (item.has(this.QualityList[i]))
+                                return this.QualityList[i];
+
+                        return "None"
+                    },
+                }),
+
+                Item: Object.assign({}, LocalStorage.NABConfig.Idle.Bazaar.Item, {
+
+                    Buy: function () {
+                        if (this.Active) {
+                            for (let i = 0; i < this.ListToBuy.length; i++) {
+                                let item = this.ListToBuy[i];
+
+                                var youHave = $("#item_pane tr").contains(item.Name);
+
+                                if (youHave.length > 0) {
+                                    youHave = youHave[0].querySelector("td:last-child").innerText;
+                                    youHave = parseInt(youHave);
+                                } else
+                                    youHave = 0;
+
+                                if (youHave < item.Amount) {
+                                    let shop = $("#shop_pane td > div").contains(item.Name);
+
+                                    if (shop.length > 0) {
+                                        shop[0].click();
+
+                                        itemshop.increase_count(item.Amount - youHave);
+                                        itemshop.commit_transaction();
+
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+
+                        return false;
                     }
+                }),
+            }),
 
-                    return true;
-                }
-            },
-
-            Arena: Object.assign({}, LocalStorage.NABConfig.Idle.Arena, {
+            Battle: Object.assign({}, LocalStorage.NABConfig.Idle.Battle, {
                 Start: function () {
                     if (this.Active) { // Auto start arena future
 
@@ -2030,189 +2256,130 @@ else {
                 },
             }),
 
-            Training: Object.assign({}, LocalStorage.NABConfig.Idle.Training, {
-                ListTrain: {
-                    "Adept Learner": 50,
-                    "Assimilator": 51,
-                    "Ability Boost": 80,
-                    "Manifest Destiny": null,
-                    "Scavenger": 70,
-                    "Luck of the Draw": 71,
-                    "Quartermaster": 72,
-                    "Archaeologist": 73,
-                    "Metabolism": null,
-                    "Inspiration": null,
-                    "Scholar of War": 90,
-                    "Tincture": 91,
-                    "Pack Rat": 98,
-                    "Dissociation": null,
-                    "Set Collector": 96
-                },
+            Forge: Object.assign({}, LocalStorage.NABConfig.Idle.Forge, {
                 Start: function () {
                     if (this.Active) {
-                        let credits = $(".fc4.fal.fcb").contains('Credits')[0].innerText.replace('Credits: ', '').replace(',', '');
+                        if (Url.has("&ss=re")) // Repair
+                            return this.Repair.Start();
 
-                        credits = parseInt(credits);
+                        if (Url.has("&ss=up")) // Upgrade
+                            return true;
 
-                        if (credits > this.MinCredits) {
-                            for (var i = 0; i < this.PriorityOrder.length; i++) {
-                                let num = this.ListTrain[this.PriorityOrder[i]];
+                        if (Url.has("&ss=en")) // Enchant
+                            return this.Enchant.Start();
 
-                                if (num && $$(`img[onclick='training.start_training(${num})']`)) {
-                                    training.start_training(num);
-                                    LocalStorage.NotABot.LastTraining = new Date();
-                                    LocalStorage.Update();
+                        if (Url.has("&ss=sa")) // Salvage
+                            return true;
 
-                                    return true;
-                                }
-                            }
-                        }
+                        if (Url.has("&ss=fo")) // Reforge
+                            return true;
+
+                        if (Url.has("&ss=fu")) // Soulfuse
+                            return true;
                     }
 
                     return false;
                 },
-            }),
 
-            Repair: Object.assign({}, LocalStorage.NABConfig.Idle.Repair, {
-                Start: function () {
-                    if (this.Active) {
-                        if ($$('img[src="/y/shops/repairall.png"]')) {
-                            if ($(".fc2.fac.fcr").contains("Insufficient materials.").length > 0) {
-                                NotABot.Stop();
+                Repair: Object.assign({}, LocalStorage.NABConfig.Idle.Forge.Repair, {
+                    Start: function () {
+                        if (this.Active) {
+                            if ($$('img[src="/y/shops/repairall.png"]')) {
+                                if ($(".fc2.fac.fcr").contains("Insufficient materials.").length > 0)
+                                    return true;
+
+                                document.getElementById('repairall').submit();
                                 return true;
                             }
-
-                            document.getElementById('repairall').submit();
-                            return true;
                         }
+
+                        return false;
                     }
+                }),
 
-                    return false;
-                }
-            }),
+                Enchant: Object.assign({}, LocalStorage.NABConfig.Idle.Forge.Enchant, {
+                    List: {
+                        "Voidseeker's Blessing": 'vseek',
+                        "Suffused Aether": 'ether',
+                        "Featherweight Charm": 'feath',
+                        "Infused Flames": 'pfire',
+                        "Infused Frost": 'pcold',
+                        "Infused Lightning": 'pelec',
+                        "Infused Storm": 'pwind',
+                        "Infused Divinity": 'pholy',
+                        "Infused Darkness": 'pdark'
+                    },
 
-            Enchant: Object.assign({}, LocalStorage.NABConfig.Idle.Enchant, {
-                List: {
-                    "Voidseeker's Blessing": 'vseek',
-                    "Suffused Aether": 'ether',
-                    "Featherweight Charm": 'feath',
-                    "Infused Flames": 'pfire',
-                    "Infused Frost": 'pcold',
-                    "Infused Lightning": 'pelec',
-                    "Infused Storm": 'pwind',
-                    "Infused Divinity": 'pholy',
-                    "Infused Darkness": 'pdark'
-                },
+                    Start: function () {
+                        if (this.Active) {
+                            var listEquip = $(".eqp > :last-child");
 
-                Start: function () {
-                    if (this.Active) {
-                        var listEquip = $(".eqp > :last-child");
-
-                        if (!LocalStorage.NotABot.Enchant) {
-                            LocalStorage.NotABot.Enchant = [];
-                            LocalStorage.Update();
-                        }
-
-                        if (listEquip.length > 0) { // First Page
-                            //    if (LocalStorage.NotABot.Enchant.length == 0) {
-                            //        for (let i = 0; i < listEquip.length; i++)
-                            //            LocalStorage.NotABot.Enchant.push(listEquip[i].id.substring(1));
-                            //
-                            //        LocalStorage.NotABot.Enchant.push("End");
-                            //        LocalStorage.Update();
-                            //    }
-                            //
-                            //    let $equip = LocalStorage.NotABot.Enchant[0];
-                            //
-                            //    if ($equip == "End") {
-                            //        Log("Finished Enchanting", 'info');
-                            //        return true;
-                            //    }
-                            //
-                            //
-                            //    $$("#e" + $equip).click();
-                            //    forge.commit_transaction()
-                            //
-                            //    LocalStorage.NotABot.Enchant.shift();
+                            //if (!LocalStorage.NotABot.Enchant) {
+                            //    LocalStorage.NotABot.Enchant = [];
                             //    LocalStorage.Update();
+                            //}
 
+                            if (listEquip.length > 0) { // First Page
+                                //    if (LocalStorage.NotABot.Enchant.length == 0) {
+                                //        for (let i = 0; i < listEquip.length; i++)
+                                //            LocalStorage.NotABot.Enchant.push(listEquip[i].id.substring(1));
+                                //
+                                //        LocalStorage.NotABot.Enchant.push("End");
+                                //        LocalStorage.Update();
+                                //    }
+                                //
+                                //    let $equip = LocalStorage.NotABot.Enchant[0];
+                                //
+                                //    if ($equip == "End") {
+                                //        Log("Finished Enchanting", 'info');
+                                //        return true;
+                                //    }
+                                //
+                                //
+                                //    $$("#e" + $equip).click();
+                                //    forge.commit_transaction()
+                                //
+                                //    LocalStorage.NotABot.Enchant.shift();
+                                //    LocalStorage.Update();
 
-                            NotABot.Stop();
-                            return true;
-                        } else { // Enchant Page
-                            let isWeapon = $(".fc2.far.fcb").contains("Voidseeker's Blessing").length > 0;
+                                return true;
+                            } else { // Enchant Page
+                                let isWeapon = $(".fc2.far.fcb").contains("Voidseeker's Blessing").length > 0;
 
-                            for (let i = 0; i < this.Use.length; i++) {
+                                for (let i = 0; i < this.Use.length; i++) {
 
-                                let $enchant = this.Use[i];
-                                let $code = this.List[$enchant];
+                                    let $enchant = this.Use[i];
+                                    let $code = this.List[$enchant];
 
-                                if (isWeapon && $code[0] == "p")
-                                    $code = "s" + $code.substr(1);
+                                    if (isWeapon && $code[0] == "p")
+                                        $code = "s" + $code.substr(1);
 
-                                if (!isWeapon && $code[0] != "p" && $code != "feath")
-                                    continue;
+                                    if (!isWeapon && $code[0] != "p" && $code != "feath")
+                                        continue;
 
-                                let equip = $$("#ee")?.innerText;
+                                    let equip = $$("#ee")?.innerText;
 
-                                //Use Enchant
-                                if (!equip || !equip.has($enchant)) {
-                                    $$('#enchantment').value = $code;
-                                    $$('#forgeform').submit()
+                                    //Use Enchant
+                                    if (!equip || !equip.has($enchant)) {
+                                        $$('#enchantment').value = $code;
+                                        $$('#forgeform').submit()
 
-                                    NotABot.Stop();
-                                    return true;
+                                        return true;
+                                    }
                                 }
-                            }
 
-                            NotABot.Stop();
-                            //this.GoBack();
-                        }
-                    }
-
-                    return false;
-                },
-                GoBack: function () {
-                    var goBack = "https://hentaiverse.org/?s=Forge&ss=en&filter=equipped";
-                    location.href = goBack;
-                },
-            }),
-
-            Shop: Object.assign({}, LocalStorage.NABConfig.Idle.Shop, {
-                Start: function () {
-                    if (this.Active) {
-                        this.ListToBuy;
-
-                        for (let i = 0; i < this.ListToBuy.length; i++) {
-                            let item = this.ListToBuy[i];
-
-                            var youHave = $("#item_pane tr").contains(item.Name);
-
-                            if (youHave.length > 0) {
-                                youHave = youHave[0].querySelector("td:last-child").innerText;
-                                youHave = parseInt(youHave);
-                            } else
-                                youHave = 0;
-
-                            if (youHave < item.Amount) {
-                                let shop = $("#shop_pane td > div").contains(item.Name);
-
-                                if (shop.length > 0) {
-                                    shop[0].click();
-
-                                    itemshop.increase_count(item.Amount - youHave);
-                                    itemshop.commit_transaction();
-
-                                    NotABot.Stop();
-                                    return true;
-                                }
+                                return true;
+                                //this.GoBack();
                             }
                         }
 
-                    }
-
-                    return false;
-                }
+                        return false;
+                    },
+                    GoBack: function () {
+                        var goBack = "https://hentaiverse.org/?s=Forge&ss=en&filter=equipped";
+                        location.href = goBack;
+                    },
+                }),
             }),
         }),
 
@@ -2257,7 +2424,7 @@ else {
             "Heartseeker": 431, "Arcane Focus": 432,
 
             // Specials
-            "Orbital Friendship Cannon": 0, "FUS RO DAH": 0
+            "Orbital Friendship Cannon": 1102, "FUS RO DAH": 1101
         },
         UseSpell: function (spellName) {
             var spell = $$('#' + this.ListSkill[spellName]);
