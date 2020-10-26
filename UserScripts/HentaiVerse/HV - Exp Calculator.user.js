@@ -16,7 +16,7 @@ var playerLevel = document.querySelector("#difficulty").innerText;
 playerLevel = parseInt(playerLevel.substring(playerLevel.indexOf(".") + 1));
 
 var stamina = document.querySelector("#stamina_readout").innerText;
-stamina = parseFloat(stamina.substring(stamina.indexOf(":") + 1));
+stamina = parseInt(stamina.substring(stamina.indexOf(":") + 1));
 
 
 var nrmMod = 2.064592419747144, // Calculated using as base the Killzone (Total Exp / 227) / (All Modifiers)
@@ -24,10 +24,11 @@ var nrmMod = 2.064592419747144, // Calculated using as base the Killzone (Total 
     legMod = 2.1,
     ultMod = 2.8;
 
-var abilityModifier = 3.83;
+var abilityModifier = 3.88;
+var forumBonus = 2;
 
 var getExp = (nrml, boss, lege, ulti, diffMod, expMod) => {
-    return playerLevel * ((nrml * nrmMod) + (boss * bosMod) + (lege * legMod) + (ulti * ultMod)) * (stamina > 79 ? 2 : 1) * diffMod * expMod * abilityModifier;
+    return playerLevel * ((nrml * nrmMod) + (boss * bosMod) + (lege * legMod) + (ulti * ultMod)) * (stamina > 79 ? 2 : 1) * diffMod * expMod * abilityModifier * forumBonus;
 }
 
 var numberSep = num => {
@@ -48,7 +49,7 @@ if (list.length > 0) {
         var level = line[1].innerText;
         var rounds = line[3].querySelector("div > div");
         var roundStamina = (0.04 * parseInt(rounds.innerText)).toFixed(2);
-        var expMod = parseInt(line[4].querySelector("div > div").innerText.replace("X", ""));
+        var expMod = parseFloat(line[4].querySelector("div > div").innerText.replace("X", ""));
 
 
         var diffMod = 1;
@@ -60,7 +61,6 @@ if (list.length > 0) {
             case "IWBTH": diffMod = 15; break;
             case "PFUDOR": diffMod = 20; break;
         }
-
 
         var totalExp = "";
         switch (challange) {

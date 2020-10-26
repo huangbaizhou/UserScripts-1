@@ -14,6 +14,9 @@ var url = window.location.href;
 
 var newStyle = `
 <style>
+    /* Menu */
+    #navbar > #nav_mail { right: 5px; position: absolute; }
+
     div#csp { width: 100%; height: 100%; border: 0; }
     body { background: #EDEBDF; }
     div#eqch_stats { position: absolute; right: 0; display: inline; }
@@ -113,6 +116,11 @@ if (hasRandomEncounter) {
     if (!localStorage.amoutRandomEncounter)
         localStorage.amoutRandomEncounter = 0;
 
+    if (url.indexOf("?resetEncounter") > 0) {
+        localStorage.amoutRandomEncounter = 0;
+        window.location.href = "https://hentaiverse.org/";
+    }
+
     if (url.indexOf("e-hentai.org/news.php") > 0) {
         var randomEncountersInterval = setInterval(function () {
             if (document.getElementById("eventpane") != null) {
@@ -123,19 +131,21 @@ if (hasRandomEncounter) {
                 if (a)
                     window.location.href = a.href;
                 else
-                    localStorage.amoutRandomEncounter = 0;
+                    window.location.href = "https://hentaiverse.org/?resetEncounter";
             }
         }, 500)
     }
 
     if (url.indexOf("s=Battle&ss=ba&encounter=") > 0) {
-        if (document.getElementById("battle_main") != null)
-            localStorage.amoutRandomEncounter = parseInt(localStorage.amoutRandomEncounter) + 1;
-        else
-            window.location.href = "https://hentaiverse.org/?s=Character&ss=ch";
+        setTimeout(function () {
+            if (document.getElementById("battle_main") != null)
+                localStorage.amoutRandomEncounter = parseInt(localStorage.amoutRandomEncounter) + 1;
+            else
+                window.location.href = "https://hentaiverse.org/?s=Character&ss=ch";
+        }, 150);
     }
 
-    if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24)
+    if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24) {
         setInterval(function () {
             let lastChild = document.querySelector("body > :last-child");
 
@@ -144,4 +154,5 @@ if (hasRandomEncounter) {
                 console.log("All good");
             }
         }, 5000); // 5s
+    }
 }
