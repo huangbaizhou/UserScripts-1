@@ -111,17 +111,20 @@ window.LocalStorage = {
 
                     Spirit: {
                         Active: true,
-                        Mana: { EnableAt: 65, DisableAt: 70 }
+                        Mana: { EnableAt: 65, DisableAt: 70 },
+                        Overcharge: { EnableAt: 50 }
                     },
 
                     Defend: {
                         Active: true,
-                        Health: { EnableAt: 30 }
+                        Health: { EnableAt: 30 },
+                        Overcharge: { EnableAt: 10 }
                     },
 
                     Focus: {
                         Active: true,
-                        Mana: { EnableAt: 5 }
+                        Mana: { EnableAt: 5 },
+                        Overcharge: { EnableAt: 10 }
                     },
                 },
             },
@@ -145,6 +148,15 @@ window.LocalStorage = {
 
                 },
 
+                Battle: {
+                    Active: false,
+                    DoRingOfBlood: false,
+                    MinimumStamina: 80,
+                    ChangeDifficulty: true,
+                    UseRestoratives: true,
+                    MaxStaminaToUseRestorative: 79,
+                },
+
                 Bazaar: {
                     Active: true,
 
@@ -165,15 +177,6 @@ window.LocalStorage = {
                             ////// Enchants - Check Forum
                         ]
                     },
-                },
-
-                Battle: {
-                    Active: false,
-                    DoRingOfBlood: false,
-                    MinimumStamina: 80,
-                    ChangeDifficulty: true,
-                    UseRestoratives: true,
-                    MaxStaminaToUseRestorative: 79,
                 },
 
                 Forge: {
@@ -374,6 +377,7 @@ if (Url.has("?NABConfig")) {
                 <td><input type="number" id="fightSpiritSpiritManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt}"/></td>
                 <td><input type="number" id="fightSpiritSpiritManaDisableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt}"/></td>
                 <td><input type="number" disabled /></td>
+                <td><input type="number" id="fightSpiritSpiritOverchargeEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Spirit.Overcharge.EnableAt}"/></td>
                 ${multiButton}
             </tr>`
         var defend = `
@@ -383,6 +387,7 @@ if (Url.has("?NABConfig")) {
                 <td><input type="number" disabled /></td>
                 <td><input type="number" disabled /></td>
                 <td><input type="number" id="fightSpiritDefendHealthEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt}" /></td>
+                <td><input type="number" id="fightSpiritDefendOverchargeEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Defend.Overcharge.EnableAt}"/></td>
                 ${multiButton}
             </tr>`
 
@@ -393,6 +398,7 @@ if (Url.has("?NABConfig")) {
                 <td><input type="number" id="fightSpiritFocusManaEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt}"/></td>
                 <td><input type="number" disabled /></td>
                 <td><input type="number" disabled /></td>
+                <td><input type="number" id="fightSpiritFocusOverchargeEnableAt" value="${LocalStorage.NABConfig.Fight.Spirit.Focus.Overcharge.EnableAt}"/></td>
                 ${multiButton}
             </tr>`
 
@@ -501,7 +507,8 @@ if (Url.has("?NABConfig")) {
     }
 
     /** Select Multiple **/
-    .checkMultiple > tr > td:first-child {
+    .checkMultiple > tr > td:first-child,
+    .checkMultiple > tr > td:last-child {
         text-align: center;
     }
 
@@ -750,7 +757,8 @@ if (Url.has("?NABConfig")) {
                         <th class=center>Ability</th>
                         <th class=center colspan=2>Mana</th>
                         <th class=center>Health</th>
-                        <th></th>
+                        <th class=center>Overcharge</th>
+                        <th>&emsp;&emsp;&emsp;&emsp;</th>
                     </tr>
                     <tr>
                         <td>&nbsp;</td>
@@ -773,6 +781,14 @@ if (Url.has("?NABConfig")) {
                             <label class="tooltip">Enable At (%)
                                 <span class="tooltiptext">
                                     Will active ability if your health percentage is this or lower
+                                </span>
+                            </label>
+                        </td>
+                        <td class=center>
+                            <label class="tooltip">Enable At (%)
+                                <span class="tooltiptext">
+                                    Will active ability if your overcharge percentage is this or higher <br>
+                                    Overcharge Goes up to 250, but this percentage is of the total so 100 => 250, 50 => 125
                                 </span>
                             </label>
                         </td>
@@ -990,12 +1006,16 @@ if (Url.has("?NABConfig")) {
             LocalStorage.NABConfig.Fight.Spirit.Spirit.Active = "Spirit".In(spiritPriorityOrder);
             LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.EnableAt = parseInt($$("#fightSpiritSpiritManaEnableAt").value);
             LocalStorage.NABConfig.Fight.Spirit.Spirit.Mana.DisableAt = parseInt($$("#fightSpiritSpiritManaDisableAt").value);
+            LocalStorage.NABConfig.Fight.Spirit.Spirit.Overcharge.EnableAt = parseInt($$("#fightSpiritSpiritOverchargeEnableAt").value);
+
 
             LocalStorage.NABConfig.Fight.Spirit.Defend.Active = "Defend".In(spiritPriorityOrder);
             LocalStorage.NABConfig.Fight.Spirit.Defend.Health.EnableAt = parseInt($$("#fightSpiritDefendHealthEnableAt").value);
+            LocalStorage.NABConfig.Fight.Spirit.Defend.Overcharge.EnableAt = parseInt($$("#fightSpiritDefendOverchargeEnableAt").value);
 
             LocalStorage.NABConfig.Fight.Spirit.Focus.Active = "Focus".In(spiritPriorityOrder);
             LocalStorage.NABConfig.Fight.Spirit.Focus.Mana.EnableAt = parseInt($$("#fightSpiritFocusManaEnableAt").value);
+            LocalStorage.NABConfig.Fight.Spirit.Focus.Overcharge.EnableAt = parseInt($$("#fightSpiritFocusOverchargeEnableAt").value);
 
             // Idle
             LocalStorage.NABConfig.Idle.Active = $$("#idleActive").checked;
@@ -1355,7 +1375,7 @@ else {
                             let isSet = $$("#ckey_spirit").src.has("spirit_s.png");
                             let isActive = $$("#ckey_spirit").src.has("spirit_a.png");
 
-                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > 20 && !isActive && !isSet) {
+                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > this.Overcharge.EnableAt && !isActive && !isSet) {
                                 Log("  Enabled Battle Spirit");
                                 $$("#ckey_spirit").click();
 
@@ -1377,7 +1397,7 @@ else {
                 Defend: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Defend, {
                     Start: function () {
                         if (this.Active) {
-                            if (NotABot.Fight.Player.Health <= this.Health.EnableAt && NotABot.Fight.Player.Overcharge > 10) {
+                            if (NotABot.Fight.Player.Health <= this.Health.EnableAt && NotABot.Fight.Player.Overcharge > this.Overcharge.EnableAt) {
                                 Log("  Defense Mode");
                                 $$("#ckey_defend").click();
                                 return true;
@@ -1390,7 +1410,7 @@ else {
                 Focus: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Focus, {
                     Start: function () {
                         if (this.Active) {
-                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > 10) {
+                            if (NotABot.Fight.Player.Mana <= this.Mana.EnableAt && NotABot.Fight.Player.Overcharge > this.Overcharge.EnableAt) {
                                 Log("  Focus Mode");
                                 $$("#ckey_focus").click();
                                 return true;
