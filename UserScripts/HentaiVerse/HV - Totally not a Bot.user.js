@@ -2444,7 +2444,7 @@ else {
             "Heartseeker": 431, "Arcane Focus": 432,
 
             // Specials
-            "Orbital Friendship Cannon": 1102, "FUS RO DAH": 1101
+            "Orbital Friendship Cannon": 1111, "FUS RO DAH": 1101
         },
         UseSpell: function (spellName) {
             var spell = $$('#' + this.ListSkill[spellName]);
