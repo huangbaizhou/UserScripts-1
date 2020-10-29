@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.8
+// @version    2.5.9
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
@@ -76,6 +76,7 @@ window.LocalStorage = {
                 Debuff: {
                     Active: true,
                     MinMana: 25,
+                    MinHealth: 50000,
                     Use: ["Weaken", "Imperil", "Drain"]
                 },
 
@@ -153,7 +154,7 @@ window.LocalStorage = {
                     DoRingOfBlood: false,
                     MinimumStamina: 80,
                     ChangeDifficulty: true,
-                    UseRestoratives: true,
+                    UseRestoratives: false,
                     MaxStaminaToUseRestorative: 79,
                 },
 
@@ -701,6 +702,14 @@ if (Url.has("?NABConfig")) {
                 </label>
                 <input type="number" maxlength="3" id="fightDebuffMinMana" value="${LocalStorage.NABConfig.Fight.Debuff.MinMana}" />
             </p>
+            <p>
+                <label for="fightDebuffMinHealth" class="tooltip">Min Health
+                    <span class="tooltiptext">
+                        Only Debuffs Monsters that have at least this much health
+                    </span>
+                </label>
+                <input type="number" maxlength="3" id="fightDebuffMinHealth" value="${LocalStorage.NABConfig.Fight.Debuff.MinHealth}" />
+            </p>
             ${GetMultiple("fightDebuffUse", "Debuff", LocalStorage.NABConfig.Fight.Debuff.Use, listOfDebuffs)}
         </div>
 
@@ -990,6 +999,7 @@ if (Url.has("?NABConfig")) {
             // Debuff
             LocalStorage.NABConfig.Fight.Debuff.Active = $$("#fightDebuffActive").checked;
             LocalStorage.NABConfig.Fight.Debuff.MinMana = parseInt($$("#fightDebuffMinMana").value);
+            LocalStorage.NABConfig.Fight.Debuff.MinHealth = parseInt($$("#fightDebuffMinHealth").value);
             LocalStorage.NABConfig.Fight.Debuff.Use = getSelectValues($("#fightDebuffUse"));
 
             // Potion
@@ -1147,6 +1157,7 @@ else {
 
             Log("Bot Stopped");
         },
+
         Run: function () {
             if ($$("#pane_log")) {
                 if ($$("#pane_log").innerText == this.LastLog)
@@ -1158,17 +1169,12 @@ else {
                 this.LastRun = new Date();
                 this.LastLog = $$("#pane_log").innerText;
 
-                if (this.Fight.Start())
-                    return;
-
-            } else if ($$("#riddlemaster")) {
-                if (this.Riddle.Start())
-                    return true;
-            } else {
-                if (this.Idle.Start())
-                    return;
+                return this.Fight.Start();
             }
-
+            else if ($$("#riddlemaster"))
+                return this.Riddle.Start();
+            else
+                return this.Idle.Start();
 
 
             Log("Something Wrong isn't right.", 'warn');
@@ -1234,7 +1240,9 @@ else {
                 Start: function () {
                     if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) {
                         //Order by Higher HP to Lower
-                        var monsterList = NotABot.Fight.Monsters.List.sort((o, r) => r.Health - o.Health);
+                        var monsterList = NotABot.Fight.Monsters.List
+                            .filter((o => o.Health > 1 && o.Health >= this.MinHealth) || (o.Health <= 1 && o.Health > (this.MinHealth / 100)))
+                            .sort((o, r) => r.Health - o.Health);
 
                         for (let i = 0; i < monsterList.length; i++) {
                             var monster = monsterList[i];
@@ -1734,7 +1742,8 @@ else {
                         var Name = Object.querySelector(".btm3").innerText;
                         var Weakness = "";
                         var WeaknessValue = 9999;
-                        var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+                        var Health = Object.querySelector("img[src='/y/s/nbargreen.png']").width / 120;
+
                         var Debuff = [];
                         var Click = function () {
                             Log('    Monster: ' + this.Name);
@@ -1743,6 +1752,7 @@ else {
 
                         if (roundContext) {
                             var mContext = roundContext[i].scanResult;
+                            var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
 
                             // Didn't scan this monster yet
                             if (mContext) {
