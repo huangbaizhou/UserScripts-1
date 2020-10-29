@@ -42,6 +42,9 @@ window.LocalStorage = {
         localStorage["NABConfig." + this.Persona] = JSON.stringify(LocalStorage.NABConfig);
     },
     LoadConfig: function () {
+        if (!this.Persona)
+            return;
+
         if (!localStorage["NABConfig." + this.Persona]) {
             this.NewConfig();
             this.UpdateConfig();
@@ -203,15 +206,15 @@ window.LocalStorage = {
         if (this.ListPersona.length == 0 && localStorage["NAB.ListPersona"])
             this.ListPersona = localStorage["NAB.ListPersona"].split(",");
 
-        if (!this.Persona || this.Persona == "")
+        if (!this.Persona)
             this.Persona = localStorage["NAB.Persona"];
 
-        if ((!this.Persona || this.Persona == "") && this.ListPersona.length > 0) {
+        if (!this.Persona && this.ListPersona.length > 0) {
             this.Persona = this.ListPersona[0];
             localStorage["NAB.Persona"] = this.Persona;
         }
 
-        if (!this.Persona || this.Persona == "")
+        if (!this.Persona && location.href != "https://hentaiverse.org/")
             location.href = "https://hentaiverse.org/";
     },
     CheckPersona: function (name) {
@@ -221,15 +224,11 @@ window.LocalStorage = {
         }
 
         if (this.Persona != name) {
-            this.ChangePersona(name);
-        }
-    },
-    ChangePersona: function (name) {
-        this.Persona = name;
-        localStorage["NAB.Persona"] = this.Persona;
+            this.Persona = name;
+            localStorage["NAB.Persona"] = this.Persona;
 
-        this.CheckPersona(name);
-        this.LoadConfig();
+            this.LoadConfig();
+        }
     }
 };
 
