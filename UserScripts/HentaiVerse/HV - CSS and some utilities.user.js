@@ -86,8 +86,8 @@ if (url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
 newStyle += "</style>";
 
 function loadCSS() {
-    if (document.head)
-        document.head.innerHTML += newStyle;
+    if (document.body)
+        document.body.innerHTML += newStyle;
     else
         setTimeout(loadCSS, 20);
 }

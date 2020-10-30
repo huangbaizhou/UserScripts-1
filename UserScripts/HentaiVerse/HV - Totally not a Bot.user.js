@@ -618,6 +618,12 @@ if (Url.has("?NABConfig")) {
                     <option value="Mage 3rd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 3rd Circle" ? "selected" : ""}>Mage 3rd Circle</option>
                     <option value="Mage 2nd Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 2nd Circle" ? "selected" : ""}>Mage 2nd Circle</option>
                     <option value="Mage 1st Circle" ${LocalStorage.NABConfig.CharacterType == "Mage 1st Circle" ? "selected" : ""}>Mage 1st Circle</option>
+                    <option value="Fire Mage" ${LocalStorage.NABConfig.CharacterType == "Fire Mage" ? "selected" : ""}>Fire Mage</option>
+                    <option value="Ice Mage" ${LocalStorage.NABConfig.CharacterType == "Ice Mage" ? "selected" : ""}>Ice Mage</option>
+                    <option value="Electric Mage" ${LocalStorage.NABConfig.CharacterType == "Electric Mage" ? "selected" : ""}>Electric Mage</option>
+                    <option value="Wind Mage" ${LocalStorage.NABConfig.CharacterType == "Wind Mage" ? "selected" : ""}>Wind Mage</option>
+                    <option value="Holy Mage" ${LocalStorage.NABConfig.CharacterType == "Holy Mage" ? "selected" : ""}>Holy Mage</option>
+                    <option value="Dark Mage" ${LocalStorage.NABConfig.CharacterType == "Dark Mage" ? "selected" : ""}>Dark Mage</option>
                     <option value="One-Handed" ${LocalStorage.NABConfig.CharacterType == "One-Handed" ? "selected" : ""}>One-Handed</option>
                     <option value="Dual Wielding" ${LocalStorage.NABConfig.CharacterType == "Dual Wielding" ? "selected" : ""}>Dual Wielding</option>
                     <option value="2-Handed Weapon" ${LocalStorage.NABConfig.CharacterType == "2-Handed Weapon" ? "selected" : ""}>2-Handed Weapon</option>
@@ -1340,7 +1346,7 @@ else {
                             this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
                             this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
                             this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
-                            //this.Overcharge = $$("#vbc img").width / $$("#vbc").clientWidth * 100;
+                            this.Overcharge = $("#vcp").length * 10; // Each Ball == 10% Of total or 25 OC
                         }
 
                         this.GetBuffs();
@@ -1506,8 +1512,20 @@ else {
 
                     let playerClass = NotABot.CharacterType;
 
+
                     if (monster.Weakness != "") {
                         var spell = "";
+
+                        function setElementalMage(spell1stCircle, spell2ndCircle, spell3rdCircle) {
+                            if (NotABot.Fight.Monsters.List.length > 7 && spell != spell3rdCircle)
+                                spell = spell3rdCircle;
+                            else if (NotABot.Fight.Monsters.List.length > 5 && spell != spell2ndCircle)
+                                spell = spell2ndCircle;
+                            else if (spell != spell1stCircle)
+                                spell = spell1stCircle;
+                            else
+                                playerClass = "Mage Melee"
+                        }
 
                         while (true) {
                             switch (playerClass) {
@@ -1522,7 +1540,7 @@ else {
                                     break;
                                 case "Mage 3rd Circle": // Will not check if have spell available, this way you can attack the monster with his weakest element with a lower tier Spell
                                     switch (monster.Weakness) {
-                                        case "COLD": spell = "Fimbulvertr"; break;
+                                        case "COLD": spell = "Fimbulvetr"; break;
                                         case "DARK": spell = "Ragnarok"; break;
                                         case "ELEC": spell = "Wrath of Thor"; break;
                                         case "FIRE": spell = "Flames of Loki"; break;
@@ -1555,6 +1573,25 @@ else {
                                     }
 
                                     playerClass = "Mage Melee";
+                                    break;
+
+                                case "Fire Mage":
+                                    setElementalMage("Fiery Blast", "Inferno", "Flames of Loki");
+                                    break;
+                                case "Ice Mage":
+                                    setElementalMage("Freeze", "Blizzard", "Fimbulvetr");
+                                    break;
+                                case "Electric Mage":
+                                    setElementalMage("Shockblast", "Chained Lightning", "Wrath of Thor");
+                                    break;
+                                case "Wind Mage":
+                                    setElementalMage("Gale", "Downburst", "Storms of Njord");
+                                    break;
+                                case "Holy Mage":
+                                    setElementalMage("Smite", "Banishment", "Paradise Lost");
+                                    break;
+                                case "Dark Mage":
+                                    setElementalMage("Corruption", "Disintegrate", "Ragnarok");
                                     break;
                                 case "One-Handed":
                                     switch (monster.Weakness) {
@@ -1627,6 +1664,19 @@ else {
                             return false;
                         }
 
+                        function AttackElementalMage(spell1stCircle, spell2ndCircle, spell3rdCircle) {
+                            if (NotABot.Fight.Monsters.List.length > 7 && AttackMonster(spell3rdCircle))
+                                return true;
+
+                            if (NotABot.Fight.Monsters.List.length > 5 && AttackMonster(spell2ndCircle))
+                                return true;
+
+                            if (AttackMonster(spell1stCircle))
+                                return true;
+
+                            return false;
+                        }
+
                         while (true) {
                             switch (playerClass) {
                                 case "Arch-Mage":
@@ -1639,7 +1689,7 @@ else {
 
                                     break;
                                 case "Mage 3rd Circle":
-                                    if (AttackMonster("Fimbulvertr") || AttackMonster("Ragnarok") || AttackMonster("Wrath of Thor") || AttackMonster("Flames of Loki") || AttackMonster("Paradise Lost") || AttackMonster("Storms of Njord"))
+                                    if (AttackMonster("Fimbulvetr") || AttackMonster("Ragnarok") || AttackMonster("Wrath of Thor") || AttackMonster("Flames of Loki") || AttackMonster("Paradise Lost") || AttackMonster("Storms of Njord"))
                                         return true;
 
                                     playerClass = "Mage 2st Circle";
@@ -1655,6 +1705,43 @@ else {
                                         return true;
 
                                     playerClass = "Mage Melee";
+                                    break;
+
+                                case "Fire Mage":
+                                    if (AttackElementalMage("Fiery Blast", "Inferno", "Flames of Loki"))
+                                        return true;
+
+                                    return false;
+                                    break;
+                                case "Ice Mage":
+                                    if (AttackElementalMage("Freeze", "Blizzard", "Fimbulvetr"))
+                                        return true;
+
+                                    return false;
+                                    break;
+                                case "Electric Mage":
+                                    if (AttackElementalMage("Shockblast", "Chained Lightning", "Wrath of Thor"))
+                                        return true;
+
+                                    return false;
+                                    break;
+                                case "Wind Mage":
+                                    if (AttackElementalMage("Gale", "Downburst", "Storms of Njord"))
+                                        return true;
+
+                                    return false;
+                                    break;
+                                case "Holy Mage":
+                                    if (AttackElementalMage("Smite", "Banishment", "Paradise Lost"))
+                                        return true;
+
+                                    return false;
+                                    break;
+                                case "Dark Mage":
+                                    if (AttackElementalMage("Corruption", "Disintegrate", "Ragnarok"))
+                                        return true;
+
+                                    return false;
                                     break;
                                 case "One-Handed":
                                     if (AttackMonster("Shield Bash") || AttackMonster("Vital Strike") || AttackMonster("Merciful Blow"))
@@ -2433,7 +2520,7 @@ else {
 
             // Spells
             "Fiery Blast": 111, "Inferno": 112, "Flames of Loki": 113,
-            "Freeze": 121, "Blizzard": 122, "Fimbulvertr": 123,
+            "Freeze": 121, "Blizzard": 122, "Fimbulvetr": 123,
             "Shockblast": 131, "Chained Lightning": 132, "Wrath of Thor": 133,
             "Gale": 141, "Downburst": 142, "Storms of Njord": 143,
             "Smite": 151, "Banishment": 152, "Paradise Lost": 153,
