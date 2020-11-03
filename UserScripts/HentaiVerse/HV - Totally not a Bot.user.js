@@ -154,11 +154,20 @@ window.LocalStorage = {
 
                 Battle: {
                     Active: false,
-                    DoRingOfBlood: false,
-                    MinimumStamina: 80,
                     ChangeDifficulty: true,
                     UseRestoratives: false,
                     MaxStaminaToUseRestorative: 79,
+                    MinimumStamina: 80,
+
+                    Arena: {
+                        Active: true,
+                        ListToDo: ["A Dance with Dragons", "Eternal Darkness", "End of Days", "The Trio and the Tree", "Eve of Death"]
+                    },
+
+                    RingOfBlood: {
+                        Active: true,
+                        ListToDo: ["Flying Spaghetti Monster"]
+                    },
                 },
 
                 Bazaar: {
@@ -321,6 +330,11 @@ if (Url.has("?NABConfig")) {
     var listOfEnchants = ["Voidseeker's Blessing", "Suffused Aether", "Featherweight Charm", "Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"];
     var listOfPotions = ["Health", "Mana", "Spirit"];
     var listOfTraining = ["Adept Learner", "Assimilator", "Ability Boost", "Manifest Destiny", "Scavenger", "Luck of the Draw", "Quartermaster", "Archaeologist", "Metabolism", "Inspiration", "Scholar of War", "Tincture", "Pack Rat", "Dissociation", "Set Collector"];
+
+    var listOfArena = ["First Blood", "Learning Curves", "Graduation", "Road Less Traveled", "A Rolling Stone", "Fresh Meat", "Dark Skies", "Growing Storm", "Power Flux", "Killzone", "Endgame",
+        "Longest Journey", "Dreamfall", "Exile", "Sealed Power", "New Wings", "To Kill a God", "Eve of Death", "The Trio and the Tree", "End of Days", "Eternal Darkness", "A Dance with Dragons"];
+    var listOfROB = ["Konata", "Mikuru Asahina", "Ryouko Asakura", "Yuki Nagato", "Real Life", "Invisible Pink Unicorn", "Flying Spaghetti Monster", "Triple Trio and the Tree"];
+
 
     var multiButton = `<td>
         <button type="button" class="rotate moveUp">&lsaquo;</button>
@@ -834,20 +848,27 @@ if (Url.has("?NABConfig")) {
                     <input type="checkbox" id="idleBattleActive" ${LocalStorage.NABConfig.Idle.Battle.Active ? "checked" : ""}>
                     <label for="idleBattleActive" class="tooltip">Active
                         <span class="tooltiptext">
-                            Auto start all enabled battles one after another <br>
-                            <i>Be aware of your items, it'll not repair or enchant them</i>
+                            Enable all Battle Related Bot Activities.
                         </span>
                     </label>
                 </p>
                 <p>
-                    <input type="checkbox" id="idleBattleDoRingOfBlood" ${LocalStorage.NABConfig.Idle.Battle.DoRingOfBlood ? "checked" : ""}>
-                    <label for="idleBattleDoRingOfBlood" class="tooltip">Ring of Blood
+                    <input type="checkbox" id="idleBattleArenaActive" ${LocalStorage.NABConfig.Idle.Battle.Arena.Active ? "checked" : ""}>
+                    <label for="idleBattleArenaActive">Auto-start Arena</label>
+                </p>
+                ${GetMultiple("idleBattleArenaListToDo", "Do", LocalStorage.NABConfig.Idle.Battle.Arena.ListToDo, listOfArena)}
+
+                <p>
+                    <input type="checkbox" id="idleBattleRingOfBloodActive" ${LocalStorage.NABConfig.Idle.Battle.RingOfBlood.Active ? "checked" : ""}>
+                    <label for="idleBattleRingOfBloodActive" class="tooltip">Auto-Start RoB
                         <span class="tooltiptext">
-                            Auto-start Ring of Blood, only "Flying Spaghetti Monster" <br>
+                            Auto-start Ring of Blood<br>
                             <i>Only works if you have enough tokens</i>
                         </span>
                     </label>
                 </p>
+                ${GetMultiple("idleBattleRingOfBloodListToDo", "Do", LocalStorage.NABConfig.Idle.Battle.RingOfBlood.ListToDo, listOfROB)}
+
                 <p>
                     <label for="idleBattleMinimumStamina" class="tooltip">Minimum Stamina:
                         <span class="tooltiptext">
@@ -1037,11 +1058,16 @@ if (Url.has("?NABConfig")) {
 
             // Auto-Start Battle
             LocalStorage.NABConfig.Idle.Battle.Active = $$("#idleBattleActive").checked;
-            LocalStorage.NABConfig.Idle.Battle.DoRingOfBlood = $$("#idleBattleDoRingOfBlood").checked;
             LocalStorage.NABConfig.Idle.Battle.MinimumStamina = parseInt($$("#idleBattleMinimumStamina").value);
             LocalStorage.NABConfig.Idle.Battle.ChangeDifficulty = $$("#idleBattleChangeDifficulty").checked;
             LocalStorage.NABConfig.Idle.Battle.UseRestoratives = $$("#idleBattleUseRestoratives").checked;
             LocalStorage.NABConfig.Idle.Battle.MaxStaminaToUseRestorative = parseInt($$("#idleBattleMaxStaminaToUseRestorative").value);
+
+            LocalStorage.NABConfig.Idle.Battle.Arena.Active = $$("#idleBattleArenaActive").checked;
+            LocalStorage.NABConfig.Idle.Battle.Arena.ListToDo = getSelectValues($("#idleBattleArenaListToDo"));
+
+            LocalStorage.NABConfig.Idle.Battle.RingOfBlood.Active = $$("#idleBattleRingOfBloodActive").checked;
+            LocalStorage.NABConfig.Idle.Battle.RingOfBlood.ListToDo = getSelectValues($("#idleBattleRingOfBloodListToDo"));
 
             // Character
             LocalStorage.NABConfig.Idle.Character.Active = $$("#idleCharacterActive").checked;
@@ -1122,10 +1148,7 @@ else {
             let totalExp = $$("#expbar") ? $$("#expbar").width / 1235 * 100 : 0;
             var span = document.createElement("span");
 
-            if ($("#arena_pages").length > 0 || Url.has("s=Character")) {
-                span.style = "position: absolute; top: 5px; right: 65px; font-size: 13px; font-weight: bold;";
-                span.innerHTML = LocalStorage.NotABot.LastMatch;
-            } else {
+            if ($$("#pane_log")) {
                 if (!localStorage.amoutRandomEncounter)
                     localStorage.amoutRandomEncounter = 0;
 
@@ -1137,6 +1160,9 @@ else {
                     else
                         NotABot.Start();
                 };
+            } else {
+                span.style = "position: absolute; top: 5px; right: 65px; font-size: 13px; font-weight: bold;";
+                span.innerHTML = LocalStorage.NotABot.LastMatch;
             }
 
             document.querySelector("#mainpane").appendChild(span);
@@ -2310,51 +2336,134 @@ else {
             }),
 
             Battle: Object.assign({}, LocalStorage.NABConfig.Idle.Battle, {
+                ListArena: [],
+
                 Start: function () {
-                    if (this.Active) { // Auto start arena future
+                    if (this.Active) {
+                        if (this.Restoratives())
+                            return true;
 
-                        if ($("#arena_list").length > 0) {
-                            let tempStamina = 0;
+                        if (Url.has("&ss=ar")) // Arena
+                            return this.Arena.Start();
 
-                            if ($$(".fc4.far.fcb"))
-                                tempStamina = parseInt($$(".fc4.far.fcb").innerText.replace("Stamina:", ""));
+                        if (Url.has("&ss=rb")) // Ring of Blood
+                            return true;
 
-                            if (tempStamina > this.MinimumStamina && Url.has("&ss=ar") || this.DoRingOfBlood) {
-                                var listArena = $("#arena_list tr > td:last-child > img[src='/y/arena/startchallenge.png']");
+                        if (Url.has("&ss=gr")) // Grindfest
+                            return true;
 
-                                if (listArena.length == 0) {
-                                    if (Url.has("&ss=ar") && !Url.has("&page=2"))
-                                        window.location.href += "&page=2";
-                                } else {
-                                    var arena = listArena[0];
+                        if (Url.has("&ss=iw")) // Item World
+                            return true;
+                    }
 
-                                    if (this.SetDifficulty(arena))
-                                        return true;
+                    return false;
+                },
 
-                                    //Start Arena
-                                    window["init_battle"] = function (id, entrycost, token) {
-                                        $$("#initid").value = id;
-                                        $$("#inittoken").value = token;
-                                        $$("#initform").submit();
-                                    }
 
-                                    arena.click();
-                                }
+                Restoratives: function () {
+                    if (this.UseRestoratives) {
+                        var playerStamina = this.GetStamina();
 
-                                return true;
-                            }
+                        if (playerStamina > 0 && playerStamina < this.MaxStaminaToUseRestorative) {
+                            //Use Restoratives
+                            return true;
                         }
                     }
 
                     return false;
                 },
 
-                SetDifficulty: function (arena) {
+                Arena: Object.assign({}, LocalStorage.NABConfig.Idle.Battle.Arena, {
+                    ArenaList: [],
+
+                    Start: function () {
+                        if (this.Active) { // Auto start arena future
+                            this.LoadArena();
+                            let playerStamina = NotABot.Idle.Battle.GetStamina();
+
+                            if (this.ArenaList.length > 0 && playerStamina > 0) {
+                                for (var i = 0; i < this.ArenaList.length; i++) {
+                                    var Arena = this.ArenaList[i];
+
+                                    if (playerStamina - Arena.Stamina > this.MinimumStamina) {
+                                        if (NotABot.Idle.Battle.SetDifficulty(Arena.Difficulty))
+                                            return true;
+
+                                        //Start Arena
+                                        window["init_battle"] = function (id, entrycost, token) {
+                                            $$("#initid").value = id;
+                                            $$("#inittoken").value = token;
+                                            $$("#initform").submit();
+                                        }
+
+                                        Arena.click();
+
+                                        return true;
+                                    }
+                                }
+
+                            } else if (this.ArenaList.length == 0 && !Url.has("&page=2")) {
+                                window.location.href += "&page=2";
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    },
+
+                    LoadArena: function () {
+                        var listArena = $("#arena_list tr > td:last-child > img[src='/y/arena/startchallenge.png']");
+
+                        for (var i = 0; i < listArena.length; i++) {
+                            var Arena = listArena[i];
+                            var Difficulty = Arena.parentElement.parentElement.children[1].innerText.trim();
+                            var Name = Arena.parentElement.parentElement.children[0].innerText.trim();
+                            var Stamina = this.GetStaminaNeeded(Name);
+
+                            this.ArenaList.push({ Arena, Difficulty, Name, Stamina });
+                        }
+
+                        // Filter ToDo List
+                        this.ArenaList = this.ArenaList.filter(e => e.Name.In(this.ListToDo))
+                    },
+
+                    GetStaminaNeeded: function (arenaName) {
+                        switch (arenaName) {
+                            case "First Blood": return .2;
+                            case "Learning Curves": return .28;
+                            case "Graduation": return .48;
+                            case "Road Less Traveled": return .6;
+                            case "A Rolling Stone": return .8;
+                            case "Fresh Meat": return 1;
+                            case "Dark Skies": return 1.2;
+                            case "Growing Storm": return 1.4;
+                            case "Power Flux": return 1.6;
+                            case "Killzone": return 1.8;
+                            case "Endgame": return 2;
+                            case "Longest Journey": return 2.2;
+                            case "Dreamfall": return 2.4;
+                            case "Exile": return 2.6;
+                            case "Sealed Power": return 2.8;
+                            case "New Wings": return 3;
+                            case "To Kill a God": return 3.2;
+                            case "Eve of Death": return 3.6;
+                            case "The Trio and the Tree": return 4;
+                            case "End of Days": return 4.4;
+                            case "Eternal Darkness": return 5;
+                            case "A Dance with Dragons": return 6;
+                        }
+                    }
+                }),
+
+                RingOfBlood: Object.assign({}, LocalStorage.NABConfig.Idle.Battle.RingOfBlood, {
+
+                }),
+
+                SetDifficulty: function (difficulty) {
                     // Change Difficulty
                     if (this.ChangeDifficulty) {
                         if ($$(".fc4.far.fcb select").style.display == 'none') return;
 
-                        var difficulty = arena.parentElement.parentElement.children[1].innerText.trim();
                         var selectedDifficulty = $$(".fc4.far.fcb select").value;
 
                         if (difficulty != selectedDifficulty) {
@@ -2369,6 +2478,13 @@ else {
                     }
 
                     return false;
+                },
+
+                GetStamina: function () {
+                    if ($$(".fc4.far.fcb"))
+                        return parseInt($$(".fc4.far.fcb").innerText.replace("Stamina:", ""));
+
+                    return -1;
                 },
             }),
 
@@ -2385,7 +2501,7 @@ else {
                             return this.Enchant.Start();
 
                         if (Url.has("&ss=sa")) // Salvage
-                            return true;
+                            return this.Salvage.Start();
 
                         if (Url.has("&ss=fo")) // Reforge
                             return true;
@@ -2495,6 +2611,17 @@ else {
                         var goBack = "https://hentaiverse.org/?s=Forge&ss=en&filter=equipped";
                         location.href = goBack;
                     },
+                }),
+
+                Salvage: Object.assign({}, LocalStorage.NABConfig.Idle.Forge.Salvage, {
+                    Start: function () {
+                        var eqp = $$(".eqp div:not(.iu)");
+
+                        if (eqp)
+                            eqp.click();
+
+                        return true;
+                    }
                 }),
             }),
         }),

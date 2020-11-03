@@ -86,10 +86,10 @@ if (url.indexOf("?s=Character&ss=eq&equip_slot=") > -1) {
 newStyle += "</style>";
 
 function loadCSS() {
-    if (document.body)
-        document.body.innerHTML += newStyle;
+    if (document.head)
+        document.head.innerHTML += newStyle;
     else
-        setTimeout(loadCSS, 20);
+        setTimeout(loadCSS, 100);
 }
 
 loadCSS();
@@ -145,7 +145,7 @@ if (hasRandomEncounter) {
         }, 150);
     }
 
-    if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24) {
+    if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24 && !document.querySelector("#pane_log")) {
         setInterval(function () {
             let lastChild = document.querySelector("body > :last-child");
 
