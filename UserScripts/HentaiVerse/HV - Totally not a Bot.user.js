@@ -1,18 +1,13 @@
 // ==UserScript==
 // @name       HV - [NAT] Not A Bot
 // @namespace  Hentai Verse
-// @version    2.5.9
+// @version    2.6.0
 // @author     Svildr
 // @match      https://hentaiverse.org/*
 // @icon       http://e-hentai.org/favicon.ico
 // ==/UserScript==
-/*
-TODO List
-  Fight: https://ehwiki.org/wiki/Battles#Combat
-    * Flee
-*/
 
-var NABVersion = "2.5.9";
+var NABVersion = "2.6.0";
 
 if (!localStorage.NABVersion || localStorage.NABVersion != NABVersion) {
     localStorage.removeItem("NotABot");
@@ -23,33 +18,44 @@ if (!localStorage.NABVersion || localStorage.NABVersion != NABVersion) {
 
 
 window.LocalStorage = {
-    NotABot: {},
+    NotABot: {
+        Persona: "",
+        ListPersona: []
+    },
     NABConfig: {},
-    Persona: "",
-    ListPersona: [],
 
     Update: function () {
         localStorage.NotABot = JSON.stringify(LocalStorage.NotABot);
     },
     Load: function () {
-        if (localStorage.NotABot)
+        if (localStorage.NotABot) {
             this.NotABot = JSON.parse(localStorage.NotABot)
+
+            if (!this.NotABot.Persona && this.NotABot.ListPersona.length > 0) {
+                this.NotABot.Persona = this.NotABot.ListPersona[0];
+                this.Update();
+            }
+        }
         else
-            localStorage.NotABot = "{}";
+            localStorage.NotABot = JSON.stringify(this.NotABot);
+
+
+        if (!this.NotABot.Persona && location.href != "https://hentaiverse.org/")
+            location.href = "https://hentaiverse.org/";
     },
 
     UpdateConfig: function () {
-        localStorage["NABConfig." + this.Persona] = JSON.stringify(LocalStorage.NABConfig);
+        localStorage["NABConfig." + this.NotABot.Persona] = JSON.stringify(LocalStorage.NABConfig);
     },
     LoadConfig: function () {
-        if (!this.Persona)
+        if (!this.NotABot.Persona)
             return;
 
-        if (!localStorage["NABConfig." + this.Persona]) {
+        if (!localStorage["NABConfig." + this.NotABot.Persona]) {
             this.NewConfig();
             this.UpdateConfig();
         } else {
-            this.NABConfig = JSON.parse(localStorage["NABConfig." + this.Persona]);
+            this.NABConfig = JSON.parse(localStorage["NABConfig." + this.NotABot.Persona]);
 
             if (this.NABConfig.Version != NABVersion) {
                 this.NewConfig();
@@ -66,6 +72,7 @@ window.LocalStorage = {
 
             Fight: {
                 Active: true,
+                FleeCombat: true,
                 ScanCreature: true,
                 AttackCreature: true,
                 AdvanceOnVictory: true,
@@ -172,6 +179,7 @@ window.LocalStorage = {
 
                 Bazaar: {
                     Active: true,
+                    IgnoreAlerts: true,
 
                     Equipment: {
                         Active: true,
@@ -190,6 +198,13 @@ window.LocalStorage = {
                             ////// Enchants - Check Forum
                         ]
                     },
+
+                    MonsterLab: {
+                        Active: true,
+                        FeedMonster: true,
+                        DrugMonster: true,
+                        UnlockSlot: true,
+                    }
                 },
 
                 Forge: {
@@ -211,38 +226,19 @@ window.LocalStorage = {
         LocalStorage.UpdateConfig();
     },
 
-    LoadPersona: function () {
-        if (this.ListPersona.length == 0 && localStorage["NAB.ListPersona"])
-            this.ListPersona = localStorage["NAB.ListPersona"].split(",");
-
-        if (!this.Persona)
-            this.Persona = localStorage["NAB.Persona"];
-
-        if (!this.Persona && this.ListPersona.length > 0) {
-            this.Persona = this.ListPersona[0];
-            localStorage["NAB.Persona"] = this.Persona;
-        }
-
-        if (!this.Persona && location.href != "https://hentaiverse.org/")
-            location.href = "https://hentaiverse.org/";
-    },
     CheckPersona: function (name) {
-        if (!name.In(this.ListPersona)) {
-            this.ListPersona.push(name);
-            localStorage["NAB.ListPersona"] = this.ListPersona.toString();
-        }
+        if (!name.In(this.NotABot.ListPersona))
+            this.NotABot.ListPersona.push(name);
 
-        if (this.Persona != name) {
-            this.Persona = name;
-            localStorage["NAB.Persona"] = this.Persona;
+        if (this.NotABot.Persona != name)
+            this.NotABot.Persona = name;
 
-            this.LoadConfig();
-        }
+        this.Update();
+        this.LoadConfig();
     }
 };
 
 LocalStorage.Load();
-LocalStorage.LoadPersona();
 LocalStorage.LoadConfig();
 
 /**********/
@@ -669,6 +665,21 @@ if (Url.has("?NABConfig")) {
                 <input type="checkbox" id="fightAdvanceOnVictory" ${LocalStorage.NABConfig.Fight.AdvanceOnVictory ? "checked" : ""}>
                 <label for="fightAdvanceOnVictory">Advance on Victory</label>
             </p>
+
+            <p>
+                <input type="checkbox" id="fightFleeCombat" ${LocalStorage.NABConfig.Fight.FleeCombat ? "checked" : ""}> 
+                <label class="tooltip" for="fightFleeCombat">
+                    Flee
+                    <span class="tooltiptext">
+                        Will use the Flee action, when : <br>
+                        &emsp;• HP is lower than 15% <br>
+                        &emsp;• Mana is lower than 15%<br>
+                        &emsp;• Can't use Potion<br>
+                        &emsp;• Can't use Defend Action<br>
+                    </span>
+                </label>
+            </p>
+
             <p>
                 <label for="fightOrder">Attack Priority</label>
                 <select id="fightOrder">
@@ -872,7 +883,8 @@ if (Url.has("?NABConfig")) {
                 <p>
                     <label for="idleBattleMinimumStamina" class="tooltip">Minimum Stamina:
                         <span class="tooltiptext">
-                            Minimum stamina needed to auto-start the challange
+                            Minimum stamina needed to auto-start the challange <br>
+                            <i>"Your Stamina" - "Stamina Needed to Complete Challange" >= "Minimum Stamina"</i>
                         </span>
                     </label>
                     <input type="number" id="idleBattleMinimumStamina" value="${LocalStorage.NABConfig.Idle.Battle.MinimumStamina}">
@@ -949,6 +961,10 @@ if (Url.has("?NABConfig")) {
                 <label for="idleBazaarActive">Active</label>
             </p>
             <p>
+                <input type="checkbox" id="idleBazaarIgnoreAlerts" ${LocalStorage.NABConfig.Idle.Bazaar.IgnoreAlerts ? "checked" : ""}>
+                <label for="idleBazaarIgnoreAlerts">Ignore Sell/Buy Alerts</label>
+            </p>
+            <p>
                 <input type="checkbox" id="idleBazaarEquipmentActive" ${LocalStorage.NABConfig.Idle.Bazaar.Equipment.Active ? "checked" : ""}>
                 <label for="idleBazaarEquipmentActive" class="tooltip">Sell Trash Equipments
                     <span class="tooltiptext">
@@ -989,6 +1005,26 @@ if (Url.has("?NABConfig")) {
                     },
                 }
 -->
+            <p>
+                <input type="checkbox" id="idleBazaarMonsterLabActive" ${LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.Active ? "checked" : ""}>
+                <label for="idleBazaarMonsterLabActive" class="tooltip">Monster Lab
+                    <span class="tooltiptext">
+                        Disable/Enable All Monster Lab related Activities
+                    </span>
+                </label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleBazaarMonsterLabFeedMonster" ${LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.FeedMonster ? "checked" : ""}>
+                <label for="idleBazaarMonsterLabFeedMonster">Feed Monsters</label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleBazaarMonsterLabDrugMonster" ${LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.DrugMonster ? "checked" : ""}>
+                <label for="idleBazaarMonsterLabDrugMonster">Drug Monsters</label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleBazaarMonsterLabUnlockSlot" ${LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.UnlockSlot ? "checked" : ""}>
+                <label for="idleBazaarMonsterLabUnlockSlot">Unlock New Slots</label>
+            </p>
         </div>
 
         <div id="settings_apply">
@@ -1011,6 +1047,7 @@ if (Url.has("?NABConfig")) {
             // Fight
             LocalStorage.NABConfig.Fight.Active = $$("#fightActive").checked;
             LocalStorage.NABConfig.Fight.ScanCreature = $$("#fightScanCreature").checked;
+            LocalStorage.NABConfig.Fight.FleeCombat = $$("#fightFleeCombat").checked;
             LocalStorage.NABConfig.Fight.AttackCreature = $$("#fightAttackCreature").checked;
             LocalStorage.NABConfig.Fight.AdvanceOnVictory = $$("#fightAdvanceOnVictory").checked;
             LocalStorage.NABConfig.Fight.Order = $$("#fightOrder").value;
@@ -1084,8 +1121,14 @@ if (Url.has("?NABConfig")) {
 
             // Bazaar
             LocalStorage.NABConfig.Idle.Bazaar.Active = $$("#idleBazaarActive").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.IgnoreAlerts = $$("#idleBazaarIgnoreAlerts").checked;
             LocalStorage.NABConfig.Idle.Bazaar.Equipment.Active = $$("#idleBazaarEquipmentActive").checked;
             LocalStorage.NABConfig.Idle.Bazaar.Item.Active = $$("#idleBazaarItemActive").checked;
+
+            LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.Active = $$("#idleBazaarMonsterLabActive").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.FeedMonster = $$("#idleBazaarMonsterLabFeedMonster").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.DrugMonster = $$("#idleBazaarMonsterLabDrugMonster").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.UnlockSlot = $$("#idleBazaarMonsterLabUnlockSlot").checked;
 
             // UPDATE
             LocalStorage.UpdateConfig();
@@ -1241,6 +1284,9 @@ else {
                     if (this.Buff.Start())
                         return true;
 
+                    if (this.Flee())
+                        return true;
+
                     if (this.Debuff.Start())
                         return true;
 
@@ -1342,12 +1388,21 @@ else {
                     if (!LocalStorage.NotABot.Economy)
                         LocalStorage.NotABot.Economy = 0;
 
-                    if (thisItem.has("Elixir") && usedItem.has("Gem"))
-                        LocalStorage.NotABot.Economy += 1000;
-                    else if (thisItem.has("Elixir") && usedItem.has("Potion"))
-                        LocalStorage.NotABot.Economy += 900;
-                    else if (thisItem.has("Potion") && usedItem.has("Gem"))
-                        LocalStorage.NotABot.Economy += 100;
+                    if (thisItem.has("Health")) {
+                        if (thisItem.has("Elixir") && usedItem.has("Gem"))
+                            LocalStorage.NotABot.Economy += 500;
+                        else if (thisItem.has("Elixir") && usedItem.has("Potion"))
+                            LocalStorage.NotABot.Economy += 450;
+                        else if (thisItem.has("Potion") && usedItem.has("Gem"))
+                            LocalStorage.NotABot.Economy += 50;
+                    } else {
+                        if (thisItem.has("Elixir") && usedItem.has("Gem"))
+                            LocalStorage.NotABot.Economy += 1000;
+                        else if (thisItem.has("Elixir") && usedItem.has("Potion"))
+                            LocalStorage.NotABot.Economy += 900;
+                        else if (thisItem.has("Potion") && usedItem.has("Gem"))
+                            LocalStorage.NotABot.Economy += 100;
+                    }
 
                     LocalStorage.Update();
 
@@ -1361,6 +1416,7 @@ else {
                 Spirit: 0,
                 Overcharge: 0,
                 Buff: [],
+
                 GetStatus: function () {
                     try {
                         if (NotABot.VitalBar == "Utilitarian") {
@@ -1433,6 +1489,7 @@ else {
                         return false;
                     },
                 }),
+
                 Defend: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Defend, {
                     Start: function () {
                         if (this.Active) {
@@ -1446,6 +1503,7 @@ else {
                         return false;
                     },
                 }),
+
                 Focus: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit.Focus, {
                     Start: function () {
                         if (this.Active) {
@@ -1460,6 +1518,22 @@ else {
                     },
                 })
             }),
+
+            Flee: function () {
+                if (this.FleeCombat) {
+                    /*
+                        • HP is lower than 15%
+                        • Mana is lower than 15%
+                        • Can't use Potion -- If he could have used potion, would have returned before
+                        • Can't use Defend Action  -- If he could have Defended, would have returned before
+                    */
+                    if (this.Player.Health < 15 && this.Player.Mana < 15)
+                        if (NotABot.UseSpell("Flee"))
+                            return true;
+                }
+
+                return false;
+            },
 
             Advance: function () {
                 if (this.AdvanceOnVictory) {
@@ -1485,7 +1559,10 @@ else {
 
                         LocalStorage.NotABot.LastMatch = message;
                         LocalStorage.Update();
-                        common.goto_arena();
+
+                        //common.goto_arena();
+
+                        location.href = "https://hentaiverse.org/";
 
                         NotABot.Stop();
                         return true;
@@ -1910,7 +1987,7 @@ else {
                 },
 
                 GetByName: function (name) {
-                    var monster = this.List.filter(r => r.Name == name);
+                    var monster = this.List.filter(r => r.Name.startsWith(name));
 
                     if (monster.length > 0)
                         return monster[0];
@@ -2044,7 +2121,11 @@ else {
                 "7f88b35f55": "A", "8f6dfc9dca": "A", "045fe92900": "A", "70fd7170d9": "A", "82a815a1fc": "A", "aeb1cd41bf": "A", "cd900bb990": "A", "eea1c39409": "A",
                 "0b8b6b712a": "A", "0cbe6bea25": "A", "4b9482ca7c": "A", "5e1860ee81": "A", "53c15f7ce0": "A", "9032d471c1": "A", "42598d740a": "A", "cb0ea0641e": "A",
                 "d86498d578": "A", "fd154582fd": "A", "b806d988bb": "A", "5bd6f4650c": "A", "6d2ddb1099": "A", "2148fa674c": "A", "361813807d": "A", "a66bcfafc2": "A",
-                "ea093c0e86": "A", "e72f190d05": "A",
+                "ea093c0e86": "A", "e72f190d05": "A", "5cd07d958b": "A", "7c05726ecd": "A", "7fbb9b90d8": "A", "9ca27d8526": "A", "10f1ba9357": "A", "41aee1049f": "A",
+                "855ae12123": "A", "09278dff2c": "A", "246748dd0a": "A", "700872e3c5": "A", "a5edf667aa": "A", "aafa869477": "A", "aec6bd3f0a": "A", "e0bea84472": "A",
+                "eb24ec3810": "A", "ec4fb0b88f": "A", "f0d8e1cd2c": "A", "ff7b24f341": "A", "3f22b7bb10": "A", "4c0a794508": "A", "5e09d4dc0c": "A", "8a7abb35f0": "A",
+                "90ce44f0f9": "A", "0362f10319": "A", "3742e7330d": "A", "6529f66e60": "A", "8225e3b411": "A", "12768d3c8e": "A", "68392596ba": "A", "137756928f": "A",
+                "ada2dbf6e6": "A", "b34125fb55": "A", "c91b77a537": "A", "d0bc5f53b8": "A", "da5ea8bc4b": "A", "db8a312c7d": "A", "f2eb622819": "A", "f3551250ad": "A",
 
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -2060,8 +2141,13 @@ else {
                 "38a4f15107": "B", "614b755d75": "B", "2371a167d0": "B", "6409d489ef": "B", "8083c26166": "B", "65520f5bab": "B", "b7d4f997c2": "B", "c5b4003837": "B",
                 "d584219d07": "B", "e916efd5c4": "B", "28a1ffbecc": "B", "054cf7a313": "B", "059a67a6a4": "B", "611c5645a0": "B", "c135ae5d87": "B", "e86ff53284": "B",
                 "8c5699fce7": "B", "83f78fd6fa": "B", "57003f680f": "B", "a7bb88d67a": "B", "b04f6cbfd5": "B", "b06459b9f5": "B", "b97f44709f": "B", "c78c1fe270": "B",
-                "e5dcace5b0": "B", "eb56ed9cd9": "B", "fecd79b20d": "B", "684cd7a565": "B",
-
+                "e5dcace5b0": "B", "eb56ed9cd9": "B", "fecd79b20d": "B", "684cd7a565": "B", "0f762ab728": "B", "2b568a1989": "B", "4f589dc684": "B", "5e82d729e3": "B",
+                "7e4b4a782a": "B", "7bcc97d792": "B", "9f18da9e5f": "B", "39d99629bb": "B", "68caa0f6dd": "B", "80f6a233f9": "B", "89a51e62af": "B", "265aaa26c5": "B",
+                "412e4479e1": "B", "0671e890a0": "B", "4297a84ba8": "B", "9397b60432": "B", "95665ac969": "B", "abe73f8245": "B", "acddea5b21": "B", "b05cf84bb0": "B",
+                "b7398377ff": "B", "c2ade282e9": "B", "c6a8b0bd52": "B", "ec1dc9ad71": "B", "f7a3a90b28": "B", "0fec6f0d27": "B", "1b5b02e4a9": "B", "1baadea221": "B",
+                "2ebdd42ce5": "B", "4aec148add": "B", "5e2b32a72e": "B", "34cff07e57": "B", "206b350aea": "B", "353d1951c6": "B", "457ad7dadb": "B", "530dee99e8": "B",
+                "833c05dbbc": "B", "6446bad39c": "B", "2017733df2": "B", "0738419324": "B", "b4cee52ef7": "B", "b7b1e8f909": "B", "b4618a842b": "B", "c3a4651233": "B",
+                "c7fa8a93c5": "B", "c214727e2c": "B", "c290573db7": "B", "c911584551": "B", "cbb953843a": "B", "d1e3e26a62": "B", "d5fb10d354": "B",
 
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -2079,7 +2165,13 @@ else {
                 "ab0fb16121": "C", "af39a39a80": "C", "baa7060ef8": "C", "c5a0d1f62a": "C", "c885d3a521": "C", "ccae497e5f": "C", "d934e13eec": "C", "eb6b1a4f96": "C",
                 "ff76d701b7": "C", "8f9636de64": "C", "113e1732e4": "C", "946d4b98ca": "C", "9832b0b8d4": "C", "271760f0aa": "C", "0381933a1e": "C", "604375f4d6": "C",
                 "624114fc48": "C", "1789479028": "C", "a47407f629": "C", "b5b92bdd30": "C", "4c54913696": "C", "67ae24a491": "C", "2c5edddd31": "C", "53cf1b7ff6": "C",
-                "5055d73a6a": "C", "40062a32f7": "C", "a730a860d3": "C", "dff16b6b10": "C", "4deb8a6d40": "C",
+                "5055d73a6a": "C", "40062a32f7": "C", "a730a860d3": "C", "dff16b6b10": "C", "4deb8a6d40": "C", "03a45c49fd": "C", "3eba3bdfdd": "C", "4d08ecceee": "C",
+                "8c94873cd9": "C", "17f14ad0e8": "C", "034b0e40b1": "C", "69a057ea47": "C", "157c06fe9c": "C", "485c3d617c": "C", "629e7cbb53": "C", "6165ca0769": "C",
+                "6309c017b9": "C", "17176eec86": "C", "039784fe46": "C", "4020000a23": "C", "6094522456": "C", "a912f24d97": "C", "af64a27d49": "C", "b587528934": "C",
+                "bf43644bfb": "C", "e562ff18b2": "C", "e58526036c": "C", "f159d33c68": "C", "2ba6c0240f": "C", "3d16be3599": "C", "9d6dc1a952": "C", "65fc678579": "C",
+                "75ab866587": "C", "534d5a8a18": "C", "773ba6614e": "C", "1589d4facc": "C", "4205bd92cd": "C", "92584af0d0": "C", "379710fe46": "C", "53496081eb": "C",
+                "5784203513": "C", "a41ef36fef": "C", "ab7c21f398": "C", "af3a18e77f": "C", "c217c741d6": "C",
+
 
             })
         }),
@@ -2087,7 +2179,7 @@ else {
             Start: function () {
                 if (this.Active) {
                     //TODO: Start Idling Sending people from one side to the other. Check if it's not in the page first,
-                    // also be away to no be thrown in a loop, going from one page to another instead of doing the rest
+                    // also be aware to not be thrown in a loop, going from one page to another instead of doing the rest
 
                     if (Url.has("s=Character") || Url == "https://hentaiverse.org/")
                         return this.Character.Start();
@@ -2112,22 +2204,22 @@ else {
                             return this.Character.Start();
 
                         if (Url.has("ss=eq")) // Equipment
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("ss=ab")) // Abilities
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("ss=tr")) //  Training
                             return this.Training.Start();
 
                         if (Url.has("ss=it")) // Item Inventory
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("ss=in")) // Equip Inventory
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("ss=se")) // Settings
-                            return true;
+                            return true; //TODO
                     }
 
                     return false;
@@ -2236,25 +2328,25 @@ else {
                             return this.Item.Buy();
 
                         if (Url.has("&ss=ib")) // Item Bot
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=ml")) // Monster Lab
-                            return true;
+                            return this.MonsterLab.Start();
 
                         if (Url.has("&ss=ss")) // Shrine
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=mm")) // Mail
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=ss")) //Shrine
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=lt")) // Armor Lottery
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=la")) // Weapon Lottery
-                            return true;
+                            return true; //TODO
                     }
 
                     return false;
@@ -2282,8 +2374,23 @@ else {
                                 }
                             }
 
+                            if (NotABot.Idle.Bazaar.IgnoreAlerts) {
+                                equipshop.commit_transaction = function () {
+                                    var selected = $(".eqp > div:not(.iu)[style^='color']");
+
+                                    if (selected) {
+                                        var str_selected = "";
+                                        selected.forEach(e => str_selected += e.id.replace("e", "") + ",");
+
+                                        $$("#select_eids").value = str_selected.substring(0, str_selected.length - 1);
+                                        $$("#select_group").value = selected[0].parentElement.parentElement.parentElement.id;
+                                        $$("#shopform").submit()
+                                    }
+                                }
+                            }
+
                             if (itemsSelected > 0)
-                                $$("#accept_button").click()
+                                equipshop.commit_transaction();
 
                             return true;
                         }
@@ -2321,6 +2428,24 @@ else {
                                     if (shop.length > 0) {
                                         shop[0].click();
 
+                                        if (NotABot.Idle.Bazaar.IgnoreAlerts) {
+                                            itemshop.commit_transaction = function () {
+                                                var selected = $$("td > div:not(.iu)[style^='color']");
+
+                                                if (selected) {
+                                                    var mode = selected.parentElement.parentElement.parentElement.parentElement.parentElement.id;
+                                                    var item = selected.onclick.toString().split(',')[1];
+                                                    var count = $$("#count_field").value;
+
+                                                    $$("#select_mode").value = mode;
+                                                    $$("#select_item").value = item;
+                                                    $$("#select_count").value = count;
+                                                    $$("#shopform").submit();
+
+                                                }
+                                            }
+                                        }
+
                                         itemshop.increase_count(item.Amount - youHave);
                                         itemshop.commit_transaction();
 
@@ -2332,6 +2457,62 @@ else {
 
                         return false;
                     }
+                }),
+
+                MonsterLab: Object.assign({}, LocalStorage.NABConfig.Idle.Bazaar.MonsterLab, {
+                    Start: function () {
+                        if (this.Active) {
+                            if (this.Feed())
+                                return true;
+
+                            if (this.Drug())
+                                return true;
+
+                            if (this.Slot())
+                                return true;
+                        }
+
+                        return false;
+                    },
+
+                    Feed: function () {
+                        if (this.FeedMonster) {
+                            var feedAll = $$("img[src='/y/monster/feedallmonsters.png']");
+
+                            if (feedAll) {
+                                feedAll.click();
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    },
+
+                    Drug: function () {
+                        if (this.DrugMonster) {
+                            var drugAll = $$("img[src='/y/monster/drugallmonsters.png']");
+
+                            if (drugAll) {
+                                drugAll.click();
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    },
+
+                    Slot: function () {
+                        if (this.UnlockSlot) {
+                            var unlSlot = $$("img[src='/y/monster/unlock_slot.png']");
+
+                            if (unlSlot) {
+                                unlSlot.click();
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    },
                 }),
             }),
 
@@ -2347,25 +2528,24 @@ else {
                             return this.Arena.Start();
 
                         if (Url.has("&ss=rb")) // Ring of Blood
-                            return true;
+                            return this.RingOfBlood.Start();
 
                         if (Url.has("&ss=gr")) // Grindfest
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=iw")) // Item World
-                            return true;
+                            return true; //TODO
                     }
 
                     return false;
                 },
-
 
                 Restoratives: function () {
                     if (this.UseRestoratives) {
                         var playerStamina = this.GetStamina();
 
                         if (playerStamina > 0 && playerStamina < this.MaxStaminaToUseRestorative) {
-                            //Use Restoratives
+                            $$('#recoverform').submit()
                             return true;
                         }
                     }
@@ -2381,11 +2561,15 @@ else {
                             this.LoadArena();
                             let playerStamina = NotABot.Idle.Battle.GetStamina();
 
+                            if (this.CheckRandomEncounters())
+                                return true;
+
+
                             if (this.ArenaList.length > 0 && playerStamina > 0) {
                                 for (var i = 0; i < this.ArenaList.length; i++) {
                                     var Arena = this.ArenaList[i];
 
-                                    if (playerStamina - Arena.Stamina > this.MinimumStamina) {
+                                    if (playerStamina - Arena.Stamina >= NotABot.Idle.Battle.MinimumStamina) {
                                         if (NotABot.Idle.Battle.SetDifficulty(Arena.Difficulty))
                                             return true;
 
@@ -2396,7 +2580,7 @@ else {
                                             $$("#initform").submit();
                                         }
 
-                                        Arena.click();
+                                        Arena.Click();
 
                                         return true;
                                     }
@@ -2419,12 +2603,24 @@ else {
                             var Difficulty = Arena.parentElement.parentElement.children[1].innerText.trim();
                             var Name = Arena.parentElement.parentElement.children[0].innerText.trim();
                             var Stamina = this.GetStaminaNeeded(Name);
+                            var Click = function () { this.Arena.click(); }
 
-                            this.ArenaList.push({ Arena, Difficulty, Name, Stamina });
+                            this.ArenaList.push({ Arena, Difficulty, Name, Stamina, Click });
                         }
 
-                        // Filter ToDo List
                         this.ArenaList = this.ArenaList.filter(e => e.Name.In(this.ListToDo))
+                    },
+
+                    CheckRandomEncounters: function () {
+                        let lastChild = $$("body > :last-child");
+
+                        if (lastChild.innerText == "Ready") {
+                            lastChild.querySelector("a").click();
+
+                            return true;
+                        }
+
+                        return false;
                     },
 
                     GetStaminaNeeded: function (arenaName) {
@@ -2456,12 +2652,57 @@ else {
                 }),
 
                 RingOfBlood: Object.assign({}, LocalStorage.NABConfig.Idle.Battle.RingOfBlood, {
+                    RingOfBloodList: [],
 
+                    Start: function () {
+                        if (this.Active) {
+                            this.LoadRingOfBlood();
+                            let playerStamina = NotABot.Idle.Battle.GetStamina();
+
+                            if (this.RingOfBloodList.length > 0 && playerStamina > 0) {
+                                for (var i = 0; i < this.RingOfBloodList.length; i++) {
+                                    var RingOfBlood = this.RingOfBloodList[i];
+
+                                    if (playerStamina - RingOfBlood.Stamina > NotABot.Idle.Battle.MinimumStamina) {
+                                        if (NotABot.Idle.Battle.SetDifficulty(RingOfBlood.Difficulty))
+                                            return true;
+
+                                        //Start Arena
+                                        window["init_battle"] = function (id, entrycost, token) {
+                                            $$("#initid").value = id;
+                                            $$("#inittoken").value = token;
+                                            $$("#initform").submit();
+                                        }
+
+                                        RingOfBlood.Click();
+
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    },
+
+                    LoadRingOfBlood: function () {
+                        var listRoB = $("#arena_list tr > td:last-child > img[src='/y/arena/startchallenge.png']");
+
+                        for (var i = 0; i < listRoB.length; i++) {
+                            var RingOfBlood = listRoB[i];
+                            var Difficulty = RingOfBlood.parentElement.parentElement.children[1].innerText.trim();
+                            var Name = RingOfBlood.parentElement.parentElement.children[0].innerText.trim();
+                            var Stamina = 0.04; // this.GetStaminaNeeded(Name);
+                            var Click = function () { this.RingOfBlood.click(); }
+
+                            this.RingOfBloodList.push({ RingOfBlood, Difficulty, Name, Stamina, Click });
+                        }
+
+                        this.RingOfBloodList = this.RingOfBloodList.filter(e => e.Name.In(this.ListToDo))
+                    },
                 }),
 
                 SetDifficulty: function (difficulty) {
                     // Change Difficulty
-                    if (this.ChangeDifficulty) {
+                    if (this.ChangeDifficulty && difficulty != '-') {
                         if ($$(".fc4.far.fcb select").style.display == 'none') return;
 
                         var selectedDifficulty = $$(".fc4.far.fcb select").value;
@@ -2504,10 +2745,10 @@ else {
                             return this.Salvage.Start();
 
                         if (Url.has("&ss=fo")) // Reforge
-                            return true;
+                            return true; //TODO
 
                         if (Url.has("&ss=fu")) // Soulfuse
-                            return true;
+                            return true; //TODO
                     }
 
                     return false;
@@ -2523,6 +2764,8 @@ else {
                                 document.getElementById('repairall').submit();
                                 return true;
                             }
+
+                            location.href = "https://hentaiverse.org/?s=Bazaar&ss=is";
                         }
 
                         return false;
@@ -2623,6 +2866,10 @@ else {
                         return true;
                     }
                 }),
+            }),
+
+            Checks: Object.assign({}, LocalStorage.NABConfig.Idle.Checks, {
+
             }),
         }),
 
