@@ -87,7 +87,7 @@ newStyle += "</style>";
 
 function loadCSS() {
     if (document.head)
-        document.head.innerHTML += newStyle;
+        document.head.querySelector("meta").outerHTML += newStyle;
     else
         setTimeout(loadCSS, 100);
 }

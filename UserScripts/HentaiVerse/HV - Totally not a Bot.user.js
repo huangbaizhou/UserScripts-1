@@ -8,7 +8,7 @@
 // ==/UserScript==
 
 var NABVersion = "2.6.0";
-
+var isLogging = false;
 
 
 ///////////
@@ -29,8 +29,6 @@ function $(b) {
 
     return Array.from(document.querySelectorAll(b));
 }
-
-var isLogging = false;
 
 function Log(obj, logLevel) {
     switch (logLevel) {
@@ -113,11 +111,8 @@ window.LocalStorage = {
         if (!this.NotABot.Persona && Url != "https://hentaiverse.org/")
             location.href = "https://hentaiverse.org/";
 
-        if (Url.has("s=Character&ss=ch") || Url == "https://hentaiverse.org/") { /* Persona */
-            var persona = $$("[name='persona_set'] [selected]").innerText;
-            this.CheckPersona(persona);
-        }
-
+        if ($$("[name='persona_set'] [selected]")) /* Persona */
+            this.CheckPersona($$("[name='persona_set'] [selected]").innerText);
     },
 
     UpdateConfig: function () {
@@ -1557,8 +1552,16 @@ else {
                                 counter = $$(".hvstat-round-counter").innerHTML;
 
                             message = "You lost at: " + counter;
-                        } else
+                        } else if ($$("#btcp").innerText.has("You have run away!")) {
+                            let counter = ""
+                            if ($$(".hvstat-round-counter"))
+                                counter = $$(".hvstat-round-counter").innerHTML;
+
+                            message = "You fleed at: " + counter;
+                        } else if ($$("#btcp").innerText.has("You are victorious!"))
                             message = "You won!";
+                        else
+                            message = "Error";
 
                         Log(message, 'info');
 
