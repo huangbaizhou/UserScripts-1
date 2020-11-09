@@ -145,11 +145,11 @@ if (hasRandomEncounter) {
         }, 150);
     }
 
-    if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24 && !document.querySelector("#pane_log")) {
+    if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24) {
         setInterval(function () {
             let lastChild = document.querySelector("body > :last-child");
 
-            if (lastChild.innerText == "Ready") {
+            if (lastChild.innerText == "Ready" && !document.querySelector("#pane_log")) {
                 lastChild.querySelector("a").click();
                 console.log("All good");
             }
