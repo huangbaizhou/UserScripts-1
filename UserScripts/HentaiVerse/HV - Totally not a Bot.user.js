@@ -1314,6 +1314,20 @@ else {
             }),
 
             Debuff: Object.assign({}, LocalStorage.NABConfig.Fight.Debuff, {
+                List: {
+                    // "Searing Skin", "Coalesced Mana", "Blunted Attack"
+                    // "Breached Defense", "Deep Burns", "Turbulent Air", 
+                    "Drain": "Vital Theft",
+                    "Weaken": "Weakened",
+                    "Imperil": "Imperiled",
+                    "Slow": "Slowed",
+                    "Sleep": "Asleep",
+                    "Confuse": "Confused",
+                    "Blind": "Blinded",
+                    "Silence": "Silenced",
+                    "MagNet": "Magically Snared",
+                },
+
                 Start: function () {
                     if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) {
                         //Order by Higher HP to Lower
@@ -1323,7 +1337,8 @@ else {
 
                         for (let i = 0; i < monsterList.length; i++) {
                             var monster = monsterList[i];
-                            var listDebuff = this.Use.filter(o => !o.In(monster.Debuff) && !NotABot.LastLog.has(monster.Name + " gains the effect " + o));
+                            var listDebuff = this.Use.filter(o => !this.List[o].In(monster.Debuff) && !NotABot.LastLog.has(monster.Name + " gains the effect " + o));
+                             //!o.In(monster.Debuff) && 
 
                             for (var j = 0; j < listDebuff.length; j++) {
                                 if (NotABot.UseSpell(listDebuff[j])) {
@@ -1590,13 +1605,13 @@ else {
                             i++;
 
                         if (i < newMonsters.length) {
-                            let monsterName = newMonsters[i].parentElement.innerText;
+                            let monsterName = newMonsters[i].parentElement.querySelector(".btm3").innerText;
 
                             if (!monsterName.In(this.NotScanList)) {
                                 this.NotScanList.push(monsterName);
 
                                 if (NotABot.UseSpell("Scan")) {
-                                    Log('    Monster: ' + newMonsters[i].parentNode.querySelector(".btm3").innerText);
+                                    Log('    Monster: ' + monsterName);
                                     newMonsters[i].className += " scanned";
                                     newMonsters[i].parentElement.click();
 
