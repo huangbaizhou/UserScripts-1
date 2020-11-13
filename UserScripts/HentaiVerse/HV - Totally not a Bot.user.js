@@ -1298,7 +1298,7 @@ else {
                 infoText.innerHTML = LocalStorage.NotABot.LastMatch;
             }
 
-            var idleMasterStyle = "position: absolute; top: 5px; right: 280px; font-size: 13px; font-weight: bold; cursor: pointer;"
+            var idleMasterStyle = "position: absolute; top: 6px; right: 290px; font-size: 13px; font-weight: bold; cursor: pointer;"
 
             if (LocalStorage.NotABot.Idle) {
                 idleMasterStyle += " color: blue;";
@@ -2278,6 +2278,15 @@ else {
                 "eb24ec3810": "A", "ec4fb0b88f": "A", "f0d8e1cd2c": "A", "ff7b24f341": "A", "3f22b7bb10": "A", "4c0a794508": "A", "5e09d4dc0c": "A", "8a7abb35f0": "A",
                 "90ce44f0f9": "A", "0362f10319": "A", "3742e7330d": "A", "6529f66e60": "A", "8225e3b411": "A", "12768d3c8e": "A", "68392596ba": "A", "137756928f": "A",
                 "ada2dbf6e6": "A", "b34125fb55": "A", "c91b77a537": "A", "d0bc5f53b8": "A", "da5ea8bc4b": "A", "db8a312c7d": "A", "f2eb622819": "A", "f3551250ad": "A",
+                "dcda99d668": "A", "b9266c4dd7": "A", "0998a0a162": "A", "156b2f6dd7": "A", "7919b6ed0f": "A", "2229925caa": "A", "bf0162d857": "A", "f01733fce3": "A",
+                "0ef0c00731": "A", "b6aadc0284": "A", "60c9c87514": "A", "86a866c6e2": "A", "a459455d5c": "A", "c715148d51": "A", "5238600f03": "A", "319c787d26": "A",
+                "bd91e5c59c": "A", "3aae5a771e": "A", "cfade5a316": "A", "cd370b7734": "A", "ceaff4bb65": "A", "e8a6539db7": "A", "67a3c837f2": "A", "35935b435d": "A",
+                "026452cc97": "A", "5fe85249de": "A", "21292c4a71": "A", "a10615d568": "A", "eb795a6749": "A", "3b2d6a27fd": "A", "15304c1b8c": "A", "cab2749fbd": "A",
+                "6da8f0ad23": "A", "e7c5448ee1": "A", "c50fe70a15": "A", "1a873f1255": "A", "208ceea194": "A", "f01b777940": "A", "bebbc11c11": "A", "45f5d94f03": "A",
+                "ebe409ac7f": "A", "a703db90e6": "A", "51c1f7e4ec": "A", "efafe12393": "A", "5994dac83f": "A", "8f1e9d0dcf": "A", "834fca704b": "A", "92d8427d9b": "A",
+                "800204c37e": "A", "1be7eb132d": "A", "b57fbf9ed7": "A", "76665be407": "A", "5150bc64eb": "A", "9c2803aade": "A", "c9c4431d6c": "A", "c6a5062cf5": "A",
+                "ff1d3415e7": "A", "6baf5d0cf5": "A", "73ca37d6e6": "A", "fc6c1baf21": "A",
+
 
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -2300,6 +2309,14 @@ else {
                 "2ebdd42ce5": "B", "4aec148add": "B", "5e2b32a72e": "B", "34cff07e57": "B", "206b350aea": "B", "353d1951c6": "B", "457ad7dadb": "B", "530dee99e8": "B",
                 "833c05dbbc": "B", "6446bad39c": "B", "2017733df2": "B", "0738419324": "B", "b4cee52ef7": "B", "b7b1e8f909": "B", "b4618a842b": "B", "c3a4651233": "B",
                 "c7fa8a93c5": "B", "c214727e2c": "B", "c290573db7": "B", "c911584551": "B", "cbb953843a": "B", "d1e3e26a62": "B", "d5fb10d354": "B", "c244012693": "B",
+                "933bc74856": "B", "533889d6cb": "B", "1613522c07": "B", "80c79d0779": "B", "28f812be3b": "B", "afa1248143": "B", "25b3b4f2be": "B", "734cf47872": "B",
+                "9353472a37": "B", "0b471b4970": "B", "dfe11e5916": "B", "d955a3acd3": "B", "7ea5aeede6": "B", "ac4f27a47b": "B", "17647e99ae": "B", "d9653a36a1": "B",
+                "617b3c4c26": "B", "e97cc3ade1": "B", "aef5b73e95": "B", "f2a1a0cb27": "B", "99d2fe8d13": "B", "a69dbf2fe3": "B", "4f864f5772": "B", "537321892e": "B",
+                "13e0a6ddf6": "B", "131088353e": "B", "0f5db99cd3": "B", "c2ed99b9bd": "B", "d36e3dd4ba": "B", "b2e5da4b98": "B", "97ced38d90": "B", "05029caf12": "B",
+                "68a0541b50": "B", "625c5e3926": "B", "5e8f28f309": "B", "9e33fe4b1f": "B", "3b7138e708": "B", "2538a7072b": "B", "5b892f8bfc": "B", "d435ae8351": "B",
+                "3d563f2b4f": "B", "fadfe7a670": "B", "fe140de717": "B", "b88b7c1eb8": "B", "13a189db2d": "B", "bd321164d0": "B", "7bd403fed1": "B", "9b715c637c": "B",
+                "5435fbca05": "B", "2b6bb235fc": "B",
+
 
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -2322,7 +2339,13 @@ else {
                 "6309c017b9": "C", "17176eec86": "C", "039784fe46": "C", "4020000a23": "C", "6094522456": "C", "a912f24d97": "C", "af64a27d49": "C", "b587528934": "C",
                 "bf43644bfb": "C", "e562ff18b2": "C", "e58526036c": "C", "f159d33c68": "C", "2ba6c0240f": "C", "3d16be3599": "C", "9d6dc1a952": "C", "65fc678579": "C",
                 "75ab866587": "C", "534d5a8a18": "C", "773ba6614e": "C", "1589d4facc": "C", "4205bd92cd": "C", "92584af0d0": "C", "379710fe46": "C", "53496081eb": "C",
-                "5784203513": "C", "a41ef36fef": "C", "ab7c21f398": "C", "af3a18e77f": "C", "c217c741d6": "C",
+                "5784203513": "C", "a41ef36fef": "C", "ab7c21f398": "C", "af3a18e77f": "C", "c217c741d6": "C", "20d8e4ad65": "C", "7c89830e69": "C", "6d06f105dd": "C",
+                "0c1fd30327": "C", "757e3889ba": "C", "38aa11ff70": "C", "3586ad1f7a": "C", "eb556f8ce9": "C", "3dfb14690f": "C", "8595b278b5": "C", "b2ac073d6f": "C",
+                "e54d101f40": "C", "971e8a7f85": "C", "f7585d44d4": "C", "88d7350bac": "C", "8ae23eb6e9": "C", "cbb732092b": "C", "49c689ada2": "C", "f06db21731": "C",
+                "147beb2ed8": "C", "a2b6393ec0": "C", "f8c0b4fb3f": "C", "c83f96bd39": "C", "3c9557f51e": "C", "1f49136bf9": "C", "0908540489": "C", "560f002119": "C",
+                "bcca72a5c4": "C", "8b3e34ccb9": "C", "ac413585eb": "C", "a340baab2f": "C", "18f3f30f7e": "C", "47f65a08d6": "C", "03618a113c": "C", "7f1146aa85": "C",
+                "695a9b04f9": "C", "2034c2701a": "C", "fe1999f59a": "C", "d6ccd5c2c3": "C", "8e61cbc9c6": "C", "f661cf224a": "C", "6aade9862e": "C", "7134c04239": "C",
+                "1de584d275": "C", "e41e88d6e9": "C", "bb0f26f6b2": "C",
 
 
             })
@@ -2341,7 +2364,7 @@ else {
                         if (this.Bazaar.Start())
                             return true;
 
-                    if (Url.has("s=Battle") && (Url.has("ss=ar") || Url.has("ss=rb")))
+                    if (Url.has("s=Battle"))
                         if (this.Battle.Start())
                             return true;
 
@@ -3033,7 +3056,7 @@ else {
                 /*Change Idle Pages
                    -> Repair Equip
                    -> Buy Items
-                   -> Sell Trash (TODO)
+                   -> Sell Trash
                    -> Feed/Unlock/Drug Monsters
                    -> Train
                    -> Ring of Blood
@@ -3056,24 +3079,43 @@ else {
                         this.UpdateIdlePos(1);
                         location.href = "?s=Bazaar&ss=is";
                     }
-                    else if (this.Bazaar.MonsterLab.Active && idlePos < 2) {
-                        this.UpdateIdlePos(2);
+                    else if (this.Bazaar.Equipment.Active && idlePos < 2) {
+                        if (Url.has("&filter=aheavy"))
+                            this.UpdateIdlePos(2);
+                        else if (Url.has("&filter=alight"))
+                            location.href = "?s=Bazaar&ss=es&filter=aheavy";
+                        else if (Url.has("&filter=acloth"))
+                            location.href = "?s=Bazaar&ss=es&filter=alight";
+                        else if (Url.has("&filter=shield"))
+                            location.href = "?s=Bazaar&ss=es&filter=acloth";
+                        else if (Url.has("&filter=staff"))
+                            location.href = "?s=Bazaar&ss=es&filter=shield";
+                        else if (Url.has("&filter=2handed"))
+                            location.href = "?s=Bazaar&ss=es&filter=staff";
+                        else if (Url.has("?s=Bazaar&ss=es"))
+                            location.href = "?s=Bazaar&ss=es&filter=2handed";
+                        else
+                            location.href = "?s=Bazaar&ss=es";
+
+                    }
+                    else if (this.Bazaar.MonsterLab.Active && idlePos < 3) {
+                        this.UpdateIdlePos(3);
                         location.href = "?s=Bazaar&ss=ml";
                     }
-                    else if (this.Character.Training.Active && idlePos < 3) {
-                        this.UpdateIdlePos(3);
+                    else if (this.Character.Training.Active && idlePos < 4) {
+                        this.UpdateIdlePos(4);
                         location.href = "?s=Character&ss=tr";
                     }
-                    else if (this.Battle.RingOfBlood.Active && idlePos < 4) {
-                        this.UpdateIdlePos(4);
+                    else if (this.Battle.RingOfBlood.Active && idlePos < 5) {
+                        this.UpdateIdlePos(5);
                         location.href = "?s=Battle&ss=rb";
                     }
-                    else if (this.Battle.Arena.Active && idlePos < 5) {
-                        this.UpdateIdlePos(5);
-                        location.href = "?s=Battle&ss=ar";
-                    } else if (idlePos < 6) {
-                        LocalStorage.NotABot.Idle = false;
+                    else if (this.Battle.Arena.Active && idlePos < 6) {
                         this.UpdateIdlePos(6);
+                        location.href = "?s=Battle&ss=ar";
+                    } else if (idlePos < 7) {
+                        LocalStorage.NotABot.Idle = false;
+                        this.UpdateIdlePos(7);
                         location.href = "?s=Character&ss=ch";
                     }
 
