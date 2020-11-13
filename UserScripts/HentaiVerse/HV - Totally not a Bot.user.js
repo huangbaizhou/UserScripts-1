@@ -1209,13 +1209,14 @@ if (Url.has("?NABConfig")) {
             var tbody = this.parentElement.parentElement.parentElement
                 .parentElement.querySelector("tbody");
 
-            tbody.innerHTML += `
-            <tr>
+            var tr = document.createElement("tr");
+
+            tr.innerHTML = `
                 <td><input type='text' class='itemName' value=''/></td>
                 <td><input type='number' class='itemAmount' value=''/></td>
-                <td><button type='button' class='removeItem'>Remove</button></td>
-            </tr>`;
+                <td><button type='button' class='removeItem'>Remove</button></td>`;
 
+            tbody.appendChild(tr);
 
             $(".removeItem").forEach(e => e.onclick = removeItem);
         });
@@ -3080,10 +3081,12 @@ else {
                         location.href = "?s=Bazaar&ss=is";
                     }
                     else if (this.Bazaar.Equipment.Active && idlePos < 2) {
-                        if (Url.has("&filter=aheavy"))
-                            this.UpdateIdlePos(2);
-                        else if (Url.has("&filter=alight"))
+                        //if (Url.has("&filter=aheavy"))
+                        //    this.UpdateIdlePos(2);
+                        if (Url.has("&filter=alight")) {
                             location.href = "?s=Bazaar&ss=es&filter=aheavy";
+                            this.UpdateIdlePos(2);
+                        }
                         else if (Url.has("&filter=acloth"))
                             location.href = "?s=Bazaar&ss=es&filter=alight";
                         else if (Url.has("&filter=shield"))

@@ -59,7 +59,7 @@ var newStyle = `
     div#messagebox { left: calc(50% + 68px); }
 
     /* HVStat */
-    div#hvstat-icon { right: 23px; }
+    div#hvstat-icon { right: 36px; top: 1px; }
     body > div#popup_box { right: 220px; left: unset !important; top: 25px !important; right: 460px; }
     div#mainpane > div#popup_box { right: 435px; left: unset !important; top: 25px !important; }
     .hvstat-round-counter { top: 25px; right: 21px; }
