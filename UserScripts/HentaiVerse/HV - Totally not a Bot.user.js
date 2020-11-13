@@ -88,7 +88,9 @@ if ($$("#child_Character > div"))
 window.LocalStorage = {
     NotABot: {
         Persona: "",
-        ListPersona: []
+        ListPersona: [],
+        Idle: false,
+        IdlePos: -1
     },
     NABConfig: {},
 
@@ -260,6 +262,17 @@ window.LocalStorage = {
                         Active: true,
                         ListToBuy: [
                             // Potions - Check Forum
+                            { Name: "Health Draught", Amount: 1000 },
+                            { Name: "Health Potion", Amount: 200 },
+                            { Name: "Health Elixir", Amount: 50 },
+
+                            { Name: "Mana Draught", Amount: 1000 },
+                            { Name: "Mana Potion", Amount: 100 },
+                            { Name: "Mana Elixir", Amount: 50 },
+
+                            { Name: "Spirit Draught", Amount: 500 },
+                            { Name: "Spirit Potion", Amount: 50 },
+                            { Name: "Spirit Elixir", Amount: 10 },
 
                             ////// Repair
                             { Name: "Scrap Cloth", Amount: 100 },
@@ -290,7 +303,6 @@ window.LocalStorage = {
                         Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
                     },
                 },
-
             },
         };
 
@@ -435,6 +447,49 @@ if (Url.has("?NABConfig")) {
         return str;
     }
 
+    function GetBazaarTable() {
+        var listItem = LocalStorage.NABConfig.Idle.Bazaar.Item.ListToBuy;
+        var table = `
+        <table>
+            <thead>
+                <tr>
+                    <td>
+                        <label class="tooltip">Item
+                            <span class="tooltiptext">
+                                Has to have the exact same spelling from the Item Shop
+                            </span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="tooltip">Qnt.
+                            <span class="tooltiptext">
+                                The amount it'll try to keep in your inventory<br>
+                                <i>E.g: If it's set to 10 and you already have 5 it'll only buy 5</i>
+                            </span>
+                        </label>
+                    </td>
+                    <td><button type='button' class='addItem'>Add</button></td>
+                </tr>
+            </thead>
+            <tbody id='idleBazaarItemList'>`;
+
+        for (var i = 0; i < listItem.length; i++) {
+            table += `
+            <tr>
+                <td><input type='text' class='itemName' value='${listItem[i].Name}'/></td>
+                <td><input type='number' class='itemAmount' value='${listItem[i].Amount}'/></td>
+                <td><button type='button' class='removeItem'>Remove</button></td>
+            </tr>
+            `;
+        }
+
+        table += `
+            </tbody>
+        </table>`;
+
+        return table;
+    }
+
     var configHTML = `
 <style>
     #mainpane {
@@ -495,6 +550,16 @@ if (Url.has("?NABConfig")) {
         position: relative;
         vertical-align: top;
         padding-top: 8px;
+    }
+
+    input[type="text"], input[type="number"], 
+    textarea, select, option {
+        font-size: 8pt;
+        color: #5C0D11;
+        background: #EDEADA;
+        border: 1px solid #5C0D11;
+        margin: 4px 1px 0 1px;
+        padding: 2px 3px 2px 3px;
     }
 
     input[type="button"] {
@@ -671,11 +736,15 @@ if (Url.has("?NABConfig")) {
                 <label class="tooltip" for="fightFleeCombat">
                     Flee
                     <span class="tooltiptext">
-                        Will use the Flee action, when : <br>
-                        &emsp;• HP is lower than 15% <br>
-                        &emsp;• Mana is lower than 15%<br>
-                        &emsp;• Can't use Potion<br>
-                        &emsp;• Can't use Defend Action<br>
+                        Saves your money from Item Repair <br>
+                        Uses it when: <br>
+                        <i>
+                            &emsp;• HP is lower than 15% <br>
+                            &emsp;• Mana is lower than 15%<br>
+                            &emsp;• Can't use Potion<br>
+                            &emsp;• Can't use Defend Action<br>
+                            &emsp;• There are more than 3 monsters
+                        </i>
                     </span>
                 </label>
             </p>
@@ -756,7 +825,7 @@ if (Url.has("?NABConfig")) {
                 
                 ${GetMultiple("fightPotionPriorityOrder", "Potions", LocalStorage.NABConfig.Fight.Potion.PriorityOrder, listOfPotions)}
 
-<!--
+<!--TODO
 --This will probably become a Table
                 // All are in Percentage -- To remove any specific Potion change the value to -1
                 // Don't change the name or the type unless you know exacly what you are doing.
@@ -981,30 +1050,7 @@ if (Url.has("?NABConfig")) {
                 <input type="checkbox" id="idleBazaarItemActive" ${LocalStorage.NABConfig.Idle.Bazaar.Item.Active ? "checked" : ""}>
                 <label for="idleBazaarItemActive">Buy Items</label>
             </p>
-<!-- TODO
-
-                Bazaar: {
-                    Active: true,
-
-                    Equipment: {
-                        Active: true,
-                    },
-
-                    Item: {
-                        Active: true,
-                        ListToBuy: [
-                            // Potions - Check Forum
-
-                            ////// Repair
-                            { Name: "Scrap Cloth", Amount: 100 },
-                            { Name: "Scrap Wood", Amount: 50 },
-                            { Name: "Energy Cell", Amount: 50 },
-
-                            ////// Enchants - Check Forum
-                        ]
-                    },
-                }
--->
+            ${GetBazaarTable()}
             <p>
                 <input type="checkbox" id="idleBazaarMonsterLabActive" ${LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.Active ? "checked" : ""}>
                 <label for="idleBazaarMonsterLabActive" class="tooltip">Monster Lab
@@ -1124,6 +1170,7 @@ if (Url.has("?NABConfig")) {
             LocalStorage.NABConfig.Idle.Bazaar.IgnoreAlerts = $$("#idleBazaarIgnoreAlerts").checked;
             LocalStorage.NABConfig.Idle.Bazaar.Equipment.Active = $$("#idleBazaarEquipmentActive").checked;
             LocalStorage.NABConfig.Idle.Bazaar.Item.Active = $$("#idleBazaarItemActive").checked;
+            LocalStorage.NABConfig.Idle.Bazaar.Item.ListToBuy = getItemList($$("#idleBazaarItemList"));
 
             LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.Active = $$("#idleBazaarMonsterLabActive").checked;
             LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.FeedMonster = $$("#idleBazaarMonsterLabFeedMonster").checked;
@@ -1153,6 +1200,28 @@ if (Url.has("?NABConfig")) {
                 next.after(tr);
         });
 
+        function removeItem() {
+            var tr = this.parentElement.parentElement;
+            tr.remove();
+        }
+
+        $(".addItem").forEach(e => e.onclick = function () {
+            var tbody = this.parentElement.parentElement.parentElement
+                .parentElement.querySelector("tbody");
+
+            tbody.innerHTML += `
+            <tr>
+                <td><input type='text' class='itemName' value=''/></td>
+                <td><input type='number' class='itemAmount' value=''/></td>
+                <td><button type='button' class='removeItem'>Remove</button></td>
+            </tr>`;
+
+
+            $(".removeItem").forEach(e => e.onclick = removeItem);
+        });
+
+        $(".removeItem").forEach(e => e.onclick = removeItem);
+
         $(".checkMultiple input[type=checkbox]").forEach(e => e.onchange = function () {
             if (this.checked)
                 this.parentNode.parentNode.className = 'selected';
@@ -1173,6 +1242,23 @@ if (Url.has("?NABConfig")) {
             return result;
         }
 
+        function getItemList(tbody) {
+            var children = tbody.children;
+            var ListItem = [];
+
+            for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                var Name = child.querySelector(".itemName")?.value;
+                var Amount = child.querySelector(".itemAmount")?.value;
+
+                if (Name && Name != "" && Amount && (Amount = parseInt(Amount))) {
+                    ListItem.push({ Name, Amount });
+                }
+            }
+
+            return ListItem;
+        }
+
     }, 100);
 
 }
@@ -1189,31 +1275,72 @@ else {
             this.Start();
 
             let totalExp = $$("#expbar") ? $$("#expbar").width / 1235 * 100 : 0;
-            var span = document.createElement("span");
+
+            var infoText = document.createElement("a");
+            var idleMaster = document.createElement("a");
 
             if ($$("#pane_log")) {
                 if (!localStorage.amoutRandomEncounter)
                     localStorage.amoutRandomEncounter = 0;
 
-                span.style = "position: absolute; top: 1px; right: 110px; cursor: pointer;";
-                span.innerHTML = "<span id='startStopBot'>Stop Bot</span><br>" + totalExp.toFixed(2) + "% - " + localStorage.amoutRandomEncounter;
-                span.onclick = function () {
+                infoText.style = "position: absolute; top: 1px; right: 110px; cursor: pointer;";
+                infoText.className = "startStopBot";
+                infoText.innerHTML = `Stop Bot <br>${totalExp.toFixed(2)}% - ${localStorage.amoutRandomEncounter}`;
+
+                infoText.onclick = function () {
                     if (NotABot.Interval > 0)
                         NotABot.Stop();
                     else
                         NotABot.Start();
                 };
             } else {
-                span.style = "position: absolute; top: 5px; right: 65px; font-size: 13px; font-weight: bold;";
-                span.innerHTML = LocalStorage.NotABot.LastMatch;
+                infoText.style = "position: absolute; top: 5px; right: 65px; font-size: 13px; font-weight: bold; cursor: default;";
+                infoText.innerHTML = LocalStorage.NotABot.LastMatch;
             }
 
-            document.querySelector("#mainpane").appendChild(span);
+            var idleMasterStyle = "position: absolute; top: 5px; right: 280px; font-size: 13px; font-weight: bold; cursor: pointer;"
 
+            if (LocalStorage.NotABot.Idle) {
+                idleMasterStyle += " color: blue;";
+                idleMaster.innerHTML = "Idle Active";
+            } else {
+                idleMasterStyle += " color: red;";
+                idleMaster.innerHTML = "Idle Inactive";
+            }
+
+            idleMaster.className = "startStopIdle";
+            idleMaster.style = idleMasterStyle;
+
+            document.querySelector("#mainpane").appendChild(infoText);
+            document.querySelector("#mainpane").appendChild(idleMaster);
+
+            $$(".startStopIdle").onclick = function () {
+                if (this.innerText == "Idle Active") {
+                    LocalStorage.NotABot.Idle = false;
+                    LocalStorage.Update();
+
+                    this.style.color = "red";
+                    this.innerText = "Idle Inactive"
+
+                } else {
+                    LocalStorage.NotABot.Idle = true;
+                    LocalStorage.Update();
+
+                    this.style.color = "blue";
+                    this.innerText = "Idle Active"
+                }
+            }
         },
         Start: function () {
-            if ($$("#pane_log"))
+            if ($$("#pane_log")) {
+                //Reset IdleMaster
+                if (LocalStorage.NotABot.IdlePos != -1) {
+                    LocalStorage.NotABot.IdlePos = -1;
+                    LocalStorage.Update();
+                }
+
                 this.Interval = setInterval(() => NotABot.Run(), 100);
+            }
             else
                 NotABot.Run();
 
@@ -1338,7 +1465,7 @@ else {
                         for (let i = 0; i < monsterList.length; i++) {
                             var monster = monsterList[i];
                             var listDebuff = this.Use.filter(o => !this.List[o].In(monster.Debuff) && !NotABot.LastLog.has(monster.Name + " gains the effect " + o));
-                             //!o.In(monster.Debuff) && 
+                            //!o.In(monster.Debuff) && 
 
                             for (var j = 0; j < listDebuff.length; j++) {
                                 if (NotABot.UseSpell(listDebuff[j])) {
@@ -1425,50 +1552,6 @@ else {
                 }
             }),
 
-            Player: Object.assign({}, {
-                Health: 0,
-                Mana: 0,
-                Spirit: 0,
-                Overcharge: 0,
-                Buff: [],
-
-                GetStatus: function () {
-                    try {
-                        if (NotABot.VitalBar == "Utilitarian") {
-                            this.Health = $$("#dvbh img").width / $$("#dvbh").clientWidth * 100;
-                            this.Mana = $$("#dvbm img").width / $$("#dvbm").clientWidth * 100;
-                            this.Spirit = $$("#dvbs img").width / $$("#dvbs").clientWidth * 100;
-                            this.Overcharge = $$("#dvbc img").width / $$("#dvbc").clientWidth * 100;
-                        } else {
-                            this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
-                            this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
-                            this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
-                            this.Overcharge = $("#vcp").length * 10; // Each Ball == 10% Of total or 25 OC
-                        }
-
-                        this.GetBuffs();
-
-                        return false;
-                    } catch (e) {
-                        NotABot.ForceStop("Cound not get your life/mana/spirit/overcharge data.");
-                    }
-
-                    return true;
-                },
-
-                GetBuffs: function () {
-                    this.Buff = [];
-
-                    for (let i = 0; i < $("#pane_effects img").length; i++) {
-                        var buff = $("#pane_effects img")[i].onmouseover.toString();
-                        buff = buff.substr(buff.indexOf("effect('") + 8);
-                        buff = buff.substr(0, buff.indexOf("\',"));
-
-                        this.Buff.push(buff);
-                    }
-                },
-            }),
-
             Spirit: Object.assign({}, LocalStorage.NABConfig.Fight.Spirit, {
                 Start: function () {
                     if (this.Active)
@@ -1534,21 +1617,207 @@ else {
                 })
             }),
 
-            Flee: function () {
-                if (this.FleeCombat) {
-                    /*
-                        • HP is lower than 15%
-                        • Mana is lower than 15%
-                        • Can't use Potion -- If he could have used potion, would have returned before
-                        • Can't use Defend Action  -- If he could have Defended, would have returned before
-                    */
-                    if (this.Player.Health < 15 && this.Player.Mana < 15)
-                        if (NotABot.UseSpell("Flee"))
-                            return true;
-                }
+            Player: Object.assign({}, {
+                Health: 0,
+                Mana: 0,
+                Spirit: 0,
+                Overcharge: 0,
+                Buff: [],
 
-                return false;
-            },
+                GetStatus: function () {
+                    try {
+                        if (NotABot.VitalBar == "Utilitarian") {
+                            this.Health = $$("#dvbh img").width / $$("#dvbh").clientWidth * 100;
+                            this.Mana = $$("#dvbm img").width / $$("#dvbm").clientWidth * 100;
+                            this.Spirit = $$("#dvbs img").width / $$("#dvbs").clientWidth * 100;
+                            this.Overcharge = $$("#dvbc img").width / $$("#dvbc").clientWidth * 100;
+                        } else {
+                            this.Health = $$("#vbh img").width / $$("#vbh").clientWidth * 100;
+                            this.Mana = $$("#vbm img").width / $$("#vbm").clientWidth * 100;
+                            this.Spirit = $$("#vbs img").width / $$("#vbs").clientWidth * 100;
+                            this.Overcharge = $("#vcp").length * 10; // Each Ball == 10% Of total or 25 OC
+                        }
+
+                        this.GetBuffs();
+
+                        return false;
+                    } catch (e) {
+                        NotABot.ForceStop("Cound not get your life/mana/spirit/overcharge data.");
+                    }
+
+                    return true;
+                },
+
+                GetBuffs: function () {
+                    this.Buff = [];
+
+                    for (let i = 0; i < $("#pane_effects img").length; i++) {
+                        var buff = $("#pane_effects img")[i].onmouseover.toString();
+                        buff = buff.substr(buff.indexOf("effect('") + 8);
+                        buff = buff.substr(0, buff.indexOf("\',"));
+
+                        this.Buff.push(buff);
+                    }
+                },
+            }),
+
+            Monsters: Object.assign({}, {
+                List: [],
+                Load: function () {
+                    this.List = [];
+                    var listMonster = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
+
+                    var roundContext = localStorage["hvStat.roundContext"];
+
+                    if (roundContext) {
+                        roundContext = JSON.parse(roundContext).monsters;
+                        roundContext = roundContext.filter(a => a.actualHealthPoint > 0);
+                    }
+
+                    for (var i = 0; i < listMonster.length; i++) {
+                        var Object = listMonster[i];
+                        var Name = Object.querySelector(".btm3").innerText;
+                        var Weakness = "";
+                        var WeaknessValue = 9999;
+                        var Health = Object.querySelector("img[src='/y/s/nbargreen.png']").width / 120;
+
+                        var Debuff = [];
+                        var Click = function () {
+                            Log('    Monster: ' + this.Name);
+                            this.Object.click();
+                        };
+
+                        if (roundContext) {
+                            var mContext = roundContext[i].scanResult;
+                            var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+
+                            // Didn't scan this monster yet
+                            if (mContext) {
+                                mContext = mContext.defenseLevel;
+                                function checkAttribute(attr) {
+                                    if (mContext[attr] && mContext[attr] < WeaknessValue) {
+                                        Weakness = attr;
+                                        WeaknessValue = parseInt(mContext[attr]);
+                                    }
+                                }
+
+                                if (["Arch-Mage", "Mage 3rd Circle", "Mage 2nd Circle", "Mage 1st Circle"].contains(NotABot.CharacterType)) {
+                                    checkAttribute("COLD");
+                                    checkAttribute("DARK");
+                                    checkAttribute("ELEC");
+                                    checkAttribute("FIRE");
+                                    checkAttribute("HOLY");
+                                    checkAttribute("WIND");
+                                } else {
+                                    checkAttribute("CRUSHING");
+                                    checkAttribute("PIERCING");
+                                    checkAttribute("SLASHING");
+                                }
+
+                                //checkAttribute("SOUL");
+                                //checkAttribute("VOID");
+                            }
+                        }
+
+                        var listDebuff = Object.querySelectorAll(".btm6 img");
+                        for (let j = 0; j < listDebuff.length; j++) {
+                            var debuff = listDebuff[j].onmouseover.toString();
+                            debuff = debuff.substr(debuff.indexOf("effect('") + 8);
+                            debuff = debuff.substr(0, debuff.indexOf("\',"));
+
+                            Debuff.push(debuff);
+                        }
+
+                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, Debuff, Click });
+                    }
+
+                    return false;
+                },
+
+                GetByName: function (name) {
+                    var monster = this.List.filter(r => r.Name.startsWith(name));
+
+                    if (monster.length > 0)
+                        return monster[0];
+
+                    return null;
+                },
+
+                GetWeakest: function () {
+                    var monster = this.List.sort((a, b) => a.WeaknessValue - b.WeaknessValue)[0];
+
+                    if (monster.WeaknessValue > 100)
+                        return null;
+
+                    return monster;
+                },
+
+                GetLowerHP: function () {
+                    var monster = this.List.sort((a, b) => a.Health - b.Health)[0];
+
+                    return monster;
+                },
+
+                GetBosses: function () {
+                    /// Monsters to Focus Damage
+                    var monster = this.GetByName("Yggdrasil");  //Heal
+
+                    if (monster == null)
+                        monster = this.GetByName("Flying Spaghetti Monster");  //Puff of Logic
+
+                    //if(monster == null)
+                    //  monster = this.GetByName("Drogon");
+                    //
+                    //if(monster == null)
+                    //  monster = this.GetByName("Rhaegal");
+                    //
+                    //if(monster == null)
+                    //  monster = this.GetByName("Viserion");
+                    //
+                    //if(monster == null)
+                    //  monster = this.GetByName("Real Life");
+
+                    return monster;
+                },
+
+                GetTarget: function () {
+                    if (this.List.length == 0) {
+                        this.Load();
+
+                        if (this.List.length == 0)
+                            return null;
+                    }
+
+                    var monster = this.GetBosses();
+
+                    if (monster != null)
+                        return monster;
+
+                    switch (NotABot.Fight.Order.toString()) { // Tactics
+                        case '1':  //  Use AoE middle
+                            monster = this.List[this.List > 1 ? parseInt(this.List.length / 2) : 0];
+                            break;
+                        case '2': //  Kill the weakest first
+                            monster = this.GetWeakest();
+
+                            if (monster == null)
+                                monster = this.GetLowerHP();
+
+                            break;
+                        case '3': //  Kill the Lower HP First
+                            monster = this.GetLowerHP();
+                            break;
+                        default: //  Dumbest Strategy First in First Out.
+                            monster = this.List[0];
+                            break;
+                    };
+
+                    if (monster == null)
+                        monster = this.List[0];
+
+                    return monster;
+                }
+            }),
 
             Advance: function () {
                 if (this.AdvanceOnVictory) {
@@ -1935,163 +2204,21 @@ else {
 
                 return false;
             },
-
-            Monsters: {
-                List: [],
-                Load: function () {
-                    this.List = [];
-                    var listMonster = $("#pane_monster div[id^='mkey_'][onmouseover^='battle']");
-
-                    var roundContext = localStorage["hvStat.roundContext"];
-
-                    if (roundContext) {
-                        roundContext = JSON.parse(roundContext).monsters;
-                        roundContext = roundContext.filter(a => a.actualHealthPoint > 0);
-                    }
-
-                    for (var i = 0; i < listMonster.length; i++) {
-                        var Object = listMonster[i];
-                        var Name = Object.querySelector(".btm3").innerText;
-                        var Weakness = "";
-                        var WeaknessValue = 9999;
-                        var Health = Object.querySelector("img[src='/y/s/nbargreen.png']").width / 120;
-
-                        var Debuff = [];
-                        var Click = function () {
-                            Log('    Monster: ' + this.Name);
-                            this.Object.click();
-                        };
-
-                        if (roundContext) {
-                            var mContext = roundContext[i].scanResult;
-                            var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
-
-                            // Didn't scan this monster yet
-                            if (mContext) {
-                                mContext = mContext.defenseLevel;
-                                function checkAttribute(attr) {
-                                    if (mContext[attr] && mContext[attr] < WeaknessValue) {
-                                        Weakness = attr;
-                                        WeaknessValue = parseInt(mContext[attr]);
-                                    }
-                                }
-
-                                if (["Arch-Mage", "Mage 3rd Circle", "Mage 2nd Circle", "Mage 1st Circle"].contains(NotABot.CharacterType)) {
-                                    checkAttribute("COLD");
-                                    checkAttribute("DARK");
-                                    checkAttribute("ELEC");
-                                    checkAttribute("FIRE");
-                                    checkAttribute("HOLY");
-                                    checkAttribute("WIND");
-                                } else {
-                                    checkAttribute("CRUSHING");
-                                    checkAttribute("PIERCING");
-                                    checkAttribute("SLASHING");
-                                }
-
-                                //checkAttribute("SOUL");
-                                //checkAttribute("VOID");
-                            }
-                        }
-
-                        var listDebuff = Object.querySelectorAll(".btm6 img");
-                        for (let j = 0; j < listDebuff.length; j++) {
-                            var debuff = listDebuff[j].onmouseover.toString();
-                            debuff = debuff.substr(debuff.indexOf("effect('") + 8);
-                            debuff = debuff.substr(0, debuff.indexOf("\',"));
-
-                            Debuff.push(debuff);
-                        }
-
-                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, Debuff, Click });
-                    }
-
-                    return false;
-                },
-
-                GetByName: function (name) {
-                    var monster = this.List.filter(r => r.Name.startsWith(name));
-
-                    if (monster.length > 0)
-                        return monster[0];
-
-                    return null;
-                },
-
-                GetWeakest: function () {
-                    var monster = this.List.sort((a, b) => a.WeaknessValue - b.WeaknessValue)[0];
-
-                    if (monster.WeaknessValue > 100)
-                        return null;
-
-                    return monster;
-                },
-
-                GetLowerHP: function () {
-                    var monster = this.List.sort((a, b) => a.Health - b.Health)[0];
-
-                    return monster;
-                },
-
-                GetBosses: function () {
-                    /// Monsters to Focus Damage
-                    var monster = this.GetByName("Yggdrasil");  //Heal
-
-                    if (monster == null)
-                        monster = this.GetByName("Flying Spaghetti Monster");  //Puff of Logic
-
-                    //if(monster == null)
-                    //  monster = this.GetByName("Drogon");
-                    //
-                    //if(monster == null)
-                    //  monster = this.GetByName("Rhaegal");
-                    //
-                    //if(monster == null)
-                    //  monster = this.GetByName("Viserion");
-                    //
-                    //if(monster == null)
-                    //  monster = this.GetByName("Real Life");
-
-                    return monster;
-                },
-
-                GetTarget: function () {
-                    if (this.List.length == 0) {
-                        this.Load();
-
-                        if (this.List.length == 0)
-                            return null;
-                    }
-
-                    var monster = this.GetBosses();
-
-                    if (monster != null)
-                        return monster;
-
-                    switch (NotABot.Fight.Order.toString()) { // Tactics
-                        case '1':  //  Use AoE middle
-                            monster = this.List[this.List > 1 ? parseInt(this.List.length / 2) : 0];
-                            break;
-                        case '2': //  Kill the weakest first
-                            monster = this.GetWeakest();
-
-                            if (monster == null)
-                                monster = this.GetLowerHP();
-
-                            break;
-                        case '3': //  Kill the Lower HP First
-                            monster = this.GetLowerHP();
-                            break;
-                        default: //  Dumbest Strategy First in First Out.
-                            monster = this.List[0];
-                            break;
-                    };
-
-                    if (monster == null)
-                        monster = this.List[0];
-
-                    return monster;
+            Flee: function () {
+                if (this.FleeCombat) {
+                    /*
+                        • HP is lower than 15%
+                        • Mana is lower than 15%
+                        • Can't use Potion -- If he could have used potion, would have returned before
+                        • Can't use Defend Action  -- If he could have Defended, would have returned before
+                        • There are more than 3 monsters
+                    */
+                    if (this.Player.Health < 15 && this.Player.Mana < 15 && this.Monsters.List.length > 3)
+                        if (NotABot.UseSpell("Flee"))
+                            return true;
                 }
+
+                return false;
             },
         }),
         Riddle: Object.assign({}, LocalStorage.NABConfig.Riddle, {
@@ -2205,16 +2332,23 @@ else {
                     // also be aware to not be thrown in a loop, going from one page to another instead of doing the rest
 
                     if (Url.has("s=Character") || Url == "https://hentaiverse.org/")
-                        return this.Character.Start();
+                        if (this.Character.Start())
+                            return true;
 
                     if (Url.has("s=Bazaar"))
-                        return this.Bazaar.Start();
+                        if (this.Bazaar.Start())
+                            return true;
 
                     if (Url.has("s=Battle") && (Url.has("ss=ar") || Url.has("ss=rb")))
-                        return this.Battle.Start();
+                        if (this.Battle.Start())
+                            return true;
 
                     if (Url.has("s=Forge"))
-                        return this.Forge.Start();
+                        if (this.Forge.Start())
+                            return true;
+
+                    if (this.IdleMaster())
+                        return true;
                 }
 
                 return false;
@@ -2227,70 +2361,26 @@ else {
                             return this.Character.Start();
 
                         if (Url.has("ss=eq")) // Equipment
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("ss=ab")) // Abilities
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("ss=tr")) //  Training
                             return this.Training.Start();
 
                         if (Url.has("ss=it")) // Item Inventory
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("ss=in")) // Equip Inventory
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("ss=se")) // Settings
-                            return true; //TODO
+                            return false; //TODO
                     }
 
                     return false;
                 },
-
-                Training: Object.assign({}, LocalStorage.NABConfig.Idle.Character.Training, {
-                    ListTrain: {
-                        "Adept Learner": 50,
-                        "Assimilator": 51,
-                        "Ability Boost": 80,
-                        "Manifest Destiny": null,
-                        "Scavenger": 70,
-                        "Luck of the Draw": 71,
-                        "Quartermaster": 72,
-                        "Archaeologist": 73,
-                        "Metabolism": null,
-                        "Inspiration": null,
-                        "Scholar of War": 90,
-                        "Tincture": 91,
-                        "Pack Rat": 98,
-                        "Dissociation": null,
-                        "Set Collector": 96
-                    },
-
-                    Start: function () {
-                        if (this.Active) {
-                            let credits = $(".fc4.fal.fcb").contains('Credits')[0].innerText.replace('Credits: ', '').replace(',', '');
-
-                            credits = parseInt(credits);
-
-                            if (credits > this.MinCredits) {
-                                for (var i = 0; i < this.PriorityOrder.length; i++) {
-                                    let num = this.ListTrain[this.PriorityOrder[i]];
-
-                                    if (num && $$(`img[onclick='training.start_training(${num})']`)) {
-                                        training.start_training(num);
-                                        LocalStorage.NotABot.LastTraining = new Date();
-                                        LocalStorage.Update();
-
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-
-                        return false;
-                    },
-                }),
 
                 Character: {
                     Start: function () {
@@ -2332,9 +2422,54 @@ else {
                             document.getElementById('attr_form').submit();
                         }
 
-                        return true;
+                        return false;
                     }
                 },
+
+                Training: Object.assign({}, LocalStorage.NABConfig.Idle.Character.Training, {
+                    ListTrain: {
+                        "Adept Learner": 50,
+                        "Assimilator": 51,
+                        "Ability Boost": 80,
+                        "Manifest Destiny": 81,
+                        "Scavenger": 70,
+                        "Luck of the Draw": 71,
+                        "Quartermaster": 72,
+                        "Archaeologist": 73,
+                        "Metabolism": 84,
+                        "Inspiration": null,
+                        "Scholar of War": 90,
+                        "Tincture": 91,
+                        "Pack Rat": 98,
+                        "Dissociation": 88,
+                        "Set Collector": 96
+                    },
+
+                    Start: function () {
+                        if (this.Active) {
+                            let credits = $(".fc4.fal.fcb").contains('Credits')[0].innerText.replace('Credits: ', '').replace(',', '');
+
+                            credits = parseInt(credits);
+
+                            if (credits > this.MinCredits) {
+                                for (var i = 0; i < this.PriorityOrder.length; i++) {
+                                    let num = this.ListTrain[this.PriorityOrder[i]];
+
+                                    if (num && $$(`img[onclick='training.start_training(${num})']`)) {
+                                        training.start_training(num);
+                                        LocalStorage.NotABot.LastTraining = new Date();
+                                        LocalStorage.Update();
+
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+
+                        return false;
+                    },
+                }),
+
             }),
 
             Bazaar: Object.assign({}, LocalStorage.NABConfig.Idle.Bazaar, {
@@ -2347,25 +2482,25 @@ else {
                             return this.Item.Buy();
 
                         if (Url.has("&ss=ib")) // Item Bot
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("&ss=ml")) // Monster Lab
                             return this.MonsterLab.Start();
 
                         if (Url.has("&ss=ss")) // Shrine
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("&ss=mm")) // Mail
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("&ss=ss")) //Shrine
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("&ss=lt")) // Armor Lottery
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("&ss=la")) // Weapon Lottery
-                            return true; //TODO
+                            return false; //TODO
                     }
 
                     return false;
@@ -2408,10 +2543,10 @@ else {
                                 }
                             }
 
-                            if (itemsSelected > 0)
+                            if (itemsSelected > 0) {
                                 equipshop.commit_transaction();
-
-                            return true;
+                                return true;
+                            }
                         }
 
                         return false;
@@ -2465,7 +2600,9 @@ else {
                                             }
                                         }
 
-                                        itemshop.increase_count(item.Amount - youHave);
+                                        if (item.Amount - youHave > 1)
+                                            itemshop.increase_count(item.Amount - youHave);
+
                                         itemshop.commit_transaction();
 
                                         return true;
@@ -2589,8 +2726,11 @@ else {
                                     var Arena = this.ArenaList[i];
 
                                     if (playerStamina - Arena.Stamina >= NotABot.Idle.Battle.MinimumStamina) {
-                                        if (NotABot.Idle.Battle.SetDifficulty(Arena.Difficulty))
+                                        if (NotABot.Idle.Battle.SetDifficulty(Arena.Difficulty)) {
+                                            setTimeout(() => location.reload(), 300);
                                             return true;
+                                        }
+
 
                                         //Start Arena
                                         window["init_battle"] = function (id, entrycost, token) {
@@ -2683,8 +2823,10 @@ else {
                                     var RingOfBlood = this.RingOfBloodList[i];
 
                                     if (playerStamina - RingOfBlood.Stamina > NotABot.Idle.Battle.MinimumStamina) {
-                                        if (NotABot.Idle.Battle.SetDifficulty(RingOfBlood.Difficulty))
+                                        if (NotABot.Idle.Battle.SetDifficulty(RingOfBlood.Difficulty)) {
+                                            setTimeout(() => location.reload(), 300);
                                             return true;
+                                        }
 
                                         //Start Arena
                                         window["init_battle"] = function (id, entrycost, token) {
@@ -2755,7 +2897,7 @@ else {
                             return this.Repair.Start();
 
                         if (Url.has("&ss=up")) // Upgrade
-                            return true;
+                            return false;
 
                         if (Url.has("&ss=en")) // Enchant
                             return this.Enchant.Start();
@@ -2764,10 +2906,10 @@ else {
                             return this.Salvage.Start();
 
                         if (Url.has("&ss=fo")) // Reforge
-                            return true; //TODO
+                            return false; //TODO
 
                         if (Url.has("&ss=fu")) // Soulfuse
-                            return true; //TODO
+                            return false; //TODO
                     }
 
                     return false;
@@ -2783,8 +2925,6 @@ else {
                                 document.getElementById('repairall').submit();
                                 return true;
                             }
-
-                            location.href = "https://hentaiverse.org/?s=Bazaar&ss=is";
                         }
 
                         return false;
@@ -2887,9 +3027,62 @@ else {
                 }),
             }),
 
-            Checks: Object.assign({}, LocalStorage.NABConfig.Idle.Checks, {
+            IdleMaster: function () {
+                /*Change Idle Pages
+                   -> Repair Equip
+                   -> Buy Items
+                   -> Feed/Unlock/Drug Monsters
+                   -> Train
+                   -> Ring of Blood
+                   -> Arena
+                */
+                if (LocalStorage.NotABot.Idle) {
+                    if (LocalStorage.NotABot.IdlePos == null)
+                        this.UpdateIdlePos(-1);
 
-            }),
+                    var idlePos = LocalStorage.NotABot.IdlePos;
+
+                    console.log(idlePos);
+
+                    if (this.Forge.Repair.Active && idlePos < 0) {
+                        this.UpdateIdlePos(0);
+                        location.href = "?s=Forge&ss=re";
+                    }
+                    else if (this.Bazaar.Item.Active && idlePos < 1) {
+                        this.UpdateIdlePos(1);
+                        location.href = "?s=Bazaar&ss=is";
+                    }
+                    else if (this.Bazaar.MonsterLab.Active && idlePos < 2) {
+                        this.UpdateIdlePos(2);
+                        location.href = "?s=Bazaar&ss=ml";
+                    }
+                    else if (this.Character.Training.Active && idlePos < 3) {
+                        this.UpdateIdlePos(3);
+                        location.href = "?s=Character&ss=tr";
+                    }
+                    else if (this.Battle.RingOfBlood.Active && idlePos < 4) {
+                        this.UpdateIdlePos(4);
+                        location.href = "?s=Battle&ss=rb";
+                    }
+                    else if (this.Battle.Arena.Active && idlePos < 5) {
+                        this.UpdateIdlePos(5);
+                        location.href = "?s=Battle&ss=ar";
+                    } else if (idlePos < 6) {
+                        LocalStorage.NotABot.Idle = false;
+                        this.UpdateIdlePos(6);
+                        location.href = "?s=Character&ss=ch";
+                    }
+
+                    return true;
+                }
+
+                return false;
+            },
+
+            UpdateIdlePos: function (pos) {
+                LocalStorage.NotABot.IdlePos = pos;
+                LocalStorage.Update();
+            },
         }),
 
         ListSkill: {
