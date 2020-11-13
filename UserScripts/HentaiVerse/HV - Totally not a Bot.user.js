@@ -1284,7 +1284,7 @@ else {
                     localStorage.amoutRandomEncounter = 0;
 
                 infoText.style = "position: absolute; top: 1px; right: 110px; cursor: pointer;";
-                infoText.className = "startStopBot";
+                infoText.id = "startStopBot";
                 infoText.innerHTML = `Stop Bot <br>${totalExp.toFixed(2)}% - ${localStorage.amoutRandomEncounter}`;
 
                 infoText.onclick = function () {
@@ -1324,10 +1324,12 @@ else {
 
                 } else {
                     LocalStorage.NotABot.Idle = true;
+                    LocalStorage.NotABot.IdlePos = -1;
                     LocalStorage.Update();
 
                     this.style.color = "blue";
                     this.innerText = "Idle Active"
+                    location.reload();
                 }
             }
         },
@@ -1345,7 +1347,7 @@ else {
                 NotABot.Run();
 
             if ($$("#startStopBot"))
-                $$("#startStopBot").innerText = "Stop Bot";
+                $$("#startStopBot").innerText = $$("#startStopBot").innerText.replace("Start Bot", "Stop Bot");
 
             Log("Bot Started");
         },
@@ -1354,7 +1356,7 @@ else {
             this.Interval = 0;
 
             if ($$("#startStopBot"))
-                $$("#startStopBot").innerText = "Start Bot";
+                $$("#startStopBot").innerText = $$("#startStopBot").innerText.replace("Stop Bot", "Start Bot");
 
             Log("Bot Stopped");
         },
@@ -3031,18 +3033,20 @@ else {
                 /*Change Idle Pages
                    -> Repair Equip
                    -> Buy Items
+                   -> Sell Trash (TODO)
                    -> Feed/Unlock/Drug Monsters
                    -> Train
                    -> Ring of Blood
                    -> Arena
                 */
                 if (LocalStorage.NotABot.Idle) {
+                    if (Url.has("riddlemaster"))
+                        return true;
+
                     if (LocalStorage.NotABot.IdlePos == null)
                         this.UpdateIdlePos(-1);
 
                     var idlePos = LocalStorage.NotABot.IdlePos;
-
-                    console.log(idlePos);
 
                     if (this.Forge.Repair.Active && idlePos < 0) {
                         this.UpdateIdlePos(0);
