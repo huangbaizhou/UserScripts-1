@@ -1391,8 +1391,8 @@ else {
             idleMaster.className = "startStopIdle";
             idleMaster.style = idleMasterStyle;
 
-            document.querySelector("#mainpane").appendChild(infoText);
-            document.querySelector("#mainpane").appendChild(idleMaster);
+            $$("#mainpane").appendChild(infoText);
+            $$("#mainpane").appendChild(idleMaster);
 
             $$(".startStopIdle").onclick = function () {
                 if (this.innerText == "Idle Active") {
@@ -1769,7 +1769,7 @@ else {
                             this.Object.click();
                         };
 
-                        if (roundContext) {
+                        if (roundContext && roundContext.length > 0) {
                             var mContext = roundContext[i].scanResult;
                             var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
 
@@ -1994,9 +1994,9 @@ else {
                         var spell = "";
 
                         function setElementalMage(spell1stCircle, spell2ndCircle, spell3rdCircle) {
-                            if (NotABot.Fight.Monsters.List.length > 7 && spell != spell3rdCircle)
+                            if (this.Monsters.List.length > 7 && !spell.In(spell3rdCircle, spell2ndCircle, spell1stCircle))
                                 spell = spell3rdCircle;
-                            else if (NotABot.Fight.Monsters.List.length > 5 && spell != spell2ndCircle)
+                            else if (this.Monsters.List.length > 5 && !spell.In(spell2ndCircle, spell1stCircle))
                                 spell = spell2ndCircle;
                             else if (spell != spell1stCircle)
                                 spell = spell1stCircle;
