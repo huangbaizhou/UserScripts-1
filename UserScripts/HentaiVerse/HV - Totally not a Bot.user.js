@@ -2004,6 +2004,37 @@ else {
                                 playerClass = "Mage Melee"
                         }
 
+                        function setMelee(crush, pierce, slash) {
+                            switch (monster.Weakness) {
+                                case "CRUSHING": spell = crush; break;
+                                case "PIERCING": spell = pierce; break;
+                                case "SLASHING": spell = slash; break;
+                            }
+
+                            playerClass = "Pony Damage";
+                        }
+
+                        function setMagic(nextClass, cold, dark, elec, fire, holy, wind) {
+                            switch (monster.Weakness) {
+                                case "COLD": spell = cold; break;
+                                case "DARK": spell = dark; break;
+                                case "ELEC": spell = elec; break;
+                                case "FIRE": spell = fire; break;
+                                case "HOLY": spell = holy; break;
+                                case "WIND": spell = wind; break;
+                            }
+
+                            if (nextClass)
+                                playerClass = nextClass;
+                        }
+
+                        function setAttack(nextClass, attack) {
+                            spell = attack;
+
+                            if (nextClass)
+                                playerClass = nextClass;
+                        }
+
                         while (true) {
                             switch (playerClass) {
                                 case "Arch-Mage":
@@ -2013,43 +2044,16 @@ else {
                                         playerClass = "Mage 2nd Circle";
                                     else
                                         playerClass = "Mage 1st Circle";
-
                                     break;
-                                case "Mage 3rd Circle": // Will not check if have spell available, this way you can attack the monster with his weakest element with a lower tier Spell
-                                    switch (monster.Weakness) {
-                                        case "COLD": spell = "Fimbulvetr"; break;
-                                        case "DARK": spell = "Ragnarok"; break;
-                                        case "ELEC": spell = "Wrath of Thor"; break;
-                                        case "FIRE": spell = "Flames of Loki"; break;
-                                        case "HOLY": spell = "Paradise Lost"; break;
-                                        case "WIND": spell = "Storms of Njord"; break;
-                                    }
 
-                                    playerClass = "Mage 2nd Circle";
+                                case "Mage 3rd Circle":
+                                    setMagic("Mage 2nd Circle", "Fimbulvetr", "Ragnarok", "Wrath of Thor", "Flames of Loki", "Paradise Lost", "Storms of Njord");
                                     break;
                                 case "Mage 2nd Circle":
-                                    switch (monster.Weakness) {
-                                        case "COLD": spell = "Blizzard"; break;
-                                        case "DARK": spell = "Disintegrate"; break;
-                                        case "ELEC": spell = "Chained Lightning"; break;
-                                        case "FIRE": spell = "Inferno"; break;
-                                        case "HOLY": spell = "Banishment"; break;
-                                        case "WIND": spell = "Downburst"; break;
-                                    }
-
-                                    playerClass = "Mage 1st Circle";
+                                    setMagic("Mage 1st Circle", "Blizzard", "Disintegrate", "Chained Lightning", "Inferno", "Banishment", "Downburst");
                                     break;
                                 case "Mage 1st Circle":
-                                    switch (monster.Weakness) {
-                                        case "COLD": spell = "Freeze"; break;
-                                        case "DARK": spell = "Corruption"; break;
-                                        case "ELEC": spell = "Shockblast"; break;
-                                        case "FIRE": spell = "Fiery Blast"; break;
-                                        case "HOLY": spell = "Smite"; break;
-                                        case "WIND": spell = "Gale"; break;
-                                    }
-
-                                    playerClass = "Mage Melee";
+                                    setMagic("Mage Melee", "Freeze", "Corruption", "Shockblast", "Fiery Blast", "Smite", "Gale");
                                     break;
 
                                 case "Fire Mage":
@@ -2070,54 +2074,31 @@ else {
                                 case "Dark Mage":
                                     setElementalMage("Corruption", "Disintegrate", "Ragnarok");
                                     break;
-                                case "One-Handed":
-                                    switch (monster.Weakness) {
-                                        case "CRUSHING": spell = "Shield Bash"; break;
-                                        case "PIERCING": spell = "Vital Strike"; break;
-                                        case "SLASHING": spell = "Merciful Blow"; break;
-                                    }
 
-                                    playerClass = "Pony Damage";
+                                case "One-Handed":
+                                    setMelee("Shield Bash", "Vital Strike", "Merciful Blow")
                                     break;
                                 case "Dual Wielding":
-                                    switch (monster.Weakness) {
-                                        case "CRUSHING": spell = "Iris Strike"; break;
-                                        case "PIERCING": spell = "Backstab"; break;
-                                        case "SLASHING": spell = "Frenzied Blows"; break;
-                                    }
-
-                                    playerClass = "Pony Damage";
+                                    setMelee("Iris Strike", "Backstab", "Frenzied Blows");
                                     break;
                                 case "2-Handed Weapon":
-                                    switch (monster.Weakness) {
-                                        case "CRUSHING": spell = "Great Cleave"; break;
-                                        case "PIERCING": spell = "Rending Blow"; break;
-                                        case "SLASHING": spell = "Shatter Strike"; break;
-                                    }
-
-                                    playerClass = "Pony Damage";
+                                    setMelee("Great Cleave", "Rending Blow", "Shatter Strike");
                                     break;
+
                                 case "Niten Ichiryu":
-                                    spell = "Skyward Sword";
-                                    playerClass = "Dovahkiin";
+                                    setAttack("Pony Damage", "Skyward Sword");
                                     break;
                                 case "Pony Damage":
-                                    spell = "Orbital Friendship Cannon";
-                                    playerClass = "Dovahkiin";
+                                    setAttack("Dovahkiin", "Orbital Friendship Cannon");
                                     break;
                                 case "Dovahkiin":
-                                    spell = "FUS RO DAH";
-                                    playerClass = "Melee";
+                                    setAttack("Melee", "FUS RO DAH");
                                     break;
-
                                 case "Mage Melee":
-                                    spell = "Concussive Strike";
-                                    playerClass = "Pony Damage";
+                                    setAttack("Pony Damage", "Concussive Strike");
                                     break;
-
                                 case "Melee":
-                                    spell = "Attack";
-                                    playerClass = "Default";
+                                    setAttack("Default", "Attack");
                                     break;
                                 default:
                                     Log("Could not use skill/spell", 'warn');
@@ -2141,7 +2122,7 @@ else {
                             return false;
                         }
 
-                        function AttackElementalMage(spell1stCircle, spell2ndCircle, spell3rdCircle) {
+                        function AttackElemental(spell1stCircle, spell2ndCircle, spell3rdCircle) {
                             if (NotABot.Fight.Monsters.List.length > 7 && AttackMonster(spell3rdCircle))
                                 return true;
 
@@ -2150,6 +2131,19 @@ else {
 
                             if (AttackMonster(spell1stCircle))
                                 return true;
+
+                            playerClass = "Mage Melee";
+
+                            return false;
+                        }
+
+                        function TryAttack(nextClass, list) {
+                            for (var i = 0; i < list.length; i++)
+                                if (AttackMonster(list[i]))
+                                    return true;
+
+                            if (nextClass)
+                                playerClass = nextClass;
 
                             return false;
                         }
@@ -2166,117 +2160,87 @@ else {
 
                                     break;
                                 case "Mage 3rd Circle":
-                                    if (AttackMonster("Fimbulvetr") || AttackMonster("Ragnarok") || AttackMonster("Wrath of Thor") || AttackMonster("Flames of Loki") || AttackMonster("Paradise Lost") || AttackMonster("Storms of Njord"))
+                                    if (TryAttack("Mage 2st Circle", ["Fimbulvetr", "Ragnarok", "Wrath of Thor", "Flames of Loki", "Paradise Lost", "Storms of Njord"]))
                                         return true;
-
-                                    playerClass = "Mage 2st Circle";
                                     break;
                                 case "Mage 2nd Circle":
-                                    if (AttackMonster("Blizzard") || AttackMonster("Disintegrate") || AttackMonster("Chained Lightning") || AttackMonster("Inferno") || AttackMonster("Banishment") || AttackMonster("Downburst"))
+                                    if (TryAttack("Mage 1st Circle", ["Blizzard", "Disintegrate", "Chained Lightning", "Inferno", "Banishment", "Downburst"]))
                                         return true;
-
-                                    playerClass = "Mage 1st Circle";
                                     break;
                                 case "Mage 1st Circle":
-                                    if (AttackMonster("Freeze") || AttackMonster("Corruption") || AttackMonster("Shockblast") || AttackMonster("Fiery Blast") || AttackMonster("Smite") || AttackMonster("Gale"))
+                                    if (TryAttack("Mage Melee", ["Freeze", "Corruption", "Shockblast", "Fiery Blast", "Smite", "Gale"]))
                                         return true;
-
-                                    playerClass = "Mage Melee";
                                     break;
 
                                 case "Fire Mage":
-                                    if (AttackElementalMage("Fiery Blast", "Inferno", "Flames of Loki"))
+                                    if (AttackElemental("Fiery Blast", "Inferno", "Flames of Loki"))
                                         return true;
-
-                                    return false;
                                     break;
                                 case "Ice Mage":
-                                    if (AttackElementalMage("Freeze", "Blizzard", "Fimbulvetr"))
+                                    if (AttackElemental("Freeze", "Blizzard", "Fimbulvetr"))
                                         return true;
-
-                                    return false;
                                     break;
                                 case "Electric Mage":
-                                    if (AttackElementalMage("Shockblast", "Chained Lightning", "Wrath of Thor"))
+                                    if (AttackElemental("Shockblast", "Chained Lightning", "Wrath of Thor"))
                                         return true;
-
-                                    return false;
                                     break;
                                 case "Wind Mage":
-                                    if (AttackElementalMage("Gale", "Downburst", "Storms of Njord"))
+                                    if (AttackElemental("Gale", "Downburst", "Storms of Njord"))
                                         return true;
-
-                                    return false;
                                     break;
                                 case "Holy Mage":
-                                    if (AttackElementalMage("Smite", "Banishment", "Paradise Lost"))
+                                    if (AttackElemental("Smite", "Banishment", "Paradise Lost"))
                                         return true;
 
                                     return false;
                                     break;
                                 case "Dark Mage":
-                                    if (AttackElementalMage("Corruption", "Disintegrate", "Ragnarok"))
+                                    if (AttackElemental("Corruption", "Disintegrate", "Ragnarok"))
                                         return true;
 
                                     return false;
                                     break;
                                 case "One-Handed":
-                                    if (AttackMonster("Shield Bash") || AttackMonster("Vital Strike") || AttackMonster("Merciful Blow"))
+                                    if (TryAttack("Pony Damage", ["Shield Bash", "Vital Strike", "Merciful Blow"]))
                                         return true;
-
-                                    playerClass = "Pony Damage";
                                     break;
                                 case "Dual Wielding":
-                                    if (AttackMonster("Iris Strike") || AttackMonster("Backstab") || AttackMonster("Frenzied Blows"))
+                                    if (TryAttack("Pony Damage", ["Iris Strike", "Backstab", "Frenzied Blows"]))
                                         return true;
-
-                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "2-Handed Weapon":
-                                    if (AttackMonster("Great Cleave") || AttackMonster("Rending Blow") || AttackMonster("Shatter Strike"))
+                                    if (TryAttack("Pony Damage", ["Great Cleave", "Rending Blow", "Shatter Strike"]))
                                         return true;
-
-                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "Niten Ichiryu":
-                                    if (AttackMonster("Skyward Sword"))
+                                    if (TryAttack("Pony Damage", ["Skyward Sword"]))
                                         return true;
-
-                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "Pony Damage":
-                                    if (AttackMonster("Orbital Friendship Cannon"))
+                                    if (TryAttack("Dovahkiin", ["Orbital Friendship Cannon"]))
                                         return true;
-
-                                    playerClass = "Dovahkiin";
                                     break;
 
                                 case "Dovahkiin":
-                                    if (AttackMonster("FUS RO DAH"))
+                                    if (TryAttack("Melee", ["FUS RO DAH"]))
                                         return true;
-
-                                    playerClass = "Melee";
                                     break;
 
                                 case "Mage Melee":
-                                    if (AttackMonster("Concussive Strike"))
+                                    if (TryAttack("Pony Damage", ["Concussive Strike"]))
                                         return true;
-
-                                    playerClass = "Pony Damage";
                                     break;
 
                                 case "Melee":
-                                    if (AttackMonster("Attack"))
+                                    if (TryAttack("Default", ["Attack"]))
                                         return true;
-
-                                    playerClass = "Default";
                                     break;
 
                                 default:
-                                    Log("Could not use skill/spell", 'warn');
+                                    Log("Could not use skill/spell", 'warn'); // Perhaps you are silenced, who knows.
                                     return false;
                                     break;
                             }
