@@ -90,7 +90,8 @@ window.LocalStorage = {
         Persona: "",
         ListPersona: [],
         Idle: false,
-        IdlePos: -1
+        IdlePos: -1,
+        Riddle: {}
     },
     NABConfig: {},
 
@@ -153,7 +154,7 @@ window.LocalStorage = {
 
                 Buff: {
                     Active: true,
-                    Use: ["Spark of Life", "Absorb", "Regen", "Protection", "Arcane Focus", "Spirit Shield"],
+                    Use: ["Spark of Life", "Absorb", "Regen", "Protection", "Arcane Focus"],
                 },
 
                 Debuff: {
@@ -214,8 +215,7 @@ window.LocalStorage = {
             },
 
             Riddle: {
-                Active: true,
-                Combinations: {},
+                Active: true
             },
 
             Idle: {
@@ -227,26 +227,26 @@ window.LocalStorage = {
                     Training: {
                         Active: true,
                         MinCredits: 400000,
-                        PriorityOrder: ["Adept Learner", "Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
+                        PriorityOrder: ["Ability Boost", "Scavenger", "Luck of the Draw", "Assimilator", "Quartermaster", "Archaeologist"],
                     },
 
                 },
 
                 Battle: {
-                    Active: false,
-                    ChangeDifficulty: true,
+                    Active: true,
+                    ChangeDifficulty: false,
                     UseRestoratives: false,
                     MaxStaminaToUseRestorative: 79,
                     MinimumStamina: 80,
 
                     Arena: {
                         Active: true,
-                        ListToDo: ["A Dance with Dragons", "Eternal Darkness", "End of Days", "The Trio and the Tree", "Eve of Death"]
+                        List: ["A Dance with Dragons", "Eternal Darkness", "End of Days", "The Trio and the Tree", "Eve of Death"]
                     },
 
                     RingOfBlood: {
                         Active: true,
-                        ListToDo: ["Flying Spaghetti Monster"]
+                        List: ["Flying Spaghetti Monster"]
                     },
                 },
 
@@ -278,8 +278,6 @@ window.LocalStorage = {
                             { Name: "Scrap Cloth", Amount: 100 },
                             { Name: "Scrap Wood", Amount: 50 },
                             { Name: "Energy Cell", Amount: 50 },
-
-                            ////// Enchants - Check Forum
                         ]
                     },
 
@@ -323,7 +321,6 @@ window.LocalStorage = {
 
 LocalStorage.Load();
 LocalStorage.LoadConfig();
-
 /**********/
 
 
@@ -339,7 +336,7 @@ if (Url.has("?NABConfig")) {
     var listOfROB = ["Konata", "Mikuru Asahina", "Ryouko Asakura", "Yuki Nagato", "Real Life", "Invisible Pink Unicorn", "Flying Spaghetti Monster", "Triple Trio and the Tree"];
 
 
-    var multiButton = `<td>
+    var multiButton = `<td style='width: 50px;'>
         <button type="button" class="rotate moveUp">&lsaquo;</button>
         <button type="button" class="rotate moveDown">&rsaquo;</button>
     </td>`;
@@ -354,7 +351,7 @@ if (Url.has("?NABConfig")) {
                     <th style="text-align: center;">Order</th>
                 </tr>
             </thead>
-            <tbody class="checkMultiple">`;
+            <tbody class="checkMultiple orderTable">`;
 
         listTotal = listTotal.filter(o => !o.In(listUse));
 
@@ -468,7 +465,7 @@ if (Url.has("?NABConfig")) {
                             </span>
                         </label>
                     </td>
-                    <td><button type='button' class='addItem'>Add</button></td>
+                    <td><button type='button' class='addItem'><span class="ui-icon ui-icon-plus" title="Add Line"></span></button></td>
                 </tr>
             </thead>
             <tbody id='idleBazaarItemList'>`;
@@ -478,7 +475,7 @@ if (Url.has("?NABConfig")) {
             <tr>
                 <td><input type='text' class='itemName' value='${listItem[i].Name}'/></td>
                 <td><input type='number' class='itemAmount' value='${listItem[i].Amount}'/></td>
-                <td><button type='button' class='removeItem'>Remove</button></td>
+                <td><button type='button' class='removeItem'><span class="ui-icon ui-icon-trash" title="Delete"></span></button></td>
             </tr>
             `;
         }
@@ -488,6 +485,93 @@ if (Url.has("?NABConfig")) {
         </table>`;
 
         return table;
+    }
+
+    function GetPotionTable() {
+        var Health = LocalStorage.NABConfig.Fight.Potion.Health;
+        var Mana = LocalStorage.NABConfig.Fight.Potion.Mana;
+        var Spirit = LocalStorage.NABConfig.Fight.Potion.Spirit;
+
+        //LocalStorage.NABConfig.Fight.Potion
+        var tableBody = `
+        <span class="item-title">{0}</span>
+        <table>
+            <thead>
+                <tr>
+                    <td>Type</td>
+                    <td>Item</td>
+                    <td>
+                        <label class="tooltip">Use At
+                            <span class="tooltiptext">
+                                When your health/mana/spirit hits this percentage or lower
+                            </span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="tooltip">Buffs
+                            <span class="tooltiptext">
+                                Don't use the item if you have this buff active
+                            </span>
+                        </label>
+                    </td>
+                    <td>
+                        <label class="tooltip">Check Item
+                            <span class="tooltiptext">
+                                Check if you can use another item instead<br>
+                                <i>if you want to check more than one item before using this one, separate them with comma</i>
+                            </span>
+                        </label>
+                    </td>
+                    <td><button type='button' class='addItem'><span class="ui-icon ui-icon-plus" title="Add Line"></span></button></td>
+                    <td style='text-align: center;'>Order</td>
+                </tr>
+            </thead>
+            <tbody id='{1}' class='orderTable'>
+                {2}
+            </tbody>
+        </table>`;
+
+        var htmlTable = tableBody
+            .replace('{0}', 'Health Items/Spells')
+            .replace('{1}', 'fightPotionHealth')
+            .replace('{2}', GetPotionItem(Health)) + "<br>";
+
+        htmlTable += tableBody
+            .replace('{0}', 'Mana Items/Spells')
+            .replace('{1}', 'fightPotionMana')
+            .replace('{2}', GetPotionItem(Mana)) + "<br>";
+        htmlTable += tableBody
+            .replace('{0}', 'Spirit Items/Spells')
+            .replace('{1}', 'fightPotionSpirit')
+            .replace('{2}', GetPotionItem(Spirit));
+
+        return htmlTable;
+    }
+
+    function GetPotionItem(list) {
+        var tempString = "";
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+
+            tempString += `
+            <tr>
+                <td>
+                    <select class='type'>
+                        <option value='Item' ${item.Type == "Item" ? "selected" : ""}>Item</option>
+                        <option value='Spell'  ${item.Type == "Spell" ? "selected" : ""}>Spell</option>
+                    </select>
+                </td>
+                <td><input type='text' class='name' value='${item.Name}'></td>
+                <td><input type='number' class='useAt' value='${item.UseAt}'></td>
+                <td><input type='text' class='checkBuff' value='${item.CheckBuff ? item.CheckBuff : ""}'></td>
+                <td><input type='text' class='checkBuff' value='${item.CheckItem ? item.CheckItem.toString() : ""}'></td>
+                <td><button type='button' class='removeItem'><span class="ui-icon ui-icon-trash" title="Delete"></span></button></td>
+                ${multiButton}
+            </tr>`;
+        }
+
+        return tempString;
     }
 
     var configHTML = `
@@ -546,6 +630,10 @@ if (Url.has("?NABConfig")) {
         width: 200px;
     }
 
+    table select:not(multiple) {
+        width: 100px;
+    }
+
     td.label {
         position: relative;
         vertical-align: top;
@@ -560,6 +648,15 @@ if (Url.has("?NABConfig")) {
         border: 1px solid #5C0D11;
         margin: 4px 1px 0 1px;
         padding: 2px 3px 2px 3px;
+    }
+
+
+    input[type="text"] {
+        width: 100px;
+    }
+
+    input[type="number"] {
+        width: 60px;
     }
 
     input[type="button"] {
@@ -581,9 +678,10 @@ if (Url.has("?NABConfig")) {
         padding-left: 8px;
     }
 
+
+
     /** Select Multiple **/
-    .checkMultiple > tr > td:first-child,
-    .checkMultiple > tr > td:last-child {
+    .checkMultiple > tr > td:first-child {
         text-align: center;
     }
 
@@ -592,13 +690,21 @@ if (Url.has("?NABConfig")) {
         color: white;
     }
 
-    .checkMultiple button.rotate {
-        transform: rotate(90deg);
+    /** Order Table **/
+    .orderTable > tr > td:last-child {
+        text-align: center;
+    }
+
+    .addItem, .removeItem, .orderTable button.rotate {
         padding: 0 6px 2px;
         cursor: pointer;
     }
 
-        .checkMultiple button.rotate + button.rotate {
+    .orderTable button.rotate {
+        transform: rotate(90deg);
+    }
+
+        .orderTable button.rotate + button.rotate {
             margin-left: -2px;
         }
 
@@ -824,32 +930,7 @@ if (Url.has("?NABConfig")) {
                 </p>
                 
                 ${GetMultiple("fightPotionPriorityOrder", "Potions", LocalStorage.NABConfig.Fight.Potion.PriorityOrder, listOfPotions)}
-
-<!--TODO
---This will probably become a Table
-                // All are in Percentage -- To remove any specific Potion change the value to -1
-                // Don't change the name or the type unless you know exacly what you are doing.
-                Health: [
-                    { Type: "Item", Name: "Health Elixir", UseAt: 10 },
-                    { Type: "Item", Name: "Health Potion", UseAt: 30 },
-                    { Type: "Item", Name: "Health Draught", UseAt: 60 }, 
-                    { Type: "Item", Name: "Health Gem", UseAt: 50 },
-                    { Type: "Spell", Name: "Cure", UseAt: 40 },
-                    { Type: "Spell", Name: "Full-Cure", UseAt: 20 }
-                ],
-                Mana: [
-                    { Type: "Item", Name: "Mana Elixir", UseAt: 2 },
-                    { Type: "Item", Name: "Mana Potion", UseAt: 15 },
-                    { Type: "Item", Name: "Mana Draught", UseAt: 40 },
-                    { Type: "Item", Name: "Mana Gem", UseAt: 55 }
-                ],
-                Spirit: [
-                    { Type: "Item", Name: "Spirit Elixir", UseAt: 4 },
-                    { Type: "Item", Name: "Spirit Potion", UseAt: 30 },
-                    { Type: "Item", Name: "Spirit Draught", UseAt: 40 },
-                    { Type: "Item", Name: "Spirit Gem", UseAt: 70 }
-                ]
--->
+                ${GetPotionTable()}
         </div>
 
         <div class="settings_block">
@@ -903,7 +984,7 @@ if (Url.has("?NABConfig")) {
                         <td style="text-align: center;">Order</td>
                     </tr>
                 </thead>
-                <tbody class='checkMultiple'>
+                <tbody class='checkMultiple orderTable'>
                     ${GetSpiritTable()}
                 </tbody>
             </table>
@@ -932,23 +1013,6 @@ if (Url.has("?NABConfig")) {
                         </span>
                     </label>
                 </p>
-                <p>
-                    <input type="checkbox" id="idleBattleArenaActive" ${LocalStorage.NABConfig.Idle.Battle.Arena.Active ? "checked" : ""}>
-                    <label for="idleBattleArenaActive">Auto-start Arena</label>
-                </p>
-                ${GetMultiple("idleBattleArenaListToDo", "Do", LocalStorage.NABConfig.Idle.Battle.Arena.ListToDo, listOfArena)}
-
-                <p>
-                    <input type="checkbox" id="idleBattleRingOfBloodActive" ${LocalStorage.NABConfig.Idle.Battle.RingOfBlood.Active ? "checked" : ""}>
-                    <label for="idleBattleRingOfBloodActive" class="tooltip">Auto-Start RoB
-                        <span class="tooltiptext">
-                            Auto-start Ring of Blood<br>
-                            <i>Only works if you have enough tokens</i>
-                        </span>
-                    </label>
-                </p>
-                ${GetMultiple("idleBattleRingOfBloodListToDo", "Do", LocalStorage.NABConfig.Idle.Battle.RingOfBlood.ListToDo, listOfROB)}
-
                 <p>
                     <label for="idleBattleMinimumStamina" class="tooltip">Minimum Stamina:
                         <span class="tooltiptext">
@@ -980,6 +1044,22 @@ if (Url.has("?NABConfig")) {
                     </label>
                     <input type="number" id="idleBattleMaxStaminaToUseRestorative" value="${LocalStorage.NABConfig.Idle.Battle.MaxStaminaToUseRestorative}">
                 </p>
+                <p>
+                    <input type="checkbox" id="idleBattleArenaActive" ${LocalStorage.NABConfig.Idle.Battle.Arena.Active ? "checked" : ""}>
+                    <label for="idleBattleArenaActive">Auto-start Arena</label>
+                </p>
+                ${GetMultiple("idleBattleArenaList", "Do", LocalStorage.NABConfig.Idle.Battle.Arena.List, listOfArena)}
+
+                <p>
+                    <input type="checkbox" id="idleBattleRingOfBloodActive" ${LocalStorage.NABConfig.Idle.Battle.RingOfBlood.Active ? "checked" : ""}>
+                    <label for="idleBattleRingOfBloodActive" class="tooltip">Auto-Start RoB
+                        <span class="tooltiptext">
+                            Auto-start Ring of Blood<br>
+                            <i>Only works if you have enough tokens</i>
+                        </span>
+                    </label>
+                </p>
+                ${GetMultiple("idleBattleRingOfBloodList", "Do", LocalStorage.NABConfig.Idle.Battle.RingOfBlood.List, listOfROB)}
         </div>
 
         <div class="settings_block">
@@ -996,7 +1076,7 @@ if (Url.has("?NABConfig")) {
             <p>
                 <label for="idleCharacterTrainingMinCredits" class="tooltip">Minimum Credits:
                     <span class="tooltiptext">
-                        Minimum amount of credits needed to train
+                        Minimum amount of credits you have to have in order to auto-start Training
                     </span>
                 </label>
                 <input type="number" id="idleCharacterTrainingMinCredits" value="${LocalStorage.NABConfig.Idle.Character.Training.MinCredits}">
@@ -1083,7 +1163,6 @@ if (Url.has("?NABConfig")) {
     $$("#mainpane").innerHTML = configHTML;
 
     setTimeout(function () {
-
         $$("#applyChanges").onclick = function () {
             //Validation, maybe later?
 
@@ -1147,10 +1226,10 @@ if (Url.has("?NABConfig")) {
             LocalStorage.NABConfig.Idle.Battle.MaxStaminaToUseRestorative = parseInt($$("#idleBattleMaxStaminaToUseRestorative").value);
 
             LocalStorage.NABConfig.Idle.Battle.Arena.Active = $$("#idleBattleArenaActive").checked;
-            LocalStorage.NABConfig.Idle.Battle.Arena.ListToDo = getSelectValues($("#idleBattleArenaListToDo"));
+            LocalStorage.NABConfig.Idle.Battle.Arena.List = getSelectValues($("#idleBattleArenaList"));
 
             LocalStorage.NABConfig.Idle.Battle.RingOfBlood.Active = $$("#idleBattleRingOfBloodActive").checked;
-            LocalStorage.NABConfig.Idle.Battle.RingOfBlood.ListToDo = getSelectValues($("#idleBattleRingOfBloodListToDo"));
+            LocalStorage.NABConfig.Idle.Battle.RingOfBlood.List = getSelectValues($("#idleBattleRingOfBloodList"));
 
             // Character
             LocalStorage.NABConfig.Idle.Character.Active = $$("#idleCharacterActive").checked;
@@ -1184,7 +1263,7 @@ if (Url.has("?NABConfig")) {
             location.reload();
         }
 
-        $(".checkMultiple .moveUp").forEach(e => e.onclick = function () {
+        $(".orderTable .moveUp").forEach(e => e.onclick = function () {
             var tr = this.parentNode.parentNode
             var prev = tr.previousElementSibling;
 
@@ -1192,7 +1271,7 @@ if (Url.has("?NABConfig")) {
                 prev.before(tr);
         });
 
-        $(".checkMultiple .moveDown").forEach(e => e.onclick = function () {
+        $(".orderTable .moveDown").forEach(e => e.onclick = function () {
             var tr = this.parentNode.parentNode
             var next = tr.nextElementSibling;
 
@@ -2243,8 +2322,8 @@ else {
                     } else {
                         // Save Combination
                         $$("#riddleanswer").addEventListener('change', function () {
-                            LocalStorage.NABConfig.Riddle.Combinations[src] = $$("#riddleanswer").value;
-                            LocalStorage.UpdateConfig();
+                            LocalStorage.NotABot.Riddle[src] = $$("#riddleanswer").value;
+                            LocalStorage.Update();
                         });
 
                         beep();
@@ -2257,7 +2336,7 @@ else {
                 return false;
             },
             //Probe This 
-            Combinations: Object.assign({}, LocalStorage.NABConfig.Riddle.Combinations, {
+            Combinations: Object.assign({}, LocalStorage.NotABot.Riddle, {
                 "500d9639f0": "A", "c040b1cf0e": "A", "4693637779": "A", "6621d9201a": "A", "a0fe68a1e1": "A", "637a3dd556": "A", "cfdaabf41b": "A", "31d426a146": "A",
                 "2260367281": "A", "86cd089cb4": "A", "52093b0bf9": "A", "b8c0a5c1f2": "A", "e61491ee54": "A", "712953d5f0": "A", "d6ebb0c744": "A", "126965ee78": "A",
                 "f573e87f84": "A", "ddb1c99260": "A", "9898df62f7": "A", "a3cea27f08": "A", "2eecad477c": "A", "2e748a532e": "A", "c727bb52db": "A", "4eaf25d099": "A",
@@ -2537,7 +2616,7 @@ else {
 
                     Sell: function () {
                         if (this.Active) {
-                            var items = $("#item_pane.cspp .eqp > div:not(.iu)");
+                            var items = $("#item_pane.cspp .eqp > div:not(.iu):not(.il)[data-locked='0']");
                             var itemsSelected = 0;
 
                             for (var i = 0; i < items.length; i++) {
@@ -2556,7 +2635,7 @@ else {
 
                             if (NotABot.Idle.Bazaar.IgnoreAlerts) {
                                 equipshop.commit_transaction = function () {
-                                    var selected = $(".eqp > div:not(.iu)[style^='color']");
+                                    var selected = $(".eqp > div:not(.iu):not(.il)[style^='color']");
 
                                     if (selected) {
                                         var str_selected = "";
@@ -2793,7 +2872,7 @@ else {
                             this.ArenaList.push({ Arena, Difficulty, Name, Stamina, Click });
                         }
 
-                        this.ArenaList = this.ArenaList.filter(e => e.Name.In(this.ListToDo))
+                        this.ArenaList = this.ArenaList.filter(e => e.Name.In(this.List))
                     },
 
                     CheckRandomEncounters: function () {
@@ -2883,7 +2962,7 @@ else {
                             this.RingOfBloodList.push({ RingOfBlood, Difficulty, Name, Stamina, Click });
                         }
 
-                        this.RingOfBloodList = this.RingOfBloodList.filter(e => e.Name.In(this.ListToDo))
+                        this.RingOfBloodList = this.RingOfBloodList.filter(e => e.Name.In(this.List))
                     },
                 }),
 
@@ -3081,8 +3160,6 @@ else {
                         location.href = "?s=Bazaar&ss=is";
                     }
                     else if (this.Bazaar.Equipment.Active && idlePos < 2) {
-                        //if (Url.has("&filter=aheavy"))
-                        //    this.UpdateIdlePos(2);
                         if (Url.has("&filter=alight")) {
                             location.href = "?s=Bazaar&ss=es&filter=aheavy";
                             this.UpdateIdlePos(2);
