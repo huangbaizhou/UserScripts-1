@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Fuck Google
-// @namespace   Fuck Google
+// @namespace   Fuck
 // @match       https://www.google.com/search*
 // @grant       none
 // @version     1.0

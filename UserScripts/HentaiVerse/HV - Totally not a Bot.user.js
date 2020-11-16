@@ -7,6 +7,11 @@
 // @icon       http://e-hentai.org/favicon.ico
 // ==/UserScript==
 
+/* TODO List
+ *   Save Health/Mana/Spirit Potion
+ *   Import/Export Config
+ * */
+
 var NABVersion = "2.6.0";
 var isLogging = false;
 
@@ -300,6 +305,11 @@ window.LocalStorage = {
                         Active: false,
                         Use: ["Infused Flames", "Infused Frost", "Infused Lightning", "Infused Storm", "Infused Divinity", "Infused Darkness"]
                     },
+
+                    Salvage: {
+                        Active: true,
+                        List: ['Crude', 'Fair', 'Average', 'Fine', 'Superior']
+                    }
                 },
             },
         };
@@ -335,10 +345,11 @@ if (Url.has("?NABConfig")) {
         "Longest Journey", "Dreamfall", "Exile", "Sealed Power", "New Wings", "To Kill a God", "Eve of Death", "The Trio and the Tree", "End of Days", "Eternal Darkness", "A Dance with Dragons"];
     var listOfROB = ["Konata", "Mikuru Asahina", "Ryouko Asakura", "Yuki Nagato", "Real Life", "Invisible Pink Unicorn", "Flying Spaghetti Monster", "Triple Trio and the Tree"];
 
+    var listSalvage = ['Crude', 'Fair', 'Average', 'Fine', 'Superior', 'Exquisite', 'Magnificent']
 
-    var multiButton = `<td style='width: 50px;'>
-        <button type="button" class="rotate moveUp">&lsaquo;</button>
-        <button type="button" class="rotate moveDown">&rsaquo;</button>
+    var multiButton = `<td>
+        <button type="button" class="moveUp"><span class="ui-icon ui-icon-carat-1-n" title="Move Up"></span></button>
+        <button type="button" class="moveDown"><span class="ui-icon ui-icon-carat-1-s" title="Move Down"></span></button>
     </td>`;
 
     function GetMultiple(id, name, listUse, listTotal) {
@@ -465,7 +476,13 @@ if (Url.has("?NABConfig")) {
                             </span>
                         </label>
                     </td>
-                    <td><button type='button' class='addItem'><span class="ui-icon ui-icon-plus" title="Add Line"></span></button></td>
+                    <td>
+                        <button type='button' class='addItem' data-body="<td><input type='text' class='itemName' value=''/></td>
+                                <td><input type='number' class='itemAmount' value=''/></td>
+                                <td><button type='button' class='removeItem'><span class='ui-icon ui-icon-trash' title='Delete'></span></button></td>">
+                            <span class="ui-icon ui-icon-plus" title="Add Line"></span>
+                        </button>
+                        </td>
                 </tr>
             </thead>
             <tbody id='idleBazaarItemList'>`;
@@ -503,7 +520,7 @@ if (Url.has("?NABConfig")) {
                     <td>
                         <label class="tooltip">Use At
                             <span class="tooltiptext">
-                                When your health/mana/spirit hits this percentage or lower
+                                When your {1} hits this percentage or lower
                             </span>
                         </label>
                     </td>
@@ -522,28 +539,47 @@ if (Url.has("?NABConfig")) {
                             </span>
                         </label>
                     </td>
-                    <td><button type='button' class='addItem'><span class="ui-icon ui-icon-plus" title="Add Line"></span></button></td>
+                    <td>
+                        <button type='button' class='addItem' data-body="
+                            <td>
+                                <select class='type'>
+                                    <option value='Item'>Item</option>
+                                    <option value='Spell'>Spell</option>
+                                </select>
+                            </td>
+                            <td><input type='text' class='name'></td>
+                            <td><input type='number' class='useAt'></td>
+                            <td><input type='text' class='checkBuff'></td>
+                            <td><input type='text' class='checkBuff'></td>
+                            <td><button type='button' class='removeItem'><span class='ui-icon ui-icon-trash' title='Delete'></span></button></td>
+                            ${multiButton.replace(/"/g, "'")}">
+                            <span class="ui-icon ui-icon-plus" title="Add Line"></span>
+                        </button>
+                    </td>
                     <td style='text-align: center;'>Order</td>
                 </tr>
             </thead>
-            <tbody id='{1}' class='orderTable'>
-                {2}
+            <tbody id='{2}' class='orderTable'>
+                {3}
             </tbody>
         </table>`;
 
         var htmlTable = tableBody
             .replace('{0}', 'Health Items/Spells')
-            .replace('{1}', 'fightPotionHealth')
-            .replace('{2}', GetPotionItem(Health)) + "<br>";
+            .replace('{1}', 'health')
+            .replace('{2}', 'fightPotionHealth')
+            .replace('{3}', GetPotionItem(Health)) + "<br>";
 
         htmlTable += tableBody
             .replace('{0}', 'Mana Items/Spells')
-            .replace('{1}', 'fightPotionMana')
-            .replace('{2}', GetPotionItem(Mana)) + "<br>";
+            .replace('{1}', 'mana')
+            .replace('{2}', 'fightPotionMana')
+            .replace('{3}', GetPotionItem(Mana)) + "<br>";
         htmlTable += tableBody
             .replace('{0}', 'Spirit Items/Spells')
-            .replace('{1}', 'fightPotionSpirit')
-            .replace('{2}', GetPotionItem(Spirit));
+            .replace('{1}', 'spirit')
+            .replace('{2}', 'fightPotionSpirit')
+            .replace('{3}', GetPotionItem(Spirit));
 
         return htmlTable;
     }
@@ -678,8 +714,6 @@ if (Url.has("?NABConfig")) {
         padding-left: 8px;
     }
 
-
-
     /** Select Multiple **/
     .checkMultiple > tr > td:first-child {
         text-align: center;
@@ -695,8 +729,13 @@ if (Url.has("?NABConfig")) {
         text-align: center;
     }
 
-    .addItem, .removeItem, .orderTable button.rotate {
-        padding: 0 6px 2px;
+    .addItem, .removeItem {
+        padding: 0 2px;
+        cursor: pointer;
+    }
+
+    .moveUp, .moveDown {
+        padding: 0 1px;
         cursor: pointer;
     }
 
@@ -1085,25 +1124,6 @@ if (Url.has("?NABConfig")) {
         </div>
 
         <div class="settings_block">
-            <span class="item-title">Forge</span>
-            <p>
-                <input type="checkbox" id="idleForgeActive" ${LocalStorage.NABConfig.Idle.Forge.Active ? "checked" : ""}>
-                <label for="idleForgeActive">Active</label>
-            </p>
-
-            <p>
-                <input type="checkbox" id="idleForgeRepairActive" ${LocalStorage.NABConfig.Idle.Forge.Repair.Active ? "checked" : ""}>
-                <label for="idleForgeRepairActive">Repair Items</label>
-            </p>
-
-            <p>
-                <input type="checkbox" id="idleForgeEnchantActive" ${LocalStorage.NABConfig.Idle.Forge.Enchant.Active ? "checked" : ""}>
-                <label for="idleForgeEnchantActive">Enchant Items</label>
-            </p>
-
-            ${GetMultiple("idleForgeEnchantUse", "Enchantment", LocalStorage.NABConfig.Idle.Forge.Enchant.Use, listOfEnchants)}
-        </div>
-        <div class="settings_block">
             <span class="item-title">Bazaar</span>
             <p>
                 <input type="checkbox" id="idleBazaarActive" ${LocalStorage.NABConfig.Idle.Bazaar.Active ? "checked" : ""}>
@@ -1151,6 +1171,27 @@ if (Url.has("?NABConfig")) {
                 <input type="checkbox" id="idleBazaarMonsterLabUnlockSlot" ${LocalStorage.NABConfig.Idle.Bazaar.MonsterLab.UnlockSlot ? "checked" : ""}>
                 <label for="idleBazaarMonsterLabUnlockSlot">Unlock New Slots</label>
             </p>
+        </div>
+
+        <div class="settings_block">
+            <span class="item-title">Forge</span>
+            <p>
+                <input type="checkbox" id="idleForgeActive" ${LocalStorage.NABConfig.Idle.Forge.Active ? "checked" : ""}>
+                <label for="idleForgeActive">Active</label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleForgeRepairActive" ${LocalStorage.NABConfig.Idle.Forge.Repair.Active ? "checked" : ""}>
+                <label for="idleForgeRepairActive">Repair Items</label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleForgeEnchantActive" ${LocalStorage.NABConfig.Idle.Forge.Enchant.Active ? "checked" : ""}>
+                <label for="idleForgeEnchantActive">Enchant Items</label>
+            </p>
+            <p>
+                <input type="checkbox" id="idleForgeSalvageActive" ${LocalStorage.NABConfig.Idle.Forge.Salvage.Active ? "checked" : ""}>
+                <label for="idleForgeSalvageActive">Salvage Items</label>
+            </p>
+            ${GetMultiple("idleForgeSalvageList", "Quality", LocalStorage.NABConfig.Idle.Forge.Salvage.List, listSalvage)}
         </div>
 
         <div id="settings_apply">
@@ -1242,7 +1283,8 @@ if (Url.has("?NABConfig")) {
             LocalStorage.NABConfig.Idle.Forge.Repair.Active = $$("#idleForgeRepairActive").checked;
             LocalStorage.NABConfig.Idle.Forge.Enchant.Active = $$("#idleForgeEnchantActive").checked;
             LocalStorage.NABConfig.Idle.Forge.Enchant.Use = getSelectValues($("#idleForgeEnchantUse"));
-
+            LocalStorage.NABConfig.Idle.Forge.Salvage.Active = $$("#idleForgeSalvageActive").checked;
+            LocalStorage.NABConfig.Idle.Forge.Salvage.List = getSelectValues($("#idleForgeSalvageList"));
 
             // Bazaar
             LocalStorage.NABConfig.Idle.Bazaar.Active = $$("#idleBazaarActive").checked;
@@ -1288,12 +1330,11 @@ if (Url.has("?NABConfig")) {
             var tbody = this.parentElement.parentElement.parentElement
                 .parentElement.querySelector("tbody");
 
+            var txBody = this.dataset['body'];
             var tr = document.createElement("tr");
 
-            tr.innerHTML = `
-                <td><input type='text' class='itemName' value=''/></td>
-                <td><input type='number' class='itemAmount' value=''/></td>
-                <td><button type='button' class='removeItem'>Remove</button></td>`;
+            if (txBody)
+                tr.innerHTML = txBody;
 
             tbody.appendChild(tr);
 
@@ -1338,6 +1379,10 @@ if (Url.has("?NABConfig")) {
 
             return ListItem;
         }
+
+        function importConfig() { }
+
+        function exportConfig() { }
 
     }, 100);
 
@@ -1421,7 +1466,7 @@ else {
                     LocalStorage.Update();
                 }
 
-                this.Interval = setInterval(() => NotABot.Run(), 100);
+                this.Interval = setInterval(() => NotABot.Run(), 50);
             }
             else
                 NotABot.Run();
@@ -2291,7 +2336,7 @@ else {
                         });
 
                         beep();
-                        setInterval(beep, 150);
+                        setInterval(beep, 300);
                     }
 
                     return true;
@@ -2397,9 +2442,6 @@ else {
         Idle: Object.assign({}, LocalStorage.NABConfig.Idle, {
             Start: function () {
                 if (this.Active) {
-                    //TODO: Start Idling Sending people from one side to the other. Check if it's not in the page first,
-                    // also be aware to not be thrown in a loop, going from one page to another instead of doing the rest
-
                     if (Url.has("s=Character") || Url == "https://hentaiverse.org/")
                         if (this.Character.Start())
                             return true;
@@ -2429,23 +2471,23 @@ else {
                         if (Url.has("ss=ch") || Url == "https://hentaiverse.org/") // Character
                             return this.Character.Start();
 
-                        if (Url.has("ss=eq")) // Equipment
-                            return false; //TODO
+                        if (Url.has("ss=eq")) // TODO: Equipment
+                            return false;
 
-                        if (Url.has("ss=ab")) // Abilities
-                            return false; //TODO
+                        if (Url.has("ss=ab")) // TODO: Abilities
+                            return false;
 
                         if (Url.has("ss=tr")) //  Training
                             return this.Training.Start();
 
-                        if (Url.has("ss=it")) // Item Inventory
-                            return false; //TODO
+                        if (Url.has("ss=it")) // TODO: Item Inventory
+                            return false;
 
-                        if (Url.has("ss=in")) // Equip Inventory
-                            return false; //TODO
+                        if (Url.has("ss=in")) // TODO: Equip Inventory
+                            return false;
 
-                        if (Url.has("ss=se")) // Settings
-                            return false; //TODO
+                        if (Url.has("ss=se")) // TODO: Settings
+                            return false;
                     }
 
                     return false;
@@ -2550,26 +2592,24 @@ else {
                         if (Url.has("&ss=is")) // Item Shop
                             return this.Item.Buy();
 
-                        if (Url.has("&ss=ib")) // Item Bot
-                            return false; //TODO
+                        if (Url.has("&ss=ib")) // TODO: Item Bot
+                            return false;
 
                         if (Url.has("&ss=ml")) // Monster Lab
                             return this.MonsterLab.Start();
 
-                        if (Url.has("&ss=ss")) // Shrine
-                            return false; //TODO
+                        if (Url.has("&ss=ss")) // TODO: The Shrine
+                            return false;
 
-                        if (Url.has("&ss=mm")) // Mail
-                            return false; //TODO
+                        if (Url.has("&ss=mm")) // TODO: MoogleMail
+                            return false;
 
-                        if (Url.has("&ss=ss")) //Shrine
-                            return false; //TODO
+                        if (Url.has("&ss=lt")) // TODO: Weapon Lottery
+                            return false;
 
-                        if (Url.has("&ss=lt")) // Armor Lottery
-                            return false; //TODO
+                        if (Url.has("&ss=la")) // TODO: Armor Lottery
+                            return false;
 
-                        if (Url.has("&ss=la")) // Weapon Lottery
-                            return false; //TODO
                     }
 
                     return false;
@@ -2755,11 +2795,11 @@ else {
                         if (Url.has("&ss=rb")) // Ring of Blood
                             return this.RingOfBlood.Start();
 
-                        if (Url.has("&ss=gr")) // Grindfest
-                            return true; //TODO
+                        if (Url.has("&ss=gr")) // TODO: Grindfest
+                            return true;
 
-                        if (Url.has("&ss=iw")) // Item World
-                            return true; //TODO
+                        if (Url.has("&ss=iw")) // TODO: Item World
+                            return true;
                     }
 
                     return false;
@@ -2974,11 +3014,11 @@ else {
                         if (Url.has("&ss=sa")) // Salvage
                             return this.Salvage.Start();
 
-                        if (Url.has("&ss=fo")) // Reforge
-                            return false; //TODO
+                        if (Url.has("&ss=fo")) // TODO: Reforge
+                            return false;
 
-                        if (Url.has("&ss=fu")) // Soulfuse
-                            return false; //TODO
+                        if (Url.has("&ss=fu")) // TODO: Soulfuse
+                            return false;
                     }
 
                     return false;
@@ -3085,13 +3125,24 @@ else {
                 }),
 
                 Salvage: Object.assign({}, LocalStorage.NABConfig.Idle.Forge.Salvage, {
+
                     Start: function () {
-                        var eqp = $$(".eqp div:not(.iu)");
+                        if (this.Active) {
+                            var equips = $(".eqp div:not(.iu):not(.il)");
 
-                        if (eqp)
-                            eqp.click();
+                            for (var i = 0; i < equips.length; i++) {
+                                var eqp = equips[i];
+                                var eqpName = eqp.innerText;
+                                var eqpQuality = NotABot.Idle.Bazaar.Equipment.GetItemQuality(eqpName);
 
-                        return true;
+                                if (eqpQuality.In(this.List)) {
+                                    eqp.click();
+                                    return true;
+                                }
+                            }
+                        }
+
+                        return false;
                     }
                 }),
             }),
