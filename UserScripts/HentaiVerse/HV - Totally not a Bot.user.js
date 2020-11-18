@@ -96,7 +96,8 @@ window.LocalStorage = {
         ListPersona: [],
         Idle: false,
         IdlePos: -1,
-        Riddle: {}
+        Riddle: {},
+        LastMatch: { Message: "", Experience: 0 },
     },
     NABConfig: {},
 
@@ -332,6 +333,11 @@ window.LocalStorage = {
 LocalStorage.Load();
 LocalStorage.LoadConfig();
 /**********/
+/*TODELETE*/
+if (typeof LocalStorage.NotABot.LastMatch != "object") {
+    LocalStorage.NotABot.LastMatch = { Message: "", Experience: 0 };
+    LocalStorage.Update();
+}
 
 
 if (Url.has("?NABConfig")) {
@@ -1420,7 +1426,11 @@ else {
                 };
             } else {
                 infoText.style = "position: absolute; top: 5px; right: 65px; font-size: 13px; font-weight: bold; cursor: default;";
-                infoText.innerHTML = LocalStorage.NotABot.LastMatch;
+
+                if (LocalStorage.NotABot.LastMatch.Message) {
+                    infoText.innerHTML = LocalStorage.NotABot.LastMatch.Message;
+                    infoText.title = LocalStorage.NotABot.LastMatch.Experience.toLocaleString() + " EXP";
+                }
             }
 
             var idleMasterStyle = "position: absolute; top: 6px; right: 290px; font-size: 13px; font-weight: bold; cursor: pointer;"
@@ -1949,46 +1959,52 @@ else {
             Advance: function () {
                 if (this.AdvanceOnVictory) {
                     if ($$("#pane_completion #btcp")) {
+                        var panel = $$("#btcp").innerText;
                         var message = "";
+                        var counter = ""
+                        if ($$(".hvstat-round-counter"))
+                            counter = $$(".hvstat-round-counter").innerHTML;
+
 
                         if ($$("#btcp").onclick.toString().has("battle.battle_continue()")) {
-                            battle.battle_continue();
+                            this.AdvanceCheckMessage(panel);
 
+                            battle.battle_continue();
                             NotABot.Stop();
                             return true;
-                        } else if ($$("#btcp").innerText.has("You have been defeated!")) {
-                            let counter = "";
-
-                            if ($$(".hvstat-round-counter"))
-                                counter = $$(".hvstat-round-counter").innerHTML;
-
-                            message = "You lost at: " + counter;
-                        } else if ($$("#btcp").innerText.has("You have run away!")) {
-                            let counter = ""
-                            if ($$(".hvstat-round-counter"))
-                                counter = $$(".hvstat-round-counter").innerHTML;
-
-                            message = "You fleed at: " + counter;
-                        } else if ($$("#btcp").innerText.has("You are victorious!"))
+                        }
+                        else if (panel.has("You have been defeated!"))
+                            message = counter ? "You lost at: " + counter : "You lost";
+                        else if (panel.has("You have run away!"))
+                            message = counter ? "You fleed at: " + counter : "You fleed";
+                        else if (panel.has("You are victorious!"))
                             message = "You won!";
                         else
                             message = "Error";
 
                         Log(message, 'info');
-
-                        LocalStorage.NotABot.LastMatch = message;
-                        LocalStorage.Update();
+                        this.AdvanceCheckMessage(panel, message);
 
                         //common.goto_arena();
-
                         location.href = "https://hentaiverse.org/";
-
                         NotABot.Stop();
                         return true;
                     }
                 }
 
                 return false;
+            },
+            AdvanceCheckMessage: function (panel, msg) {
+                if (LocalStorage.NotABot.LastMatch.Message)
+                    LocalStorage.NotABot.LastMatch = { Message: "", Experience: 0 };
+
+                if (msg)
+                    LocalStorage.NotABot.LastMatch.Message = msg;
+
+                if (panel.indexOf("You gain ") > 0)
+                    LocalStorage.NotABot.LastMatch.Experience += parseInt(panel.split("You gain ")[1].replace(" exp", ""));
+
+                LocalStorage.Update();
             },
             Scan: function () {
                 if (this.ScanCreature) {
@@ -2374,8 +2390,10 @@ else {
                 "6da8f0ad23": "A", "e7c5448ee1": "A", "c50fe70a15": "A", "1a873f1255": "A", "208ceea194": "A", "f01b777940": "A", "bebbc11c11": "A", "45f5d94f03": "A",
                 "ebe409ac7f": "A", "a703db90e6": "A", "51c1f7e4ec": "A", "efafe12393": "A", "5994dac83f": "A", "8f1e9d0dcf": "A", "834fca704b": "A", "92d8427d9b": "A",
                 "800204c37e": "A", "1be7eb132d": "A", "b57fbf9ed7": "A", "76665be407": "A", "5150bc64eb": "A", "9c2803aade": "A", "c9c4431d6c": "A", "c6a5062cf5": "A",
-                "ff1d3415e7": "A", "6baf5d0cf5": "A", "73ca37d6e6": "A", "fc6c1baf21": "A",
-
+                "ff1d3415e7": "A", "6baf5d0cf5": "A", "73ca37d6e6": "A", "fc6c1baf21": "A", "0e1f1b2bb0": "A", "1acf099a20": "A", "5e1b39cd40": "A", "9cce18adbe": "A",
+                "4231bf9872": "A", "ca6459548c": "A", "e03a695203": "A", "1eadf97fbb": "A", "6ff5add15f": "A", "9caf9520ee": "A", "94b37ad28e": "A", "200b6dcf53": "A",
+                "128019afad": "A", "1702698986": "A", "c377b85f3c": "A", "e805cac08c": "A", "ed2bbadc78": "A", "f32e4b62dc": "A", "6a4e1b2489": "A", "43b71e599d": "A",
+                "bb3a3f4112": "A", "c3ea0ac09e": "A", "ed9407dbc2": "A", "f0e120dc83": "A",
 
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -2404,8 +2422,10 @@ else {
                 "13e0a6ddf6": "B", "131088353e": "B", "0f5db99cd3": "B", "c2ed99b9bd": "B", "d36e3dd4ba": "B", "b2e5da4b98": "B", "97ced38d90": "B", "05029caf12": "B",
                 "68a0541b50": "B", "625c5e3926": "B", "5e8f28f309": "B", "9e33fe4b1f": "B", "3b7138e708": "B", "2538a7072b": "B", "5b892f8bfc": "B", "d435ae8351": "B",
                 "3d563f2b4f": "B", "fadfe7a670": "B", "fe140de717": "B", "b88b7c1eb8": "B", "13a189db2d": "B", "bd321164d0": "B", "7bd403fed1": "B", "9b715c637c": "B",
-                "5435fbca05": "B", "2b6bb235fc": "B",
-
+                "5435fbca05": "B", "2b6bb235fc": "B", "01f88d7eec": "B", "fefafd0b03": "B", "2c29a08416": "B", "6c154e0f39": "B", "8becc7fb8a": "B", "86ea8c59d5": "B",
+                "117e21884a": "B", "3181191d2b": "B", "a397daf6c7": "B", "b67adb94a6": "B", "cad5d476bf": "B", "e7ab9cf6df": "B", "5c4e936381": "B", "27b1cd02ee": "B",
+                "308e0381e2": "B", "56447ac214": "B", "63667b92d4": "B", "bc66060ed3": "B", "bf96bd16d2": "B", "c47e6ab32a": "B", "dfd93c78cb": "B", "eb10d308e0": "B",
+                "ee014741a5": "B", "fc02b37f65": "B", "13ec2acecc": "B", "734b467541": "B", "929c6424e8": "B", "ab36346023": "B", "dd785874e5": "B",
 
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -2434,7 +2454,10 @@ else {
                 "147beb2ed8": "C", "a2b6393ec0": "C", "f8c0b4fb3f": "C", "c83f96bd39": "C", "3c9557f51e": "C", "1f49136bf9": "C", "0908540489": "C", "560f002119": "C",
                 "bcca72a5c4": "C", "8b3e34ccb9": "C", "ac413585eb": "C", "a340baab2f": "C", "18f3f30f7e": "C", "47f65a08d6": "C", "03618a113c": "C", "7f1146aa85": "C",
                 "695a9b04f9": "C", "2034c2701a": "C", "fe1999f59a": "C", "d6ccd5c2c3": "C", "8e61cbc9c6": "C", "f661cf224a": "C", "6aade9862e": "C", "7134c04239": "C",
-                "1de584d275": "C", "e41e88d6e9": "C", "bb0f26f6b2": "C",
+                "1de584d275": "C", "e41e88d6e9": "C", "bb0f26f6b2": "C", "1c7414c158": "C", "3c4061d556": "C", "7cb5de700b": "C", "10f08beba8": "C", "60c3f7c20e": "C",
+                "240d269e77": "C", "94486f2822": "C", "785232e92a": "C", "cd46e3c59c": "C", "d6f19134a3": "C", "db92bdb5f6": "C", "ea22927b56": "C", "fe586e1ae4": "C",
+                "08f742a3ab": "C", "52e512bd89": "C", "76e9c4e0af": "C", "e4fc2fe75b": "C", "4ef8674f61": "C", "5ef34f3614": "C", "9b80bd36cb": "C", "a62d8fec8c": "C",
+                "a80a00a2ad": "C", "ac9a6d215d": "C", "b4871b04be": "C", "c044260363": "C", "e52638206f": "C", "f17b974e50": "C",
 
 
             })
@@ -2558,7 +2581,7 @@ else {
 
                     Start: function () {
                         if (this.Active) {
-                            let credits = $(".fc4.fal.fcb").contains('Credits')[0].innerText.replace('Credits: ', '').replace(',', '');
+                            let credits = $(".fc4.fal.fcb").contains('Credits')[0].innerText.replace('Credits: ', '').replace(/,/g, '');
 
                             credits = parseInt(credits);
 
