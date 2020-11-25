@@ -9,7 +9,6 @@
 
 /* TODO List
  *   Save Health/Mana/Spirit Potion
- *   Import/Export Config
  * */
 
 var NABVersion = "2.6.0";
@@ -139,7 +138,6 @@ window.LocalStorage = {
 
             if (this.NABConfig.Version != NABVersion) {
                 this.NewConfig();
-                this.UpdateConfig();
                 console.log("Cleared Cache of old LocalStorage");
             }
         }
@@ -641,6 +639,20 @@ if (Url.has("?NABConfig")) {
         padding-top: 20px;
         clear: both;
         text-align: left;
+    }
+
+    #importExport {
+        text-align: center;
+        margin: 25px 0 10px;
+    }
+
+    #importExport label {
+        width: 250px;
+        text-align: center;
+        border: 1px solid black;
+        border-radius: 5px;
+        cursor: pointer;
+        padding: 10px 50px;
     }
 
     #settings_apply {
@@ -1200,6 +1212,11 @@ if (Url.has("?NABConfig")) {
             ${GetMultiple("idleForgeSalvageList", "Quality", LocalStorage.NABConfig.Idle.Forge.Salvage.List, listSalvage)}
         </div>
 
+        <div id="importExport">
+            <label id="exportData">Export Settings</label>
+            <label for="importData">Import Settings</label>
+            <input id="importData" style="display:none" type="file">
+        </div>
         <div id="settings_apply">
             <input id="applyChanges" type="button" name="submit" value="Apply Changes">
         </div>
@@ -1356,6 +1373,84 @@ if (Url.has("?NABConfig")) {
                 this.parentNode.parentNode.className = '';
         });
 
+        $("#exportData").forEach(e => e.onclick = function () {
+            if (LocalStorage && LocalStorage.NABConfig) {
+                var file = document.createElement("a");
+                file.style.display = "none";
+                file.download = `NAB Settings - ${LocalStorage.NotABot.Persona}.json`;
+                file.href = "data:application/octet-stream;base64," + window.btoa(unescape(encodeURIComponent(JSON.stringify(LocalStorage.NABConfig))));
+                file.click();
+                //file.remove();
+            }
+        });
+
+        $("#importData").forEach(e => e.onchange = function () {
+            var file = this.files[0];
+            var read = new FileReader();
+            read.readAsText(file);
+
+            read.onloadend = function () {
+                var data = JSON.parse(read.result);
+
+                for (var key in data) {
+                    if (key.In(["Version", "contains"]))
+                        continue;
+
+                    ProbeObject(key, data);
+                }
+
+                LocalStorage.UpdateConfig();
+                location.reload();
+            };
+
+            function ProbeObject(key, data) {
+                var keys = key.split(".");
+
+                var locStorage = LocalStorage.NABConfig[keys[0]];
+                var datStorage = data[keys[0]];
+
+                for (var i = 1; i < keys.length && locStorage; i++)
+                    locStorage = locStorage[keys[i]];
+
+                for (var i = 1; i < keys.length && datStorage; i++)
+                    datStorage = datStorage[keys[i]];
+
+                if (locStorage && datStorage) {
+                    if (typeof locStorage == "object" && !Array.isArray(locStorage)) {
+                        for (var newKey in datStorage) {
+                            if (newKey == "contains")
+                                continue;
+
+                            ProbeObject(key + "." + newKey, data);
+                        }
+                    } else {
+                        if (keys.length > 4)
+                            console.error("Key Length: " + keys.length);
+
+                        switch (keys.length) {
+                            //case 9:
+                            //case 8:
+                            //case 7:
+                            //case 6:
+                            //case 5:
+                            case 4:
+                                LocalStorage.NABConfig[keys[0]][keys[1]][keys[2]][keys[3]] = datStorage;
+                                break;
+                            case 3:
+                                LocalStorage.NABConfig[keys[0]][keys[1]][keys[2]] = datStorage;
+                                break;
+                            case 2:
+                                LocalStorage.NABConfig[keys[0]][keys[1]] = datStorage;
+                                break;
+                            case 1:
+                                LocalStorage.NABConfig[keys[0]] = datStorage;
+                                break;
+                        }
+                    }
+                }
+            }
+        });
+
         function getSelectValues(select) {
             var result = [];
 
@@ -1385,10 +1480,6 @@ if (Url.has("?NABConfig")) {
 
             return ListItem;
         }
-
-        function importConfig() { }
-
-        function exportConfig() { }
 
     }, 100);
 

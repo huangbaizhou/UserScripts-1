@@ -68,6 +68,7 @@ var newStyle = `
     .hvstat-round-counter { top: 25px; right: 21px; }
 
     /* HV Tools*/
+    #modal { border: 1px solid; margin: 2vh 15vw; }
     #networth { bottom: 26px !important; }
     #equipworth { bottom: -2px !important; top: unset !important; }
 
