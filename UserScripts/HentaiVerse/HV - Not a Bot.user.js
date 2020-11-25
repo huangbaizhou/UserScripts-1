@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name       HV - [NAT] Not A Bot
+// @name       HV - [NAB] Not A Bot
 // @namespace  Hentai Verse
 // @version    2.6.0
 // @author     Svildr
@@ -2353,6 +2353,26 @@ else {
 
                         beep();
                         setInterval(beep, 300);
+
+                        setInterval(() => {
+                            if (end_time && time_skew) {
+                                var time = Math.max(0, Math.ceil(end_time - Date.now() / 1000 - time_skew));
+
+                                if (time < 3) {
+                                    var rand = Math.floor(Math.random() * 3);
+
+                                    /* IF you have RiddleLimiter Plus */
+                                    var divs = $("#riddlebar > div");
+
+                                    if (divs.length == 3) {
+                                        divs[rand].click();
+                                    } else {
+                                        $$("#riddleanswer").value = rand == 0 ? "A" : rand == 1 ? "B" : "C";
+                                        $$("#riddleform").submit();
+                                    }
+                                }
+                            }
+                        }, 1000);
                     }
 
                     return true;

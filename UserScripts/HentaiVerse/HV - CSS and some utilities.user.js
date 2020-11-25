@@ -48,6 +48,9 @@ var newStyle = `
     body > a { top: unset !important; bottom: 32px; left: 18px !important; }
     .fc2 > div, .fc4 > div { top: -2px !important;}
 
+    /*Equip*/
+    #eqshop_outer, #eqinv_outer, #itemworld_outer, #forge_outer { margin: auto !important; }
+
     /* Inline Difficult Changer */
     .fc4.far.fcb > select { width: 78px !important; top: 6px !important; left: 1053px !important; }
 
@@ -65,7 +68,7 @@ var newStyle = `
     .hvstat-round-counter { top: 25px; right: 21px; }
 
     /* Random Encounters - This folks if what happens when you don't set a class or id to an object. */
-    body > div:not(#popup_box):not(#csp):not(#riddlebar):not(.ui-widget-overlay):not(.ui-front) { right: 220px; left: unset !important; }
+    body > div:not(#popup_box):not(#csp):not(#riddlebar):not(#imb):not(.ui-widget-overlay):not(.ui-front) { right: 220px; left: unset !important; }
 
 `;
 
