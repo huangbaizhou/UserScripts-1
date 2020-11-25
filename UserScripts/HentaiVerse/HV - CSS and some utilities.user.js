@@ -67,6 +67,11 @@ var newStyle = `
     div#mainpane > div#popup_box { right: 435px; left: unset !important; top: 25px !important; }
     .hvstat-round-counter { top: 25px; right: 21px; }
 
+    /* HV Tools*/
+    #networth { bottom: 26px !important; }
+    #equipworth { bottom: -2px !important; top: unset !important; }
+
+
     /* Random Encounters - This folks if what happens when you don't set a class or id to an object. */
     body > div:not(#popup_box):not(#csp):not(#riddlebar):not(#imb):not(.ui-widget-overlay):not(.ui-front) { right: 220px; left: unset !important; }
 
@@ -150,10 +155,17 @@ if (hasRandomEncounter) {
 
     if ((url.indexOf("s=Character") > -1 || url == "https://hentaiverse.org/") && localStorage.amoutRandomEncounter < 24) {
         setInterval(function () {
-            let lastChild = document.querySelector("body > :last-child");
+            let reButton = document.querySelector("body > :last-child:not(#imb)");
 
-            if (lastChild.innerText == "Ready" && !document.querySelector("#pane_log")) {
-                lastChild.querySelector("a").click();
+            if (!reButton)
+                reButton = document.querySelector("#counter_re")
+
+            if (reButton.innerText.toLowerCase().indexOf("ready") > 0 && !document.querySelector("#pane_log")) {
+                if (reButton.querySelector("a"))
+                    reButton.querySelector("a").click();
+                else
+                    reButton.click();
+
                 console.log("All good");
             }
         }, 5000); // 5s
