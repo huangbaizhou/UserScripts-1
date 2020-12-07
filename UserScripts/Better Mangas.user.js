@@ -1,4 +1,4 @@
-  // ==UserScript==
+// ==UserScript==
 // @name        Better Mangas
 // @namespace   Violentmonkey Scripts
 // @match       https://manganelo.com/chapter/*
@@ -9,7 +9,7 @@
 // @match       https://isekaiscan.com/manga/*
 // @match       https://simxblogger.blogspot.com/p/*
 
-
+// @match       https://manga68.com/manga/*
 // @match       https://www.mangalord.com/manga/*
 // @match       https://toonily.net/manga/*
 // @match       https://manhuaplus.com/manga/*
@@ -24,8 +24,8 @@
 
 var local = location.href;
 
-if(local.indexOf("manganelo") > 0 || local.indexOf("mangakakalot") > 0) {
-  var style = `
+if (local.indexOf("manganelo") > 0 || local.indexOf("mangakakalot") > 0) {
+    var style = `
   <style>
     #vungdoc iframe,
     .container-chapter-reader div {
@@ -48,63 +48,63 @@ if(local.indexOf("manganelo") > 0 || local.indexOf("mangakakalot") > 0) {
   </style>
   `;
 
-  document.head.innerHTML += style;
+    document.head.innerHTML += style;
 
-  //var next = ".navi-change-chapter-btn-next";
-  //var prev = ".navi-change-chapter-btn-prev";
+    //var next = ".navi-change-chapter-btn-next";
+    //var prev = ".navi-change-chapter-btn-prev";
 
-  var wasPressed = false;
-  var timeOut = 0;
+    var wasPressed = false;
+    var timeOut = 0;
 
-  document.addEventListener('keydown', function(event) {
-      if(event.keyCode == 37) {
-          if(wasPressed) {
-            if(document.querySelector(".navi-change-chapter-btn-prev"))
-              document.querySelector(".navi-change-chapter-btn-prev").click();
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode == 37) {
+            if (wasPressed) {
+                if (document.querySelector(".navi-change-chapter-btn-prev"))
+                    document.querySelector(".navi-change-chapter-btn-prev").click();
+                else
+                    document.querySelector(".next").click();
+            } else {
+                wasPressed = true;
+                timeOut = setTimeout(() => wasPressed = false, 500);
+            }
+        }
+        else if (event.keyCode == 39) {
+            if (wasPressed) {
+                if (document.querySelector(".navi-change-chapter-btn-next"))
+                    document.querySelector(".navi-change-chapter-btn-next").click();
+                else
+                    document.querySelector(".back").click();
+
+            } else {
+                wasPressed = true;
+                timeOut = setTimeout(() => wasPressed = false, 500);
+            }
+        }
+    });
+
+    document.querySelectorAll("img").forEach(e => {
+        e.addEventListener("click", function () {
+            var T = this;
+
+            if (T.style.width == "")
+                T.style.width = "72vw";
+            else if (T.style.width == "72vw")
+                T.style.width = "85vw";
             else
-              document.querySelector(".next").click();
-          } else {
-            wasPressed = true;
-            timeOut = setTimeout(() => wasPressed = false, 500); 
-          }
-      }
-      else if(event.keyCode == 39) {
-          if(wasPressed) {
-            if(document.querySelector(".navi-change-chapter-btn-next"))
-              document.querySelector(".navi-change-chapter-btn-next").click();
-            else
-              document.querySelector(".back").click();
-
-          } else {
-            wasPressed = true;
-            timeOut = setTimeout(() => wasPressed = false, 500); 
-          }
-      }
-  });
-
-  document.querySelectorAll("img").forEach(e => {
-    e.addEventListener("click", function() {
-      var T = this;
-
-      if(T.style.width == "")
-        T.style.width = "72vw";
-      else if(T.style.width == "72vw")
-        T.style.width = "85vw";
-      else
-        T.style.width = "";
-    })
-  });
-} 
-else if(local.indexOf("earlymanga") > 0) {
-  document.querySelector("#mjvgaqs-blanket").remove();
-} 
-else if(local.indexOf("mangallama") > 0) {
-  document.querySelectorAll("br").forEach (e => e.remove());
-  document.getElementById("detected").remove();
-  document.getElementById("livesearchm").remove();
-} 
-else if(local.indexOf("manga347") > 0) {
-  var style = `
+                T.style.width = "";
+        })
+    });
+}
+else if (local.indexOf("earlymanga") > 0) {
+    document.querySelector("#mjvgaqs-blanket").remove();
+}
+else if (local.indexOf("mangallama") > 0) {
+    document.querySelectorAll("br").forEach(e => e.remove());
+    document.getElementById("detected").remove();
+    document.getElementById("livesearchm").remove();
+}
+else if (local.indexOf("manga347") > 0) {
+    var style = `
   <style>
     .entry-header { margin: 4px 0 2px !important; width: 74vw; }
     .prev_page { padding: 3px 15px 3px 30px !important; }
@@ -120,10 +120,10 @@ else if(local.indexOf("manga347") > 0) {
   </style>
   `;
 
-  document.head.innerHTML += style;
-} 
-else if(local.indexOf("isekaiscan") > 0) {
-  var style = `
+    document.head.innerHTML += style;
+}
+else if (local.indexOf("isekaiscan") > 0) {
+    var style = `
   <style>
   .reading-content {
       width: 54%;
@@ -135,18 +135,15 @@ else if(local.indexOf("isekaiscan") > 0) {
   </style>
   `;
 
-  document.head.innerHTML += style;
-  document.querySelectorAll("img.lazyload").forEach(e => {e.src = e.dataset["src"].trim(); e.className = ""});
-} 
-else if(local.indexOf("simxblogger") > 0) {
-  document.querySelector("#fixedbox").remove();
-  document.querySelector(".switchbar").remove();
-  document.body.style.background = "#333";
+    document.head.innerHTML += style;
+    document.querySelectorAll("img.lazyload").forEach(e => { e.src = e.dataset["src"].trim(); e.className = "" });
+}
+else if (local.indexOf("simxblogger") > 0) {
+    document.querySelector("#fixedbox").remove();
+    document.querySelector(".switchbar").remove();
+    document.body.style.background = "#333";
 }
 else {
-  document.body.classList = "";
-  document.body.style.backgroundColor = "#111";
-  
+    document.body.classList = "";
+    document.body.style.backgroundColor = "#111";
 }
-
-
