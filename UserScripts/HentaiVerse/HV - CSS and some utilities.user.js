@@ -45,7 +45,7 @@ var newStyle = `
     #eqshop_outer div#item_pane, #eqshop_outer div#shop_pane,
     #itshop_outer div#item_pane, #itshop_outer div#shop_pane { height: calc(100vh - 240px) !important; }
     div#eqshop_sellall { top: unset; left: calc(50vw - 320px); bottom: 64px; }
-    body > a { top: unset !important; bottom: 32px; left: 18px !important; }
+    body > a { top: unset !important; bottom: 56px; left: 6px !important; }
     .fc2 > div, .fc4 > div { top: -2px !important;}
 
     /*Equip*/
@@ -68,7 +68,8 @@ var newStyle = `
     .hvstat-round-counter { top: 25px; right: 21px; }
 
     /* HV Tools*/
-    #modal { border: 1px solid; margin: 2vh 15vw; }
+    #modal { border: 1px solid !important; margin: 2vh 15vw; }
+    #modal .modal_inner { max-height: calc(75vh - 45px) !important; }
     #networth { bottom: 26px !important; }
     #equipworth { bottom: -2px !important; top: unset !important; }
 

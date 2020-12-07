@@ -1589,8 +1589,14 @@ else {
 
         Run: function () {
             if ($$("#pane_log")) {
-                if ($$("#pane_log").innerText == this.LastLog)
+                if ($$("#pane_log").innerText == this.LastLog) {
+                    if (new Date() - this.LastRun > 15000) {
+                        location.href = location.href;
+                        this.LastRun = new Date();
+                    }
+
                     return;
+                }
 
                 if (this.LastRun != 0)
                     Log(`Sleep Timer: ${new Date() - this.LastRun} ms`);
@@ -1916,7 +1922,7 @@ else {
                         };
 
                         if (roundContext && roundContext.length > 0) {
-                            var mContext = roundContext[i].scanResult;
+                            var mContext = roundContext[i]?.scanResult;
                             var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
 
                             // Didn't scan this monster yet
@@ -2506,7 +2512,18 @@ else {
                 "128019afad": "A", "1702698986": "A", "c377b85f3c": "A", "e805cac08c": "A", "ed2bbadc78": "A", "f32e4b62dc": "A", "6a4e1b2489": "A", "43b71e599d": "A",
                 "bb3a3f4112": "A", "c3ea0ac09e": "A", "ed9407dbc2": "A", "f0e120dc83": "A", "952b0e7fa7": "A", "6ad63e2f5a": "A", "8836517063": "A", "71117682ae": "A",
                 "61452bdd13": "A", "47de63deed": "A", "5abbf0613b": "A", "d989ff8963": "A", "86cbb02b42": "A", "2d487e0a49": "A", "0b83fbefa9": "A", "ecc2b6f29c": "A",
-                "d7e52a86ee": "A", "7ffb1d4cc5": "A", "cb7e642c5e": "A", "431ebd7644": "A", "e7f8d32da0": "A", "3c1ceb5314": "A", "05283e5a0c": "A",
+                "d7e52a86ee": "A", "7ffb1d4cc5": "A", "cb7e642c5e": "A", "431ebd7644": "A", "e7f8d32da0": "A", "3c1ceb5314": "A", "05283e5a0c": "A", "4e27fcf856": "A",
+                "930a2f00c1": "A", "414d46c116": "A", "62ee4b04e1": "A", "d9c434a31a": "A", "2e75ca164f": "A", "5109bcb05a": "A", "b0220f65db": "A", "f71f6bd45c": "A",
+                "96b2494b3f": "A", "0bc40b8988": "A", "d2c3ad0a65": "A", "55cfaf9aeb": "A", "73c478f09c": "A", "bc73ce790e": "A", "704072fcb4": "A", "b3a1b0b8fd": "A",
+                "9f230020f5": "A", "1bc68ab6b8": "A", "b82c2a3a4e": "A", "28b8205818": "A", "c46716a732": "A", "148600b3c5": "A", "f949f00d6f": "A", "8e5d7cc1b7": "A",
+                "0ce26ca2b2": "A", "0c6ef766f8": "A", "832d7aa9a4": "A", "5357ce2111": "A", "381088ee00": "A", "1bb569790d": "A", "2405d80bb7": "A", "09cf1a6dcb": "A",
+                "81f4317359": "A", "85744e83df": "A", "b0cefa5a49": "A", "bb518db4fb": "A", "9378fadd00": "A", "b0dd847bd2": "A", "c0a7b088c9": "A", "b3036214a3": "A",
+                "5a3a5c96a2": "A", "57024d5ee5": "A", "494a8fbea8": "A", "e4de193868": "A", "0a50d7b253": "A", "ca0efe4920": "A", "30b4b4a5d5": "A", "d220e36b91": "A",
+                "cacc1297ac": "A", "b1a79ac5c3": "A", "d1361bc985": "A", "11d65a2f84": "A", "e26bb47a7b": "A", "418cc4fe7b": "A", "a7da5884f5": "A", "e012f07a4e": "A",
+                "1b0eada0a2": "A", "0cd46f2e48": "A", "636dc81f5c": "A", "58a706083e": "A", "a4f622e65f": "A", "efb0b41470": "A", "cdf49462c9": "A", "59542e9424": "A",
+                "6c73295eb3": "A", "10056c59e9": "A", "b7f1ef86a1": "A", "b77cb656d9": "A", "5de4f948b7": "A", "99cef221d7": "A", "0620493bd6": "A", "ae044ebb65": "A",
+                "4ec717b99e": "A", "812972f503": "A", "c6f60866c6": "A", "567b9c9ee1": "A", "2a9fb30bfc": "A", "dd9d98ee9e": "A", "feb4754b63": "A", "02c18dfa4b": "A",
+                "e045278752": "A", "fb2f88fc8a": "A",
 
 
                 "404543f2b2": "B", "89a4ecdacd": "B", "7811dfe40d": "B", "8480600ebd": "B", "cd035d1831": "B", "0af3b04e8d": "B", "5086ec68ed": "B", "3f61d24447": "B",
@@ -2540,7 +2557,17 @@ else {
                 "308e0381e2": "B", "56447ac214": "B", "63667b92d4": "B", "bc66060ed3": "B", "bf96bd16d2": "B", "c47e6ab32a": "B", "dfd93c78cb": "B", "eb10d308e0": "B",
                 "ee014741a5": "B", "fc02b37f65": "B", "13ec2acecc": "B", "734b467541": "B", "929c6424e8": "B", "ab36346023": "B", "dd785874e5": "B", "15caf3bec9": "B",
                 "b90bb73e74": "B", "a5a48b58d9": "B", "0a599f723c": "B", "fc4f1ee958": "B", "d67815c7be": "B", "b55d8e901c": "B", "bc3fcd7d7c": "B", "1b6706d5d1": "B",
-                "544f3d0d4c": "B",
+                "544f3d0d4c": "B", "20cb94c3c8": "B", "9d5c0a3b19": "B", "87c346e9ad": "B", "2d3fbed266": "B", "24e26b2916": "B", "8bb85d4665": "B", "9df37ebc91": "B",
+                "347d894d05": "B", "39e496867b": "B", "78f611ba30": "B", "d2405dce5b": "B", "5e47d4541b": "B", "837777c07a": "B", "1776ea0f6d": "B", "45e21ef3eb": "B",
+                "d7495571d3": "B", "78ecca3b44": "B", "aaf4a2a489": "B", "c0b0a8a1c2": "B", "1fcf7055ac": "B", "ad58306a24": "B", "20744261ed": "B", "9480163c72": "B",
+                "0d5ac04e73": "B", "30c8157765": "B", "72a9c2f2cf": "B", "8557473cce": "B", "f946055ba7": "B", "894db31353": "B", "58e395a8aa": "B", "76c79eaa73": "B",
+                "1b5b46bd7c": "B", "89c6a40446": "B", "bf94c646d8": "B", "3cc40584ea": "B", "6226fcef71": "B", "0b6bfca1e2": "B", "0a42a30306": "B", "36bd12e470": "B",
+                "585bcdbc89": "B", "532de5f143": "B", "5ac753ac63": "B", "ebb325bba4": "B", "6b488c242b": "B", "3ccd68f70d": "B", "0189742f28": "B", "a0be8d7ab9": "B",
+                "70e3e03249": "B", "0b755c20b5": "B", "6035fc6538": "B", "46c78a1d1b": "B", "37db819d50": "B", "77023347fa": "B", "e31ff6d8c2": "B", "e0b1b5a88f": "B",
+                "676364ca79": "B", "55a97f84e3": "B", "47fbd2aacc": "B", "2df7a4b641": "B", "d5aa8eb3dc": "B", "069700949c": "B", "847cbe1170": "B", "8093b39929": "B",
+                "6e42c5f74a": "B", "989ed7af77": "B", "f4a7844d05": "B", "a8c9b0cb62": "B", "72a3461904": "B", "e06c20bc31": "B", "0782370c94": "B", "14168c9b2f": "B",
+                "93a4a2502b": "B", "153babc311": "B", "7c6a49f997": "B", "fb322fafac": "B", "b7a69c57f6": "B", "d4931b6971": "B", "245acc19d2": "B", "8c05d81c98": "B",
+                "2f4e169f1d": "B", "9da94646c6": "B",
 
 
                 "0401027bc9": "C", "15fd621b9e": "C", "c636d8ec4f": "C", "9518ec52e5": "C", "9983bf2c32": "C", "ac54f4fe00": "C", "394fb8d004": "C", "24006660f5": "C",
@@ -2575,8 +2602,18 @@ else {
                 "a80a00a2ad": "C", "ac9a6d215d": "C", "b4871b04be": "C", "c044260363": "C", "e52638206f": "C", "f17b974e50": "C", "49e49ce7db": "C", "d272e3d944": "C",
                 "9b7b03eb5c": "C", "1776e63472": "C", "8581d45f47": "C", "61b659dc83": "C", "7f74b70d75": "C", "04ccc35006": "C", "8df750f9df": "C", "52f7006b6c": "C",
                 "69bf1927a6": "C", "a5f14d34ca": "C", "03a7b93e2b": "C", "2cbdb59655": "C", "b8badfb028": "C", "51efe03ef0": "C", "bc6d1dc29d": "C", "4af936994d": "C",
-                "409fde3e5f": "C", "41bc7ae48f": "C", "f707971e00": "C", "5ed19a0695": "C", "2b3d99bfc2": "C", "9ab02cb7b3": "C", "9b970409b9": "C",
-
+                "409fde3e5f": "C", "41bc7ae48f": "C", "f707971e00": "C", "5ed19a0695": "C", "2b3d99bfc2": "C", "9ab02cb7b3": "C", "9b970409b9": "C", "2dc5c64f10": "C",
+                "d1ed5bb50e": "C", "d695387db2": "C", "9cc7fab664": "C", "230fb81eb0": "C", "4e0be99de2": "C", "4b5a4726f1": "C", "de8cde5c55": "C", "898630c3c7": "C",
+                "d23deba905": "C", "261c2d171a": "C", "15563877e2": "C", "7d5a713251": "C", "290b006d4a": "C", "d5bf2cbeca": "C", "c0c5486bd9": "C", "1220c0b6a7": "C",
+                "b0b2b1535b": "C", "c2fc2e0b77": "C", "4730715c9f": "C", "c83eedfbaf": "C", "88ebfed49c": "C", "8e1c905465": "C", "05f6b9f7ec": "C", "f3f44b2252": "C",
+                "f9493596e6": "C", "ccaf442bec": "C", "77a0405ac3": "C", "a56ef9badd": "C", "2f855e71c6": "C", "b4c2dd6cdb": "C", "872cc44b84": "C", "5bcad8f12e": "C",
+                "0659fdbf70": "C", "79dc9ab518": "C", "b2ec45e8aa": "C", "9bc4adc186": "C", "568dacf17b": "C", "83c4c3c06f": "C", "011560e3f0": "C", "6fcbfa5738": "C",
+                "16caf7b9fb": "C", "98e4aa801f": "C", "89d0d6f8e0": "C", "75526340f5": "C", "d2b2e63479": "C", "21997918a9": "C", "22df356db4": "C", "019767ff72": "C",
+                "ebb8117130": "C", "4a9eddffbc": "C", "ed9443d3f7": "C", "f39f4d782f": "C", "05acefed67": "C", "4ca5ea0c9d": "C", "c64710b0a0": "C", "8399607847": "C",
+                "e702f338ef": "C", "e3ddf58456": "C", "d5592f8f32": "C", "fa9556466b": "C", "ce7172e986": "C", "dbf04213b3": "C", "91d647a642": "C", "898c948932": "C",
+                "11d1508f95": "C", "0fef18fcf8": "C", "ec28f93fa1": "C", "8e88c450d3": "C", "8815db9cec": "C", "c7fb9e1817": "C", "b324bf8fe6": "C", "20fc3ea7a2": "C",
+                "40fe0df077": "C", "10cbe413ea": "C", "25686c54c2": "C", "7ed583b9fe": "C", "b1c74d73ff": "C", "e5abd3ffda": "C", "7407662c02": "C", "74f0d3a74a": "C",
+                "a23e3d74cf": "C", "5f9075e2a8": "C", "488ec77f9a": "C", "912113ee67": "C", "2757e5ba02": "C",
 
             })
         }),
@@ -3021,10 +3058,16 @@ else {
                     },
 
                     CheckRandomEncounters: function () {
-                        let lastChild = $$("body > :last-child");
+                        let reButton = $$("body > :last-child:not(#imb)");
 
-                        if (lastChild.innerText == "Ready") {
-                            lastChild.querySelector("a").click();
+                        if (!reButton)
+                            reButton = document.querySelector("#counter_re")
+
+                        if (reButton.innerText.toLowerCase().indexOf("ready") > 0) {
+                            if (reButton.querySelector("a"))
+                                reButton.querySelector("a").click();
+                            else
+                                reButton.click();
 
                             return true;
                         }
