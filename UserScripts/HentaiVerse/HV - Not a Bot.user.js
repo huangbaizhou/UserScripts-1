@@ -967,7 +967,8 @@ if (Url.has("?NABConfig")) {
             <p>
                 <label for="fightDebuffMinHealth" class="tooltip">Min Health
                     <span class="tooltiptext">
-                        Only Debuffs Monsters that have at least this much health
+                        Only Debuffs Monsters that have at least this much health <br>
+                        <i>You can either set a percentage (Value Bettween 0 and 100) or a fixed value like 50k</i>
                     </span>
                 </label>
                 <input type="number" maxlength="3" id="fightDebuffMinHealth" value="${LocalStorage.NABConfig.Fight.Debuff.MinHealth}" />
@@ -1693,7 +1694,7 @@ else {
                     if (this.Active && NotABot.Fight.Player.Mana > this.MinMana) {
                         //Order by Higher HP to Lower
                         var monsterList = NotABot.Fight.Monsters.List
-                            .filter((o => o.Health > 1 && o.Health >= this.MinHealth) || (o.Health <= 1 && o.Health > (this.MinHealth / 100)))
+                            .filter(o => ((o.Health <= 1 || this.MinHealth <= 100) && o.HealthPercentage > (this.MinHealth > 100 ? 0.5 : this.MinHealth / 100)) || o.Health >= this.MinHealth)
                             .sort((o, r) => r.Health - o.Health);
 
                         for (let i = 0; i < monsterList.length; i++) {
@@ -1914,6 +1915,7 @@ else {
                         var Weakness = "";
                         var WeaknessValue = 9999;
                         var Health = Object.querySelector("img[src='/y/s/nbargreen.png']").width / 120;
+                        var HealthPercentage = Health;
 
                         var Debuff = [];
                         var Click = function () {
@@ -1923,7 +1925,9 @@ else {
 
                         if (roundContext && roundContext.length > 0) {
                             var mContext = roundContext[i]?.scanResult;
-                            var Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+
+                            Health = parseInt(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]);
+                            HealthPercentage = parseFloat(Object.querySelector(".hvstat-monster-health").innerText.split('/')[0]) / parseFloat(Object.querySelector(".hvstat-monster-health").innerText.split('/')[1])
 
                             // Didn't scan this monster yet
                             if (mContext) {
@@ -1962,7 +1966,7 @@ else {
                             Debuff.push(debuff);
                         }
 
-                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, Debuff, Click });
+                        this.List.push({ Name, Object, Weakness, WeaknessValue, Health, HealthPercentage, Debuff, Click });
                     }
 
                     return false;
@@ -2726,7 +2730,7 @@ else {
                         "Quartermaster": 72,
                         "Archaeologist": 73,
                         "Metabolism": 84,
-                        "Inspiration": null,
+                        "Inspiration": 85,
                         "Scholar of War": 90,
                         "Tincture": 91,
                         "Pack Rat": 98,
@@ -2974,10 +2978,10 @@ else {
                             return this.RingOfBlood.Start();
 
                         if (Url.has("&ss=gr")) // TODO: Grindfest
-                            return true;
+                            return false;
 
                         if (Url.has("&ss=iw")) // TODO: Item World
-                            return true;
+                            return false;
                     }
 
                     return false;
@@ -3189,7 +3193,7 @@ else {
                         if (Url.has("&ss=re")) // Repair
                             return this.Repair.Start();
 
-                        if (Url.has("&ss=up")) // Upgrade
+                        if (Url.has("&ss=up")) // TODO: Upgrade
                             return false;
 
                         if (Url.has("&ss=en")) // Enchant
