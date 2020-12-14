@@ -13,17 +13,17 @@ var listTrain = {
     "Adept Learner": 50,
     "Assimilator": 51,
     "Ability Boost": 80,
-    "Manifest Destiny": null,
+    "Manifest Destiny": 81,
     "Scavenger": 70,
     "Luck of the Draw": 71,
     "Quartermaster": 72,
     "Archaeologist": 73,
-    "Metabolism": null,
-    "Inspiration": null,
+    "Metabolism": 84,
+    "Inspiration": 85,
     "Scholar of War": 90,
     "Tincture": 91,
     "Pack Rat": 98,
-    "Dissociation": null,
+    "Dissociation": 88,
     "Set Collector": 96
 };
 

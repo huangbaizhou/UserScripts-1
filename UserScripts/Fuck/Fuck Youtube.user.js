@@ -9,6 +9,10 @@
 // ==/UserScript==
 
 
+var listOfFucksIGive = [".ytp-ce-element", ".ytp-gradient-top"];
 
-document.querySelectorAll(".ytp-ce-element").forEach(e=> e.remove());
-document.querySelectorAll(".ytp-gradient-top").forEach(e=> e.remove());
+setInterval(() => {
+    for (var i = 0; i < listOfFucksIGive.length; i++)
+        if (document.querySelectorAll(listOfFucksIGive[i]).length > 0)
+            document.querySelectorAll(listOfFucksIGive[i]).forEach(e => e.remove());
+}, 2000)
