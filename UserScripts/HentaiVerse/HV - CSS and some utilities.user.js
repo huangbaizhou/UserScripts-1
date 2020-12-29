@@ -33,8 +33,11 @@ var newStyle = `
     /* Battle*/
     div.bte > img, div.btm6 > img { width: 28px !important; height: 30px !important; }
     div#expholder { left: calc(50% - 619px); top: calc(100vh - 25px); }
-    div#riddlebar { left: calc(50vw - 344px) !important; }
     div#pane_log { height: calc(100vh - 320px); }
+
+    /*Riddle Master*/
+    div#riddlebar { left: calc(50vw - 344px) !important; }
+    div#riddlebar > div { border-left: 1px solid; border-right: 1px solid; }
 
 
     /*Baazar*/
