@@ -45,6 +45,10 @@ if (local.indexOf("manganelo") > 0 || local.indexOf("mangakakalot") > 0) {
     .UFIInputContainer {
       color: #111;
     }
+
+    iframe {
+        background: #fff;
+    }
   </style>
   `;
 
@@ -146,4 +150,5 @@ else if (local.indexOf("simxblogger") > 0) {
 else {
     document.body.classList = "";
     document.body.style.backgroundColor = "#111";
+
 }
