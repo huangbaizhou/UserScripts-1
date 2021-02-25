@@ -88,7 +88,20 @@ window["lazyLoad"] = {
         a.onclick = () => lazyLoad.Load(page);
 
         a.querySelector("img").removeAttribute("onerror");
-        a.querySelector("img").onerror = () => setTimeout(() => lazyLoad.Load(this.LoadingPage), 1500);
+        a.querySelector("img").onerror = () => {
+            var img = this;
+
+            if (!img.hasOwnProperty('retryCount')) {
+                img.retryCount = 0;
+                img.base_url = img.src;
+            }
+
+            if (img.retryCount < 10) {
+                setTimeout(() => img.src = img.base_url + "?" + img.retryCount, 1000);
+            }
+
+            this.src += "?" + new Date();
+        };
 
     },
 

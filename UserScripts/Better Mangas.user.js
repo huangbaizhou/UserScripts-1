@@ -26,31 +26,31 @@ var local = location.href;
 
 if (local.indexOf("manganelo") > 0 || local.indexOf("mangakakalot") > 0) {
     var style = `
-  <style>
+<style>
     #vungdoc iframe,
     .container-chapter-reader div {
-      display: none !important;
+        display: none !important;
     }
 
     #vungdoc img,
     .container-chapter-reader img {
-      margin: 0 auto !important;
-      width: 47vw;
+        margin: 0 auto !important;
+        width: 47vw;
     }
 
     .pluginSkinDark.pluginFontHelvetica {
-      color: white;
+        color: white;
     }
 
     .UFIInputContainer {
-      color: #111;
+        color: #111;
     }
 
     iframe {
         background: #fff;
     }
-  </style>
-  `;
+</style>
+`;
 
     document.head.innerHTML += style;
 
@@ -97,6 +97,28 @@ if (local.indexOf("manganelo") > 0 || local.indexOf("mangakakalot") > 0) {
             else
                 T.style.width = "";
         })
+
+        e.removeAttribute("alt");
+
+        e.addEventListener("error", function () {
+            setTimeout(function () {
+                var url = e.src;
+
+                var id = 0;
+
+                if (url.indexOf("?c=") > 0) {
+                    id = parseInt(url.split("?c=")[1]);
+                    url = url.split("?c=")[0];
+                }
+
+                id++;
+
+                if (id < 10) {
+                    url += "?c=" + id;
+                    e.src = url;
+                }
+            }, 1000);
+        });
     });
 }
 else if (local.indexOf("earlymanga") > 0) {
@@ -109,7 +131,7 @@ else if (local.indexOf("mangallama") > 0) {
 }
 else if (local.indexOf("manga347") > 0) {
     var style = `
-  <style>
+<style>
     .entry-header { margin: 4px 0 2px !important; width: 74vw; }
     .prev_page { padding: 3px 15px 3px 30px !important; }
     .next_page { padding: 3px 30px 3px 15px !important; }
@@ -121,22 +143,22 @@ else if (local.indexOf("manga347") > 0) {
       box-shadow: none;
     }
 
-  </style>
+</style>
   `;
 
     document.head.innerHTML += style;
 }
 else if (local.indexOf("isekaiscan") > 0) {
     var style = `
-  <style>
-  .reading-content {
-      width: 54%;
-      margin: 0 auto;
-  }
-  body {
-      background-color: #141313 !important;
-  }
-  </style>
+<style>
+    .reading-content {
+        width: 54%;
+        margin: 0 auto;
+    }
+    body {
+        background-color: #141313 !important;
+    }
+</style>
   `;
 
     document.head.innerHTML += style;
@@ -152,3 +174,5 @@ else {
     document.body.style.backgroundColor = "#111";
 
 }
+
+

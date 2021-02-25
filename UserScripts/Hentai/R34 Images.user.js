@@ -11,12 +11,12 @@
 // ==/UserScript==
 
 
-setTimeout(function(){
-  if(document.querySelector("#image"))
-    document.querySelector("#image").onclick = function () { location.href = document.querySelector("#image").src;  }
+setTimeout(function () {
+    if (document.querySelector("#image"))
+        document.querySelector("#image").onclick = function () { location.href = document.querySelector("#image").src; }
     //location.href = document.querySelector("#image").src;
 
-  if(document.querySelector("#main_image"))
-    document.querySelector("#main_image").onclick = function () { location.href = document.querySelector("#main_image").src;  }
+    if (document.querySelector("#main_image"))
+        document.querySelector("#main_image").onclick = function () { location.href = document.querySelector("#main_image").src; }
     //location.href = document.querySelector("#main_image").src;
 }, 150)
