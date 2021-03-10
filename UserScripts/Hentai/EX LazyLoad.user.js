@@ -5,21 +5,32 @@
 // @match       https://exhentai.org/s/*
 // @grant       none
 // @version     1.0
-// @author      -
-// @description 12/13/2020, 5:02:40 PM
+// @author      Svildr
 // ==/UserScript==
 
 var $ = e => document.querySelector(e);
 var $$ = e => document.querySelectorAll(e);
+function getOffset(el) {
+  const rect = el.getBoundingClientRect();
+  return {
+    left: rect.left + window.scrollX,
+    top: rect.top + window.scrollY
+  };
+}
 
 var style = `
 <style>
 	#i1 {
-		width: unset !important;
 		max-width: unset !important;
+		min-width: unset !important;
+		width: unset !important;
 		background: #34353b;
 		border: unset;
 	}
+		
+		#i1 > h1 {
+			white-space: nowrap;
+		}
 
 	#i3 {
 		width: unset !important;
@@ -32,6 +43,18 @@ var style = `
 		height: unset !important;
 		width: unset !important;
 	}
+	
+	#i3.fullscreen {
+		min-height: calc(100vh - 30px);
+	}
+	
+		#i3.fullscreen img {
+			max-width: 100vw !important;
+			max-height: calc(100vh - 32px) !important;
+			min-width: unset !important;
+			height: unset !important;
+			width: unset !important;
+		}
 
 	#i2 a, #i4 a {
 		cursor: pointer;
@@ -45,9 +68,12 @@ window["lazyLoad"] = {
     ActualPage: 0,
     LoadingPage: 0,
     MaxPage: 9999,
+    LoadingAll: 0,
+    IsFullscreen: "N",
     Page: {},
     Pages: [],
     Dispatcher: null,
+	Title: "",
 
     Start: function () {
         var path = location.pathname.split("/");
@@ -59,9 +85,23 @@ window["lazyLoad"] = {
         this.Pages.push({ imgKey, page, loaded: true, i6, i7 });
         this.Page = { imgKey, page, loaded: true, i6, i7 };
         this.ActualPage = page;
-        this.MaxPage = parseInt($$("#i2 .sn div span")[1].innerText)
+        this.MaxPage = parseInt($$("#i2 .sn div span")[1].innerText);
+		this.Title = document.title;
 
-        this.LoadButtons();
+        document.querySelector(".dp").innerHTML += "&nbsp; <a href='javascript:lazyLoad.LoadAll();'>Load All</a>"
+
+        if (localStorage["lazyLoad.Fullscreen"] != null){
+            this.IsFullscreen = localStorage["lazyLoad.Fullscreen"];
+			
+			if(this.IsFullscreen == "Y") {
+				$("#i3").className = "fullscreen";
+				setTimeout(() => window.scrollTo(0, getOffset($("#i3")).top), 100);
+            }
+		}
+        else
+            localStorage["lazyLoad.Fullscreen"] = "N";
+
+        this.CheckButtons();
 
     },
     CheckLink: function (a) {
@@ -105,12 +145,31 @@ window["lazyLoad"] = {
 
     },
 
-    Load: function (page) {
-        if (this.LoadingPage > 0)
-            return;
+    Load: function (page, isLoadAll = false) {
+		if((isLoadAll && this.LoadingPage > 0) ||
+		  (!isLoadAll && this.LoadingPage > 0 && this.LoadingAll == 0) ||
+		  this.ActualPage == page)
+			return;
+		
+		if(!isLoadAll && this.LoadingPage > 0 && this.LoadingAll > 0) {
+			var tmpPage = this.Pages.filter(e => e.page == page)[0];
+			
+			if (tmpPage && tmpPage.loaded && tmpPage.page == page) {
+				this.LoadImage(tmpPage);
+				this.AddHistory(tmpPage);
+			}
+			
+			return;
+		}
+		
+        //if (this.LoadingPage > 0)
+        //	return;
 
         var Page = this.Pages.filter(e => e.page == page)[0];
         this.LoadingPage = parseInt(page);
+
+        if (!isLoadAll)
+            this.AddHistory(Page);
 
         if (Page.loaded) {
             this.LoadImage();
@@ -118,23 +177,74 @@ window["lazyLoad"] = {
             if (this.Dispatcher != undefined)
                 return false;
 
-            if (history.pushState) {
-                var page = Page.page;
-                var imgkey = Page.imgKey;
+            var page = Page.page;
+            var imgkey = Page.imgKey;
+            var dto = { method: "showpage", gid, page, imgkey, showkey };
 
-                var destiny = `${location.origin}/s/${imgkey}/${gid}-${page}`;
-                var dto = { method: "showpage", gid, page, imgkey, showkey };
-
-                this.Request(dto);
-                history.pushState({ page, imgkey }, document.title, destiny);
-            }
+            this.Request(dto);
 
             return true;
         }
     },
-    LoadImage: function () {
-        this.ActualPage = this.LoadingPage;
-        this.Page = this.Pages.filter(e => e.page == this.ActualPage)[0];
+    LoadAll: function () {
+		if(lazyLoad.LoadingAll == 0) {
+			document.title = "Loading..."
+			lazyLoad.LoadingAll = setInterval(o => {
+				if (lazyLoad.LoadingPage != 0)
+					return; // WAIT
+
+				var notLoaded = lazyLoad.Pages.filter(e => e.loaded == false);
+
+				if (notLoaded.length > 0) {
+					lazyLoad.Load(notLoaded[0].page, true);
+					return;
+				}
+
+				document.title = lazyLoad.Title;
+				clearInterval(lazyLoad.LoadingAll);
+				lazyLoad.LoadingAll = 0;
+			}, 1000);
+		} else {
+			document.title = lazyLoad.Title;
+			clearInterval(lazyLoad.LoadingAll);
+			lazyLoad.LoadingAll = 0;
+		}
+		
+
+
+    },
+
+    AddHistory: function (Page) {
+        if (history.pushState) {
+            var page = Page.page;
+            var imgkey = Page.imgKey;
+
+            var destiny = `${location.origin}/s/${imgkey}/${gid}-${page}`;
+
+            history.pushState({ page, imgkey }, document.title, destiny);
+        }
+    },
+    Fullscreen: function (Page) {
+        this.IsFullscreen = this.IsFullscreen == "N" ? "Y" : "N";
+        localStorage["lazyLoad.Fullscreen"] = this.IsFullscreen;
+
+        if (this.IsFullscreen == "Y") {
+            $("#i3").className = "fullscreen";
+			window.scrollTo(0, getOffset($("#i3")).top);
+		}
+        else
+            $("#i3").className = "";
+    },
+
+    LoadImage: function (tmpPage) {
+		if(tmpPage == null) {
+			this.ActualPage = this.LoadingPage;
+			this.Page = this.Pages.filter(e => e.page == this.ActualPage)[0];
+		} else {
+			this.Page = tmpPage;
+			this.ActualPage = tmpPage.page;
+		}
+		
 
         $$(".images").forEach(e => e.style.display = "none");
         $(`#img_${this.ActualPage}`).style.display = "unset";
@@ -148,14 +258,15 @@ window["lazyLoad"] = {
         $("#i6").innerHTML = this.Page.i6;
         $("#i7").innerHTML = this.Page.i7;
 
-        window.scrollTo(0, 75);
+        window.scrollTo(0, getOffset($("#i3")).top);
 
-        this.LoadingPage = 0;
+		if(tmpPage == null)
+			this.LoadingPage = 0;
     },
-    LoadButtons: function () {
-        var i2 = $$("#i2 .sn > a");
-        var i3 = $$("#i3 > a:not(.images)");
-        var i4 = $$("#i4 .sn > a");
+    CheckButtons: function (i2 = $$("#i2 .sn > a"), i3 = $$("#i3 > a:not(.images)"), i4 = $$("#i4 .sn > a")) {
+        //var i2 = $$("#i2 .sn > a");
+        //var i3 = $$("#i3 > a:not(.images)");
+        //var i4 = $$("#i4 .sn > a");
 
         i2.forEach(a => { this.CheckLink(a) });
         i3.forEach(a => {
@@ -165,15 +276,17 @@ window["lazyLoad"] = {
         });
         i4.forEach(a => { this.CheckLink(a) });
 
-        $("#i2 > div:not(.sn)").remove();
-        $("#i4 > div:not(.sn)").remove();
+        if ($("#i2 > div:not(.sn)"))
+            $("#i2 > div:not(.sn)").remove();
+        if ($("#i4 > div:not(.sn)"))
+            $("#i4 > div:not(.sn)").remove();
     },
 
     Request: function (dto) {
         this.Dispatcher = new XMLHttpRequest();
         //var api_url = "https://exhentai.org/api.php";
         //var api_url = "https://api.e-hentai.org/api.php"
-
+		
         this.Dispatcher.open("POST", api_url);
         this.Dispatcher.setRequestHeader("Content-Type", "application/json");
         this.Dispatcher.withCredentials = true;
@@ -184,12 +297,14 @@ window["lazyLoad"] = {
         var jSonResp = lazyLoad.Response();
 
         if (jSonResp != false) {
-            history.replaceState({
-                page: jSonResp.p,
-                imgkey: jSonResp.k,
-                json: jSonResp,
-                expire: get_unixtime() + 300 // SleepTime in ms
-            }, document.title, base_url + jSonResp.s);
+            if (lazyLoad.LoadingAll == 0) {
+                history.replaceState({
+                    page: jSonResp.p,
+                    imgkey: jSonResp.k,
+                    json: jSonResp,
+                    expire: get_unixtime() + 300 // SleepTime in ms
+                }, document.title, base_url + jSonResp.s);
+            }
 
             lazyLoad.ApplyJson(jSonResp);
             lazyLoad.Dispatcher = undefined;
@@ -207,20 +322,31 @@ window["lazyLoad"] = {
         return false;
     },
     ApplyJson: function (json) {
-        window.scrollTo(0, 0);
-
         var Page = this.Pages.find(e => e.page == this.LoadingPage);
         Page.i6 = json.i6;
         Page.i7 = json.i7;
         Page.loaded = true;
 
-        $("#i2").innerHTML = json.n + json.i;
-        //$("#i3").innerHTML += json.i3;
-        $("#i4").innerHTML = json.i + json.n;
+        this.CheckJsonButtons(json);
+
+        if (this.LoadingAll == 0) {
+            this.LoadImage();
+        } else {
+            this.LoadingPage = 0;
+        }
+    },
+    CheckJsonButtons: function (json) {
+        // i2
+        var i2 = document.createElement("div");
+        i2.style.display = "none";
+        i2.innerHTML = json.n + json.i;
+        i2 = i2.querySelectorAll(".sn > a");
 
 
+        // i3
         //Load Image
         var a = document.createElement('a');
+        a.style.display = "none";
         a.id = `img_${this.LoadingPage}`;
         a.className = "images";
         a.role = "button";
@@ -239,8 +365,14 @@ window["lazyLoad"] = {
         a.querySelector("img").removeAttribute("onerror");
         a.querySelector("img").onerror = () => setTimeout(() => lazyLoad.Load(this.LoadingPage), 1500);
 
-        this.LoadButtons();
-        this.LoadImage();
+
+        // i4
+        var i4 = document.createElement("div");
+        i4.style.display = "none";
+        i4.innerHTML = json.i + json.n;
+        i4 = i4.querySelectorAll(".sn > a");
+
+        this.CheckButtons(i2, $$("#i3 > a:not(.images)"), i4);
     }
 };
 
