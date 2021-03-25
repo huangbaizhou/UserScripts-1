@@ -9,8 +9,9 @@
 // ==/UserScript==
 
 
-var blockedContent = ["gay", "guro", "scat"]; // This content will be censored, but not removed
-var removedContent = ["no sexual content"]; // This content will not be seen
+var likedContent = ["anal sex", "loli", "animated", "futa/trans", "futa/trans protagonist", ]; // These tags will have a different color
+var blockedContent = ["gay", "guro", "scat"]; // Posts with any of these tags will be dimmed, but not removed you can still see the content if you put your mouse over.
+var removedContent = ["no sexual content"]; // Posts with any of these tags will not be seen
 
 
 /* STYLE */
@@ -37,14 +38,27 @@ var style = `
         display: none !important;
     }
 
+    {4} {
+        background-color: white !important;
+		color: black !important;
+    }
+
 </style>
 `;
 
 
-var blocked = "",
+var liked = "",
+	blocked = "",
     blockedHover = "",
     blockedSpan = "",
     removed = "";
+	
+for (var i = 0; i < likedContent.length; i++) {
+    if (liked != "")
+		liked += ", ";
+	
+    liked += `.resource-tile_tags > span[data-content*='${likedContent[i]}']`;
+}
 
 for (var i = 0; i < blockedContent.length; i++) {
     if (blocked != "") {
@@ -69,7 +83,8 @@ for (var i = 0; i < removedContent.length; i++) {
 style = style.replace("{0}", blocked)
     .replace("{1}", blockedHover)
     .replace("{2}", blockedSpan)
-    .replace("{3}", removed);
+    .replace("{3}", removed)
+	.replace("{4}", liked);
 
 document.head.innerHTML += style;
 /* END STYLE */

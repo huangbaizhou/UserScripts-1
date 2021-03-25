@@ -10,6 +10,7 @@
 
 var $ = e => document.querySelector(e);
 var $$ = e => document.querySelectorAll(e);
+
 function getOffset(el) {
   const rect = el.getBoundingClientRect();
   return {
@@ -17,6 +18,29 @@ function getOffset(el) {
     top: rect.top + window.scrollY
   };
 }
+
+document.onkeypress = function (e) {
+    e = e || window.event;
+	console.log(e);
+	
+	switch(e.key) {
+		case '9':
+		case 'x':
+		case 'X':
+			lazyLoad.LoadAll();
+			break;
+		case '0':
+		case '7':
+		case 'f':
+		case 'F':
+			lazyLoad.Fullscreen();
+			break;
+	}
+	
+	//	console.log(e.keyCode)
+    // use e.keyCode
+};
+
 
 var style = `
 <style>
